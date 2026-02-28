@@ -1,0 +1,16 @@
+parameter,value,description
+delta_c,0.010,Margem de nao-inferioridade para selecao do Core-PAM (C-index OOF)
+alpha,0.5,Parametro elastic-net (0=ridge 1=lasso)
+k_folds,10,Numero de folds estratificados (fixos)
+seed_folds,42,Seed para reproducibilidade dos folds
+min_genes_fraction,0.80,Fracao minima de genes do painel exigida por coorte (0.80 = 80%)
+time_unit_divisor,30.4375,Divisor para converter dias em meses (365.25/12)
+primary_endpoint_scanb,OS,Endpoint primario na coorte de treino
+primary_endpoint_metabric,DSS,Endpoint primario METABRIC (DSS; OS como sensibilidade)
+primary_endpoint_tcga,OS,Endpoint primario TCGA-BRCA
+primary_endpoint_gse96058,OS,Endpoint primario GSE96058
+primary_endpoint_gse20685,OS,Endpoint primario GSE20685
+km_cutpoint,median,Cutpoint principal para KM (mediana intra-coorte)
+km_cutpoint_sensitivity,quartiles,Cutpoint de sensibilidade para KM
+bootstrap_n,1000,Numero de replicas bootstrap para IC95 do C-index
+horizon_sensitivity_months,24,Horizonte alternativo (meses) para sensibilidade TCGA

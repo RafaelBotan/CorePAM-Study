@@ -1,0 +1,96 @@
+---
+title: "Core-PAM — Rastreabilidade Metodológica e Resultados (Living QMD)"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+  pdf:
+    toc: true
+    number-sections: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+# Core settings (edit in 00_setup.R; keep a single source of truth)
+# source("scripts/00_setup.R")
+```
+
+# 1. Study design (Freeze)
+## 1.1 Objectives and endpoints
+- Primary endpoint: OS / DSS (per cohort manifest)
+- Secondary endpoints: documented in `01_docs/registry/cohort_manifest.csv`
+
+## 1.2 Cohorts
+```{r}
+# Example: read cohort manifest (edit path if needed)
+# library(readr)
+# cm <- read_csv("01_docs/registry/cohort_manifest.csv", show_col_types = FALSE)
+# cm
+```
+
+# 2. Data sources and acquisition
+Describe, for each cohort:
+- source repository
+- files downloaded (raw)
+- integrity checks (SHA-256)
+- transformations into processed files
+
+# 3. Preprocessing
+## 3.1 Expression
+- RNA-seq: counts -> TMM/logCPM -> Z-score intra-cohort
+- Microarray: log2 intensity -> Z-score intra-cohort
+- gene mapping rules (HGNC, probes collapsing)
+- effective gene count rules
+
+## 3.2 Clinical
+- endpoint mapping rules
+- time unit conversion (days -> months by 30.4375)
+- reverse Kaplan–Meier follow-up computation
+
+# 4. Model derivation (Core-PAM)
+```{r}
+# Example: load derivation summary
+# library(jsonlite)
+# deriv <- fromJSON("results/pamxx/selected_CorePAM_summary.json")
+# deriv
+```
+
+# 5. Validation (OS/DSS)
+## 5.1 Per-cohort results
+```{r}
+# Example: import final tables (replace with actual filenames)
+# library(readr)
+# tab_surv <- read_csv("results/main/Table3_Survival_Performance_ByCohort.csv", show_col_types = FALSE)
+# tab_surv
+```
+
+## 5.2 Meta-analysis
+```{r}
+# Example: meta summary
+# meta <- read_csv("results/main/Meta_Survival_Summary.csv", show_col_types = FALSE)
+# meta
+```
+
+# 6. QC and forensics
+- off-diagonal correlations
+- METABRIC PCA forensics
+- leakage checks
+- PH assumption checks
+
+# 7. Figures and tables (embedded)
+```{r}
+# knitr::include_graphics("figures/main/Fig1_StudyDesign_Freeze.pdf")
+```
+
+# 8. Declarations (journal-ready)
+- Ethics approval and consent to participate
+- Consent for publication
+- Availability of data and materials
+- Competing interests
+- Funding
+- Authors' contributions
+- Acknowledgements

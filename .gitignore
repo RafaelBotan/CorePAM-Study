@@ -1,0 +1,30 @@
+# Data lake — nunca versionar
+01_Base_Pura_CorePAM/RAW/
+01_Base_Pura_CorePAM/PROCESSED/
+data/raw/
+data/processed/
+
+# Arquivos pesados
+**/*.parquet
+**/*.rds
+**/*.zip
+**/*.tar
+**/*.tar.gz
+**/*.gz
+
+# Resultados pesados (versionar apenas CSVs pequenos)
+results/corepam/*.rds
+results/corepam_os/*.rds
+
+# R temporário
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Registry (versionar apenas templates, não o executado)
+registry/study_registry.csv
