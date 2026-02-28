@@ -146,11 +146,29 @@ if (file.exists(pareto_path) && requireNamespace("ggplot2", quietly=TRUE)) {
 
 ## 5.1 Resultados por Coorte
 
+> **Nota sobre TCGA-BRCA:** Esta coorte é estruturalmente diferente das demais.
+> Mediana de seguimento = 32 meses (vs. 113–159 mo nas outras coortes), taxa de evento = 14%
+> (vs. 25–58%). Consequências esperadas e defensáveis: (1) curvas KM se cruzam na cauda
+> (instabilidade estatística com n-at-risk < 35 após 100 meses); (2) análise de quartis
+> perde poder com poucos eventos por grupo; (3) HR = 1,20 é menor que nas coortes com seguimento
+> longo. O sinal é robusto no horizonte de 24 meses: HR = 1,64 (IC 95% 1,24–2,16), p = 0,00047.
+> O resultado principal do TCGA deve ser reportado com ênfase na análise de sensibilidade de 24m.
+
 ```{r survival-results}
-if (file.exists("results/main/Table3_Survival_Performance_ByCohort.csv")) {
-  tab_surv <- read_csv("results/main/Table3_Survival_Performance_ByCohort.csv",
-                       show_col_types = FALSE)
-  kable(tab_surv, digits = 3)
+# Lê os resultados individuais dos 3 coortes de validação (gerados pelos scripts 07_*)
+surv_files <- c(
+  "results/supp/survival_results_TCGA_BRCA.csv",
+  "results/supp/survival_results_METABRIC.csv",
+  "results/supp/survival_results_GSE20685.csv"
+)
+if (all(file.exists(surv_files))) {
+  tab_surv <- bind_rows(lapply(surv_files, read_csv, show_col_types = FALSE)) |>
+    select(cohort, endpoint, n_samples, n_events, fu_median_months,
+           hr_uni, hr_uni_lo95, hr_uni_hi95, p_uni,
+           c_index, c_index_lo95, c_index_hi95)
+  kable(tab_surv, digits = 3,
+        col.names = c("Coorte","Endpoint","N","Eventos","FU med (mo)",
+                      "HR","IC95% inf","IC95% sup","p","C_adj","IC_lo","IC_hi"))
 } else {
   cat("Aguardando scripts 07_survival_analysis_*.R.\n")
 }

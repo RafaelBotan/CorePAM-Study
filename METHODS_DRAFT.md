@@ -51,11 +51,13 @@ foram censurados no momento do óbito. Os tempos foram expressos em meses
 |--------|---|------------|---|----------------|----------------------|--------|-------|
 | SCAN-B | 3.069 | 322 | 10,5% | 53,0 mo | 54,9 mo | 81,3 mo | 50/50 |
 | TCGA-BRCA | 1.072 | 150 | 14,0% | 28,3 mo | 25,6 mo | 282,7 mo | 49/50 |
-| METABRIC | 1.980 | 1.144 OS / 646 DSS | 57,8% | 116,5 mo | **157,9 mo** | 355,2 mo | 50/50 |
+| METABRIC | 1.978† | 1.144 OS / 646 DSS | 57,8% | 116,5 mo | **157,9 mo** | 355,2 mo | 50/50 |
 | GSE20685 | 327 | 83 | 25,4% | 97,2 mo | 110,4 mo | 169,2 mo | 44/50† |
 
-† ANLN, CXXC5, GPR160, NUF2, TMEM45B, UBE2T ausentes: sem probes no HGU133A (GPL96);
+† METABRIC: N análise = 1.978 (1.980 clínico − 2 sem score_z após preprocessing).
+‡ ANLN, CXXC5, GPR160, NUF2, TMEM45B, UBE2T ausentes: sem probes no HGU133A (GPL96);
   44/50 (88%) é o teto absoluto da plataforma — acima do critério mínimo de 80%.
+‡ GSE20685: mesma nota de plataforma.
 
 A arquitetura final compreende 4 coortes: SCAN-B (treino) + 3 validação.
 
