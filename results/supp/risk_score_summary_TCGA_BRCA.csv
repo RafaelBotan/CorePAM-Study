@@ -1,0 +1,2 @@
+cohort,n_samples,n_panel_genes,genes_present,genes_missing,frac_present,denom_sum_absw,score_direction,score_mean,score_sd,n_time_leq0_dropped
+TCGA_BRCA,1072,24,23,1,0.9583,1.634566,original,-0,0.294161,0

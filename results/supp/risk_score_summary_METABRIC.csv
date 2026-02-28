@@ -1,0 +1,2 @@
+cohort,n_samples,n_panel_genes,genes_present,genes_missing,frac_present,denom_sum_absw,score_direction,primary_endpoint,score_mean,score_sd,n_time_leq0_dropped
+METABRIC,1979,24,24,0,1,1.753856,original,dss_time_months,-0,0.31456,0
