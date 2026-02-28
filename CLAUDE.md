@@ -127,18 +127,60 @@ Se HR(score) < 1 → inverter sinal; registrar `score_direction = -1`.
 - `CorePAM_training_card.json` — parâmetros, λ, df, Cadj, hashes
 - `pareto_df_cindex_oof.csv` — fronteira Pareto df × Cadj OOF
 
-## Estado atual dos scripts
+## Coding conventions (mandatory for all new scripts)
+
+- **Language:** All code comments and documentation in **English**
+- **Variables:** English names following tidyverse snake_case conventions
+- **Skip/force pattern:** Every script that writes output files must check:
+  ```r
+  FORCE <- as.logical(Sys.getenv("FORCE_RERUN", "FALSE"))
+  if (!FORCE && file.exists(out_path)) {
+    message("[SCRIPT] Output already exists, skipping. Set FORCE_RERUN=TRUE to rerun.")
+    quit(save = "no", status = 0)
+  }
+  ```
+- **Error logging:** Before fixing any script error, append entry to `ERRORS_LOG.md`
+  with: date, script, error text, root cause, solution.
+- **Results summary:** After each analysis, append 3-line summary to `RESULTS_SUMMARY.md`:
+  line 1 = date + script, line 2 = key numbers, line 3 = status + next step.
+- **Methods draft:** After finishing each script, append an academic Portuguese paragraph
+  to `METHODS_DRAFT.md` describing the methodology implemented.
+- **Session notes:** At end of each session, create/update `SESSION_NOTES.md` with
+  what was done, what works, and what's pending. Commit and push automatically.
+
+## Support files
+
+| File | Purpose |
+|---|---|
+| `ERRORS_LOG.md` | Log of all pipeline errors + solutions (append before fixing) |
+| `RESULTS_SUMMARY.md` | 3-line summaries of each analysis result |
+| `METHODS_DRAFT.md` | Academic Portuguese methods paragraphs for thesis |
+| `SESSION_NOTES.md` | End-of-session progress notes (auto-committed) |
+| `scripts/00_validate_all.R` | Syntax check + output presence check for all scripts |
+
+## Script status
 
 | Script | Status |
 |---|---|
-| 00_setup.R | Completo e testado |
-| 01_download_raw_data.R | Completo (requer dados) |
-| 02_harmonize_clinical_*.R | Completo e testado (5 coortes) |
-| 03_expression_preprocess_*.R | Completo e testado (5 coortes) |
-| 04_gene_audit_freeze.R | Completo e testado |
-| 05_reduce_pam50_to_corepam_FINAL.R | Completo e testado |
-| 06_zscore_and_score_*.R | Completo (5 coortes) |
-| 07–18 | Em desenvolvimento |
+| 00_setup.R | Complete and tested |
+| 00_validate_all.R | Complete (syntax + output presence check) |
+| 01_download_raw_data.R | Complete (requires data) |
+| 02_harmonize_clinical_*.R | Complete (5 cohorts) |
+| 03_expression_preprocess_*.R | Complete (5 cohorts) |
+| 04_gene_audit_freeze.R | Complete |
+| 05_reduce_pam50_to_corepam_FINAL.R | Complete |
+| 06_zscore_and_score_*.R | Complete (5 cohorts) |
+| 07A_preflight_files_strict.R | Complete |
+| 07D_validate_one_cohort_corepam.R | Complete |
+| 07_survival_analysis_*.R | Complete (5 cohorts) |
+| 08_meta_survival.R | Complete |
+| 11_incremental_value_and_dca.R | Complete |
+| 13_qc_correlations_offdiag.R | Complete |
+| 14_qc_metabric_pca_forensics.R | Complete |
+| 15_qc_schema_range_checks.R | Complete |
+| 16_qc_text_vs_results_assert.R | Complete |
+| 17_render_manuscript_quarto.R | Complete |
+| 18_make_submission_bundle.R | Complete |
 
 ## Git
 
