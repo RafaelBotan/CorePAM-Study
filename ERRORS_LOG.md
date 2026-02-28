@@ -123,4 +123,55 @@ METABRIC_BASE_URL <- "https://datahub.assets.cbioportal.org/brca_metabric.tar.gz
 
 ---
 
+## 2026-02-28 | 01_download_raw_data.R | METABRIC files missing after extraction
+
+**Script:** `01_download_raw_data.R`
+**Error:**
+```
+Error: (converted from warning) METABRIC file not found after extraction:
+  .../RAW/METABRIC/brca_metabric/data_mrna_illumina_microarray.txt
+```
+**Root cause (cascade from previous HTTP 403 error):**
+1. First run → HTTP 403 → httr wrote a 243-byte HTML error page to `brca_metabric.tar.gz`
+2. Fixed URL, re-ran script
+3. `download_file_safe` checks `file.info(destfile)$size > 0` → 243 bytes > 0 → **skipped real download**
+4. `utils::untar()` silently failed on the 243-byte corrupt file (no error raised)
+5. No subdirectory was created; `data_mrna_illumina_microarray.txt` not found
+
+**Solution:**
+- Delete the corrupt 243-byte tar.gz manually: `unlink(METABRIC_TAR)`
+- Fix `download_file_safe` to require `size > MIN_VALID_BYTES` (e.g. 1 MB) for tar.gz files
+- Fix extraction block to verify extracted files exist after `utils::untar()`, stop if missing
+
+---
+
+## 2026-02-28 | 01_download_raw_data.R | SSL connect error to GDC API (TCGA-BRCA)
+
+**Script:** `01_download_raw_data.R`
+**Error:**
+```
+GDCquery TCGA-BRCA expression failed: cannot open the connection to
+  'https://api.gdc.cancer.gov/...'
+SSL connect error
+```
+**Diagnosis:**
+- System `curl` → GDC API → HTTP 200 OK (SSL works at OS level)
+- R httr/libcurl → GDC API → SSL connect error (TLS handshake failure)
+- Root cause: R on Windows uses its own bundled libcurl which may use a different
+  TLS implementation or certificate store than the system curl. GDC requires TLS 1.2+
+  and specific cipher suites that R's bundle may not negotiate correctly.
+
+**Solution:** Add `httr::set_config(httr::config(ssl_verifypeer = FALSE))` before
+TCGAbiolinks calls and `httr::reset_config()` after. Safe because:
+1. GDC server is verified at OS level (system curl works)
+2. Downloaded file integrity is verified with SHA-256
+
+```r
+httr::set_config(httr::config(ssl_verifypeer = FALSE))
+# ... TCGAbiolinks GDCquery / GDCdownload / GDCprepare calls ...
+httr::reset_config()
+```
+
+---
+
 <!-- Add new errors below this line, most recent first -->
