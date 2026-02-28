@@ -174,4 +174,22 @@ httr::reset_config()
 
 ---
 
+## 2026-02-28 | 01_download_raw_data.R | GSE20685 clinical download — connection error
+
+**Script:** `01_download_raw_data.R`
+**Error:**
+```
+Error in value[[3L]](cond) :
+  error reading from the connection
+```
+**Context:** GSE20685 expression TAR (2672.7 MB) downloaded OK. Error occurred during
+`geo_clinical_download()` → `GEOquery::getGEO("GSE20685", GSEMatrix=TRUE)` call.
+**Root cause:** Intermittent network connection drop during GEO series matrix download.
+The series matrix (~several MB) is a smaller file fetched over the same GEO FTP/HTTP
+connection that had just completed a large download.
+**Solution:** Re-run `01_download_raw_data.R` — all other cohorts will skip; only
+GSE20685 clinical will retry (geo_clinical_download checks RDS existence).
+
+---
+
 <!-- Add new errors below this line, most recent first -->
