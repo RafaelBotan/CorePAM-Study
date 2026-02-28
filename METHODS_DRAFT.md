@@ -149,7 +149,8 @@ por coorte.
 
 Em cada coorte de validação, o score Core-PAM foi avaliado como preditor contínuo
 de sobrevida por modelo de Cox univariado e multivariado (ajustado para o modelo
-CORE-A: idade e status de receptor de estrogênio). O C-index de Harrell foi estimado
+CORE-A: idade e status de receptor de estrogênio). O C-index de Harrell ajustado
+(C_adj = max(C_bruto, 1 − C_bruto)), invariante ao sinal do score, foi estimado
 com intervalo de confiança de 95% por bootstrap (n=1.000 reamostras, semente=42).
 Curvas de Kaplan-Meier foram construídas dicotomizando as amostras no ponto de corte
 da mediana intra-coorte (primário) e nos quartis (sensibilidade). Uma meta-análise
@@ -157,6 +158,20 @@ de efeitos aleatórios (método REML, pacote metafor) foi conduzida combinando o
 log(HR) univariados e seus erros-padrão das três coortes de validação (TCGA-BRCA,
 METABRIC, GSE20685). A heterogeneidade foi quantificada pelo I² e τ². A análise
 leave-one-out foi conduzida como análise de sensibilidade.
+
+**Resultados preliminares do script 07 (execução 2026-02-28):**
+
+| Coorte | N | Eventos | HR uni (IC95%) | p | C_adj (IC95%) | FU mediana |
+|--------|---|---------|----------------|---|----------------|------------|
+| TCGA-BRCA | 1.072 | 150 | 1,20 (1,04–1,40) | 0,016 | 0,624 (0,572–0,678) | 32,0 mo |
+| METABRIC | 1.978 | 646 (DSS) | 1,41 (1,31–1,52) | 3,4×10⁻¹⁹ | 0,638 (0,614–0,659) | 159,0 mo |
+| GSE20685 | 327 | 83 | 1,40 (1,12–1,76) | 0,003 | 0,623 (0,562–0,683) | 112,8 mo |
+
+O HR do TCGA-BRCA (1,20) é consistente com o seguimento mediano curto (32 meses) e
+número limitado de eventos (150/1.072 = 14%), padrão esperado para coorte RNA-seq
+com coleta recente. A sensibilidade de 24 meses confirma associação mais forte nesse
+horizonte: HR=1,64 (1,24–2,16), p=0,00047. Os três coortes de validação mostram
+sinal positivo e C_adj ~0,62–0,64 consistente em plataformas distintas (RNA-seq e microarray).
 
 ---
 

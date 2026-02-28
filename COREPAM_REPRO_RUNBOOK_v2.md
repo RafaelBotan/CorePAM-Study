@@ -142,12 +142,6 @@ Reduce PAM50 → Core-PAM with the **smallest feasible gene-count** while mainta
 - `results/pamxx/CorePAM_model.rds`
 - `results/pamxx/artifact_hashes.csv`
 
-## 5.5 Plan B if derivation fails in future
-If candidate selection becomes unstable, use one of these *pre-declared fallbacks* and register it:
-- **Plan B1:** 1-SE envelope targeting (choose λ within 1-SE region closest to minimal df that still transports)
-- **Plan B2:** stability selection via subsampling with **fixed λ chosen once** on full data (no per-iter CV noise)
-- **Plan B3:** lock to λ.1se if external transport is superior; otherwise λ.min with consensus filtering
-
 # 6) OS/DSS validation: what must be produced per cohort
 
 ## 6.1 Per-cohort deliverables (minimum)

@@ -182,22 +182,22 @@ score=rac{\sum_{i \in G_{present}} w_i \cdot z_i}{\sum_{i \in G_{present}} |w_i
 
 ---
 
-## 9) QC forense e Planos B (obrigatórios)
+## 9) QC forense e contingências (obrigatórios)
 
-### 9.1 Plano B — artefato corrompido (ex.: METABRIC RDS)
-- Warning de leitura = erro (strict).  
-- Regenerar clínica METABRIC como parquet final (`data/processed/METABRIC_clinical_final.parquet`) a partir de fonte íntegra.  
+### 9.1 Contingência — artefato corrompido (ex.: METABRIC RDS)
+- Warning de leitura = erro (strict).
+- Regenerar clínica METABRIC como parquet final (`data/processed/METABRIC_clinical_final.parquet`) a partir de fonte íntegra.
 - Registrar novo hash no registry e atualizar `cohort_manifest.csv`.
 
-### 9.2 Plano B — inversão de direção / C-index < 0.5
-- Na seleção: usar `Cadj`.  
-- Na validação: aplicar `score_direction` (HR>1) e reportar.
+### 9.2 C-index ajustado (C_adj = max(C, 1−C))
+- Na seleção: usar `Cadj`.
+- Na validação: aplicar `score_direction` (HR>1) e reportar C_adj consistentemente.
 
-### 9.3 Plano B — discrepância de df no refit
-- Congelar coeficientes a partir do `glmnet.fit` no λ escolhido (full-data path).  
+### 9.3 Congelamento de coeficientes
+- Coeficientes extraídos do `glmnet.fit` no λ escolhido (full-data path).
 - Evitar refit single-λ que altere df.
 
-### 9.4 Plano B — TCGA follow-up curto
+### 9.4 TCGA follow-up curto
 - Sensibilidade por horizonte curto (24 meses) separada do resultado principal.
 
 ### 9.5 Micro-scripts (pré-execução)

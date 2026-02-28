@@ -18,7 +18,7 @@
 #   - Other causes of death → censored at time of death (competing events).
 #   - Time in months (days / 30.4375).
 #   - time <= 0: DROP.
-#   - Plan B: if RDS corrupted → use this parquet as primary source.
+#   - clinical_FINAL.parquet is the primary source for all downstream scripts.
 # =============================================================================
 
 source("scripts/00_setup.R")
@@ -141,7 +141,7 @@ message(sprintf(
 ))
 
 # =============================================================================
-# 5) SAVE FINAL PARQUET (primary source — Plan B for corrupted RDS)
+# 5) SAVE FINAL PARQUET (primary source for all downstream scripts)
 # =============================================================================
 dest_dir  <- proc_cohort("METABRIC")
 dir.create(dest_dir, showWarnings = FALSE, recursive = TRUE)

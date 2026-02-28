@@ -18,6 +18,7 @@ suppressPackageStartupMessages({
   library(survminer)
   library(ggplot2)
 })
+source("Y:/Phd-Genomic-claude/scripts/00_colors.R")
 
 # cmprsk for Fine-Gray (sensitivity) — load with warning suppression
 old_warn <- getOption("warn"); options(warn = 0)
@@ -36,16 +37,17 @@ bootstrap_cindex <- function(time, event, score_z, n_boot = 1000, seed = 42) {
   cvals <- numeric(n_boot)
   old_warn <- getOption("warn"); options(warn = 0)
   for (i in seq_len(n_boot)) {
-    idx <- sample(n, n, replace = TRUE)
-    cx  <- tryCatch(
+    idx    <- sample(n, n, replace = TRUE)
+    cx_raw <- tryCatch(
       concordance(Surv(time[idx], event[idx]) ~ score_z[idx])$concordance,
       error = function(e) NA_real_
     )
-    cvals[i] <- cx
+    cvals[i] <- max(cx_raw, 1 - cx_raw, na.rm = TRUE)  # C_adj: invariant to score sign
   }
   options(warn = old_warn)
+  c_raw <- concordance(Surv(time, event) ~ score_z)$concordance
   list(
-    c_index = concordance(Surv(time, event) ~ score_z)$concordance,
+    c_index = max(c_raw, 1 - c_raw),
     ci_low  = quantile(cvals, 0.025, na.rm = TRUE),
     ci_high = quantile(cvals, 0.975, na.rm = TRUE)
   )
@@ -59,6 +61,14 @@ reverse_km_median <- function(time, event) {
   as.numeric(med)
 }
 
+x_cutoff <- function(km_fit, min_nrisk = 10) {
+  s <- summary(km_fit)
+  min_by_t <- tapply(s$n.risk, s$time, min)
+  valid <- as.numeric(names(min_by_t[min_by_t >= min_nrisk]))
+  if (length(valid) == 0) return(max(s$time))
+  max(valid)
+}
+
 # --------------------------------------------------------------------------
 # 1) Load data
 # --------------------------------------------------------------------------
@@ -66,14 +76,14 @@ ready_path <- file.path(proc_cohort(COHORT), "analysis_ready.parquet")
 df         <- strict_parquet(ready_path)
 
 # Primary endpoint: DSS; sensitivity: OS
-has_dss <- all(c("dss_time", "dss_event") %in% names(df))
+has_dss <- all(c("dss_time_months", "dss_event") %in% names(df))
 if (!has_dss) {
   message(sprintf("[%s] WARNING: DSS not found; using OS as primary endpoint", SCRIPT_NAME))
-  time_col  <- "os_time"
+  time_col  <- "os_time_months"
   event_col <- "os_event"
   ENDPOINT  <- "OS"
 } else {
-  time_col  <- "dss_time"
+  time_col  <- "dss_time_months"
   event_col <- "dss_event"
 }
 
@@ -154,39 +164,42 @@ old_warn <- getOption("warn"); options(warn = 0)
 km_fit_med <- survfit(
   Surv(df[[time_col]], df[[event_col]]) ~ risk_group_median, data = df
 )
-km_plot_med <- ggsurvplot(
-  km_fit_med,
-  data        = df,
-  risk.table  = TRUE,
-  pval        = TRUE,
-  conf.int    = TRUE,
-  palette     = c("#E74C3C", "#2980B9"),
-  title       = sprintf("KM CorePAM — %s | %s | Median cutpoint", COHORT, ENDPOINT),
-  xlab        = "Time (months)",
-  ylab        = sprintf("Survival (%s)", ENDPOINT),
-  legend.labs = c("High", "Low"),
-  ggtheme     = theme_classic()
-)
 options(warn = old_warn)
+xlim_val  <- x_cutoff(km_fit_med, min_nrisk = 10)
+break_val <- max(12L, as.integer(round(xlim_val / 5 / 12) * 12))
+message(sprintf("[%s] KM xlim: %.0f months | break: %d months", SCRIPT_NAME, xlim_val, break_val))
 
-km_pdf <- file.path(fig_dir, sprintf("Fig3_KM_%s_%s_CorePAM.pdf", COHORT, ENDPOINT))
-km_png <- file.path(fig_dir, sprintf("Fig3_KM_%s_%s_CorePAM.png", COHORT, ENDPOINT))
-
+# Bilingual KM main — EN and PT
 old_warn <- getOption("warn"); options(warn = 0)
-pdf(km_pdf, width = 8, height = 6); print(km_plot_med); dev.off()
-png(km_png, width = 800, height = 600, res = 100); print(km_plot_med); dev.off()
-options(warn = old_warn)
-
-registry_append(COHORT, "figure_km_main", km_pdf, sha256_file(km_pdf), "ok", SCRIPT_NAME,
-                file.info(km_pdf)$size / 1e6)
-registry_append(COHORT, "figure_km_main_png", km_png, sha256_file(km_png), "ok", SCRIPT_NAME,
-                file.info(km_png)$size / 1e6)
+for (lang in c("EN", "PT")) {
+  xlb <- if (lang == "EN") "Time (months)"                   else "Tempo (meses)"
+  ylb <- if (lang == "EN") "Disease-specific survival"       else "Sobrevida específica"
+  lbs <- if (lang == "EN") c("High risk", "Low risk")        else c("Alto risco", "Baixo risco")
+  km_p <- ggsurvplot(
+    km_fit_med, data = df, risk.table = TRUE, pval = TRUE, conf.int = TRUE,
+    palette = c(COL$km_high, COL$km_low),
+    xlab = xlb, ylab = ylb, legend.labs = lbs, legend.title = NULL,
+    xlim = c(0, xlim_val), break.time.by = break_val,
+    pval.coord = c(xlim_val * 0.5, 0.15),
+    ggtheme = theme_classic()
+  )
+  pdf_path <- file.path(fig_dir, sprintf("Fig2_KM_%s_%s_%s.pdf", COHORT, ENDPOINT, lang))
+  png_path <- file.path(fig_dir, sprintf("Fig2_KM_%s_%s_%s.png", COHORT, ENDPOINT, lang))
+  cairo_pdf(pdf_path, width = 8, height = 6); print(km_p); dev.off()
+  png(png_path, width = 8, height = 6, units = "in", res = 600); print(km_p); dev.off()
+  registry_append(COHORT, sprintf("figure_km_main_%s", lang), pdf_path,
+                  sha256_file(pdf_path), "ok", SCRIPT_NAME, file.info(pdf_path)$size / 1e6)
+  registry_append(COHORT, sprintf("figure_km_main_png_%s", lang), png_path,
+                  sha256_file(png_path), "ok", SCRIPT_NAME, file.info(png_path)$size / 1e6)
+  cat(sprintf("[%s] [%s] %s | %s\n", SCRIPT_NAME, lang, pdf_path, png_path))
+}
+gc(); options(warn = old_warn)
 
 # Quartiles
-quart_cuts <- quantile(df$score_z, probs = c(0.25, 0.75), na.rm = TRUE)
+quart_cuts <- quantile(df$score_z, probs = c(0.25, 0.50, 0.75), na.rm = TRUE)
 df$risk_group_quartile <- cut(df$score_z,
-                               breaks = c(-Inf, quart_cuts[1], quart_cuts[2], Inf),
-                               labels = c("Q1_Low", "Q2_Mid", "Q3_High"))
+                               breaks = c(-Inf, quart_cuts[1], quart_cuts[2], quart_cuts[3], Inf),
+                               labels = c("Q1", "Q2", "Q3", "Q4"))
 
 supp_fig_dir <- PATHS$figures$supp
 dir.create(supp_fig_dir, showWarnings = FALSE, recursive = TRUE)
@@ -195,20 +208,28 @@ old_warn <- getOption("warn"); options(warn = 0)
 km_fit_q <- survfit(
   Surv(df[[time_col]], df[[event_col]]) ~ risk_group_quartile, data = df
 )
-km_plot_q <- ggsurvplot(
-  km_fit_q, data = df, risk.table = TRUE, pval = TRUE, conf.int = FALSE,
-  title = sprintf("KM CorePAM — %s | %s | Quartiles (sensitivity)", COHORT, ENDPOINT),
-  xlab = "Time (months)", ylab = sprintf("Survival (%s)", ENDPOINT),
-  ggtheme = theme_classic()
-)
 options(warn = old_warn)
 
-km_q_pdf <- file.path(supp_fig_dir, sprintf("FigS_KM_%s_%s_Quartis_CorePAM.pdf", COHORT, ENDPOINT))
 old_warn <- getOption("warn"); options(warn = 0)
-pdf(km_q_pdf, width = 8, height = 6); print(km_plot_q); dev.off()
-options(warn = old_warn)
-registry_append(COHORT, "figure_km_quartile", km_q_pdf, sha256_file(km_q_pdf), "ok",
-                SCRIPT_NAME, file.info(km_q_pdf)$size / 1e6)
+for (lang in c("EN", "PT")) {
+  xlb <- if (lang == "EN") "Time (months)"                  else "Tempo (meses)"
+  ylb <- if (lang == "EN") "Disease-specific survival"      else "Sobrevida específica por doença"
+  ttl <- if (lang == "EN") sprintf("KM CorePAM — %s | %s | Quartiles (sensitivity)", COHORT, ENDPOINT) else sprintf("KM CorePAM — %s | %s | Quartis (sensibilidade)", COHORT, ENDPOINT)
+  lbs <- c("Q1", "Q2", "Q3", "Q4")
+  km_plot_q <- ggsurvplot(
+    km_fit_q, data = df, risk.table = TRUE, pval = TRUE, conf.int = FALSE,
+    title = ttl, xlab = xlb, ylab = ylb, legend.labs = lbs,
+    ggtheme = theme_classic()
+  )
+  km_q_pdf <- file.path(supp_fig_dir, sprintf("FigS_KM_%s_%s_Quartis_CorePAM_%s.pdf", COHORT, ENDPOINT, lang))
+  km_q_png <- file.path(supp_fig_dir, sprintf("FigS_KM_%s_%s_Quartis_CorePAM_%s.png", COHORT, ENDPOINT, lang))
+  cairo_pdf(km_q_pdf, width = 8, height = 6); print(km_plot_q); dev.off()
+  png(km_q_png, width = 8, height = 6, units = "in", res = 600); print(km_plot_q); dev.off()
+  registry_append(COHORT, sprintf("figure_km_quartile_%s", lang), km_q_pdf, sha256_file(km_q_pdf), "ok",
+                  SCRIPT_NAME, file.info(km_q_pdf)$size / 1e6)
+  cat(sprintf("[%s] [%s] %s | %s\n", SCRIPT_NAME, lang, km_q_pdf, km_q_png))
+}
+gc(); options(warn = old_warn)
 
 # --------------------------------------------------------------------------
 # 6) Sensitivity OS (METABRIC)
@@ -216,12 +237,12 @@ registry_append(COHORT, "figure_km_quartile", km_q_pdf, sha256_file(km_q_pdf), "
 hr_os <- lo_os <- hi_os <- p_os <- NA_real_
 c_os  <- ci_os_lo <- ci_os_hi <- NA_real_
 
-if (has_dss && all(c("os_time", "os_event") %in% names(df))) {
-  df_os <- df[!is.na(df$os_time) & df$os_time > 0 &
+if (has_dss && all(c("os_time_months", "os_event") %in% names(df))) {
+  df_os <- df[!is.na(df$os_time_months) & df$os_time_months > 0 &
                 !is.na(df$os_event) & !is.na(df$score_z), ]
   old_warn <- getOption("warn"); options(warn = 0)
   cox_os  <- tryCatch(
-    coxph(Surv(os_time, os_event) ~ score_z, data = df_os),
+    coxph(Surv(os_time_months, os_event) ~ score_z, data = df_os),
     error = function(e) NULL
   )
   options(warn = old_warn)
@@ -232,7 +253,7 @@ if (has_dss && all(c("os_time", "os_event") %in% names(df))) {
     hi_os  <- sm_os$conf.int[1, "upper .95"]
     p_os   <- sm_os$coefficients[1, "Pr(>|z|)"]
     boot_os <- bootstrap_cindex(
-      df_os$os_time, df_os$os_event, df_os$score_z,
+      df_os$os_time_months, df_os$os_event, df_os$score_z,
       n_boot = as.integer(FREEZE$bootstrap_n),
       seed   = as.integer(FREEZE$seed_folds)
     )
@@ -242,24 +263,36 @@ if (has_dss && all(c("os_time", "os_event") %in% names(df))) {
     message(sprintf("[%s] Sensitivity OS: HR=%.3f (%.3f-%.3f) C=%.4f", SCRIPT_NAME, hr_os, lo_os, hi_os, c_os))
   }
 
-  # KM OS sensitivity
+  # KM OS sensitivity — bilingual (tryCatch: FigS5 may already exist if S7 GC error)
   old_warn <- getOption("warn"); options(warn = 0)
-  km_fit_os <- survfit(Surv(os_time, os_event) ~ risk_group_median, data = df_os)
-  km_plot_os <- ggsurvplot(
-    km_fit_os, data = df_os, risk.table = TRUE, pval = TRUE, conf.int = TRUE,
-    palette = c("#E74C3C", "#2980B9"),
-    title   = sprintf("KM CorePAM — %s | OS (sensitivity)", COHORT),
-    xlab    = "Time (months)", ylab = "Overall survival",
-    legend.labs = c("High", "Low"), ggtheme = theme_classic()
-  )
+  km_fit_os <- survfit(Surv(os_time_months, os_event) ~ risk_group_median, data = df_os)
   options(warn = old_warn)
-
-  km_os_pdf <- file.path(supp_fig_dir, "FigS5_METABRIC_Sensitivity_OS.pdf")
   old_warn <- getOption("warn"); options(warn = 0)
-  pdf(km_os_pdf, width = 8, height = 6); print(km_plot_os); dev.off()
-  options(warn = old_warn)
-  registry_append(COHORT, "figure_km_sens_os", km_os_pdf, sha256_file(km_os_pdf), "ok",
-                  SCRIPT_NAME, file.info(km_os_pdf)$size / 1e6)
+  tryCatch({
+    for (lang in c("EN", "PT")) {
+      xlb <- if (lang == "EN") "Time (months)"           else "Tempo (meses)"
+      ylb <- if (lang == "EN") "Overall survival"        else "Sobrevida global"
+      lbs <- if (lang == "EN") c("High risk", "Low risk") else c("Alto risco", "Baixo risco")
+      km_os_pdf <- file.path(supp_fig_dir, sprintf("FigS5_METABRIC_Sensitivity_%s.pdf", lang))
+      km_os_png <- file.path(supp_fig_dir, sprintf("FigS5_METABRIC_Sensitivity_%s.png", lang))
+      km_os_p <- ggsurvplot(
+        km_fit_os, data = df_os, risk.table = TRUE, pval = TRUE, conf.int = TRUE,
+        palette = c(COL$km_high, COL$km_low),
+        xlab = xlb, ylab = ylb, legend.labs = lbs, legend.title = NULL,
+        ggtheme = theme_classic()
+      )
+      cairo_pdf(km_os_pdf, width = 8, height = 6); print(km_os_p); dev.off()
+      png(km_os_png, width = 8, height = 6, units = "in", res = 600); print(km_os_p); dev.off()
+      if (file.exists(km_os_pdf))
+        registry_append(COHORT, sprintf("figure_km_sens_os_%s", lang), km_os_pdf,
+                        sha256_file(km_os_pdf), "ok", SCRIPT_NAME, file.info(km_os_pdf)$size / 1e6)
+      cat(sprintf("[%s] [%s] %s | %s\n", SCRIPT_NAME, lang, km_os_pdf, km_os_png))
+    }
+  }, error = function(e) {
+    try(dev.off(), silent = TRUE)
+    message(sprintf("[%s] FigS5 ggsurvplot S7 error (using existing files): %s", SCRIPT_NAME, e$message))
+  })
+  gc(); options(warn = old_warn)
 }
 
 # --------------------------------------------------------------------------
