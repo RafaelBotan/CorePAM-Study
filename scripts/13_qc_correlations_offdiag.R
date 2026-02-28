@@ -15,7 +15,7 @@ suppressPackageStartupMessages({
 
 message(sprintf("[%s] Starting QC of score correlations (off-diagonal)", SCRIPT_NAME))
 
-COHORTS <- c("SCANB", "GSE96058", "TCGA_BRCA", "METABRIC", "GSE20685")
+COHORTS <- c("SCANB", "TCGA_BRCA", "METABRIC", "GSE20685")
 
 # --------------------------------------------------------------------------
 # 1) Load score per cohort (score_z from analysis_ready.parquet)

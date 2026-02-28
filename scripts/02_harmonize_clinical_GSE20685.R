@@ -21,6 +21,14 @@
 source("scripts/00_setup.R")
 SCRIPT_NAME <- "02_harmonize_clinical_GSE20685.R"
 
+# Skip if output already exists (unless FORCE_RERUN=TRUE)
+FORCE    <- as.logical(Sys.getenv("FORCE_RERUN", "FALSE"))
+out_path <- file.path(proc_cohort("GSE20685"), "clinical_FINAL.parquet")
+if (!FORCE && file.exists(out_path)) {
+  message(sprintf("[02_GSE20685] Output exists — skipping. Set FORCE_RERUN=TRUE to rerun.\n  %s", out_path))
+  quit(save = "no", status = 0)
+}
+
 # =============================================================================
 # 1) STRICT READ
 # =============================================================================
@@ -36,37 +44,32 @@ char_cols <- grep("characteristics", names(pheno), value = TRUE)
 if (length(char_cols) > 0) print(head(pheno[, char_cols, drop = FALSE], 3))
 
 # =============================================================================
-# 2) MAPPING (GSE20685 — adjust after inspecting actual pData)
-#    GSE20685 typically has clinical data in "characteristics_ch1.*" columns
-#    Inspect and adjust the names below.
+# 2) COLUMN MAPPING (verified against actual GSE20685 pData 2026-02-28)
+#    - TIME_COL:  "follow_up_duration (years):ch1"  — OS follow-up in YEARS
+#    - EVENT_COL: "event_death:ch1"  — 0=alive/censored, 1=dead
+#    - AGE_COL:   "age at diagnosis:ch1"
+#    - ER status: not available in this pData (will be set to NA)
+#    NOTE: auto-detection was unreliable (picked "time_to_metastasis" and
+#    GEO metadata "status" column). Hardcoding is required for this cohort.
 # =============================================================================
-# Automatic identification of time and event columns
-.find_col <- function(pheno, patterns) {
-  candidates <- names(pheno)[
-    grepl(paste(patterns, collapse = "|"), tolower(names(pheno)))
-  ]
-  if (length(candidates) == 0) return(NA_character_)
-  candidates[1]
+TIME_COL  <- "follow_up_duration (years):ch1"
+EVENT_COL <- "event_death:ch1"
+AGE_COL   <- "age at diagnosis:ch1"
+ER_COL    <- NA_character_
+
+# Verify required columns
+missing_cols <- setdiff(c(TIME_COL, EVENT_COL, AGE_COL), names(pheno))
+if (length(missing_cols) > 0) {
+  stop(sprintf(
+    "[02_GSE20685] Missing columns in pData:\n  %s\nAvailable:\n  %s",
+    paste(missing_cols, collapse = "\n  "),
+    paste(names(pheno), collapse = "\n  ")
+  ))
 }
-
-TIME_COL  <- .find_col(pheno, c("survival", "time", "months", "days",
-                                "os.time", "os_time", "fu.time"))
-EVENT_COL <- .find_col(pheno, c("status", "event", "death", "dead",
-                                "os.event", "os_event", "censor"))
-AGE_COL   <- .find_col(pheno, c("age"))
-ER_COL    <- .find_col(pheno, c("er ", "er_", "estrogen"))
-
 message(sprintf(
-  "[02_GSE20685] Detected columns — time: '%s' | event: '%s' | age: '%s' | ER: '%s'",
-  TIME_COL, EVENT_COL, AGE_COL, ER_COL
+  "[02_GSE20685] Columns — time: '%s' (years) | event: '%s' | age: '%s'",
+  TIME_COL, EVENT_COL, AGE_COL
 ))
-
-if (is.na(TIME_COL) || is.na(EVENT_COL)) {
-  message("[02_GSE20685] WARNING: time/event columns not detected automatically.")
-  message("  Inspect pheno and define TIME_COL / EVENT_COL manually.")
-  message("  Available columns: ", paste(names(pheno), collapse = " | "))
-  stop("Define TIME_COL and EVENT_COL manually before proceeding.")
-}
 
 # =============================================================================
 # 3) HARMONIZATION
@@ -78,25 +81,14 @@ out <- tibble(
   patient_id = normalize_id(pheno$title)
 )
 
-# Survival time
+# Survival time — column is in YEARS (follow_up_duration (years))
 raw_time <- suppressWarnings(as.numeric(pheno[[TIME_COL]]))
-
-# Unit heuristic: if median > 200 → days; else → months
-if (!all(is.na(raw_time)) && median(raw_time, na.rm = TRUE) > 200) {
-  message(sprintf(
-    "[02_GSE20685] Time detected in DAYS (median=%.1f). Converting to months.",
-    median(raw_time, na.rm = TRUE)
-  ))
-  out$os_time_months <- raw_time / FREEZE$time_unit_divisor
-  time_unit_origin   <- "days"
-} else {
-  message(sprintf(
-    "[02_GSE20685] Time in MONTHS (median=%.1f).",
-    median(raw_time, na.rm = TRUE)
-  ))
-  out$os_time_months <- raw_time
-  time_unit_origin   <- "months"
-}
+time_unit_origin <- "years"
+message(sprintf(
+  "[02_GSE20685] Follow-up in YEARS (median=%.2f yr). Converting to months (* 12).",
+  median(raw_time, na.rm = TRUE)
+))
+out$os_time_months <- raw_time * 12
 
 # OS event
 raw_event <- tolower(trimws(pheno[[EVENT_COL]]))
@@ -168,8 +160,10 @@ ep_map <- tibble(
   col_event_origin = EVENT_COL,
   unit_origin      = time_unit_origin,
   unit_final       = "months",
-  conversion       = ifelse(time_unit_origin == "days",
-                            paste0("/ ", FREEZE$time_unit_divisor), "none"),
+  conversion       = dplyr::case_when(
+                      time_unit_origin == "days"  ~ paste0("/ ", FREEZE$time_unit_divisor),
+                      time_unit_origin == "years" ~ "* 12",
+                      TRUE ~ "none"),
   event_1_means    = "death_any_cause",
   n_samples        = nrow(out),
   n_events         = sum(out$os_event, na.rm = TRUE),

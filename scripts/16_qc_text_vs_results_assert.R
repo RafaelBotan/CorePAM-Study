@@ -177,7 +177,7 @@ if (file.exists(meta_path)) {
 # ---------------------------------------------------------------------------
 # 3) Per-cohort survival results: sanity range checks
 # ---------------------------------------------------------------------------
-COHORTS <- c("SCANB", "GSE96058", "TCGA_BRCA", "METABRIC", "GSE20685")
+COHORTS <- c("SCANB", "TCGA_BRCA", "METABRIC", "GSE20685")
 
 for (cohort in COHORTS) {
   surv_path <- file.path(PATHS$results$supp,

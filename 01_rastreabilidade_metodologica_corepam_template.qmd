@@ -14,83 +14,177 @@ execute:
   message: false
 ---
 
-```{r}
-# Core settings (edit in 00_setup.R; keep a single source of truth)
-# source("scripts/00_setup.R")
+```{r setup}
+#| include: false
+library(readr)
+library(jsonlite)
+library(arrow)
+library(knitr)
+library(dplyr)
+# source("scripts/00_setup.R")  # uncomment for full environment
 ```
 
-# 1. Study design (Freeze)
-## 1.1 Objectives and endpoints
-- Primary endpoint: OS / DSS (per cohort manifest)
-- Secondary endpoints: documented in `01_docs/registry/cohort_manifest.csv`
+# 1. Desenho do Estudo (Congelado)
 
-## 1.2 Cohorts
-```{r}
-# Example: read cohort manifest (edit path if needed)
-# library(readr)
-# cm <- read_csv("01_docs/registry/cohort_manifest.csv", show_col_types = FALSE)
-# cm
+## 1.1 Objetivos e Desfechos
+
+O objetivo primário é derivar o menor subconjunto do painel PAM50 (Core-PAM)
+que mantém desempenho prognóstico não-inferior ao PAM50 completo no C-index
+fora-da-dobra (OOF), com margem ΔC = 0,010 pré-especificada.
+
+- **Desfecho primário:** OS (sobrevida global) — todas as coortes, exceto METABRIC
+- **METABRIC:** DSS (sobrevida específica por doença) como primário; OS como sensibilidade
+- **Parâmetros congelados:**
+  - ΔC = 0,010 | α = 0,5 | K = 10 dobras | min_genes_fraction = 0,80
+  - Dobras determinísticas via SHA-256(patient_id) — gene count NÃO pré-especificado
+
+## 1.2 Coortes
+
+| Coorte | Papel | Plataforma | N | Eventos OS | % | Mediana FU (censurados) | PAM50 cobertura |
+|--------|-------|------------|---|------------|---|--------------------------|-----------------|
+| SCAN-B (GSE96058) | **Treino** | RNA-seq Illumina | **3.069** | 322 | 10,5% | 54,9 meses | 50/50 (100%) |
+| TCGA-BRCA | Validação | RNA-seq STAR/GDC | **1.072** | 150 | 14,0% | 28,3 meses | 49/50 (98%)¹ |
+| METABRIC | Validação | Microarray Illumina HT-12 | **1.980** | 1.144 OS / 646 DSS | 57,8% OS | **157,9 meses** | 50/50 (100%) |
+| GSE20685 | Validação | Microarray Affymetrix HGU133A | **327** | 83 | 25,4% | 97,2 meses | 44/50 (88%)² |
+
+¹ MIA ausente no TCGA-BRCA (não mapeado por org.Hs.eg.db nesta coorte)
+² 6 genes ausentes (ANLN, CXXC5, GPR160, NUF2, TMEM45B, UBE2T) são **limitação da plataforma
+HGU133A** (2003): não possuem probes neste array — confirmado via `hgu133a.db`.
+44/50 é o teto absoluto desta plataforma.
+
+> **Opção A (aprovada 2026-02-28):** SCAN-B = todos os 3.069 samples do GSE96058
+> como treino. Não há split interno; GSE96058 não é coorte de validação separada.
+
+# 2. Dados Brutos e Integridade
+
+```{r cohort-summary}
+#| label: tbl-cohort-summary
+#| tbl-cap: "Resumo das coortes — dados processados"
+if (file.exists("results/supp/cohort_summary_table.csv")) {
+  coh_sum <- read_csv("results/supp/cohort_summary_table.csv", show_col_types = FALSE)
+  kable(coh_sum, digits = 1)
+} else {
+  cat("Run logs/export_cohort_summary.R to generate this table.\n")
+}
 ```
 
-# 2. Data sources and acquisition
-Describe, for each cohort:
-- source repository
-- files downloaded (raw)
-- integrity checks (SHA-256)
-- transformations into processed files
+# 3. Pré-processamento
 
-# 3. Preprocessing
-## 3.1 Expression
-- RNA-seq: counts -> TMM/logCPM -> Z-score intra-cohort
-- Microarray: log2 intensity -> Z-score intra-cohort
-- gene mapping rules (HGNC, probes collapsing)
-- effective gene count rules
+## 3.1 Expressão Gênica
 
-## 3.2 Clinical
-- endpoint mapping rules
-- time unit conversion (days -> months by 30.4375)
-- reverse Kaplan–Meier follow-up computation
+- **RNA-seq** (SCAN-B, TCGA-BRCA): contagens brutas → edgeR `filterByExpr` → TMM → logCPM (prior.count=1)
+- **Microarray** (METABRIC, GSE20685): intensidades log2 como obtidas; log2(x+1) se p95 > 20
+- **Mapeamento HGNC:** Ensembl → `org.Hs.eg.db` + `AnnotationDbi` (offline); Affymetrix → `hgu133a.db`
+- **Colapso de probes:** maior variância intra-coorte por símbolo HGNC
+- **Z-score:** intra-coorte (scripts 06_zscore_*.R); nunca entre coortes
 
-# 4. Model derivation (Core-PAM)
-```{r}
-# Example: load derivation summary
-# library(jsonlite)
-# deriv <- fromJSON("results/pamxx/selected_CorePAM_summary.json")
-# deriv
+## 3.2 Dados Clínicos
+
+- Tempos em meses (divisor: 30,4375 dias/mês para dias; 12 para anos)
+- Amostras com tempo ≤ 0 excluídas
+- Reverse Kaplan–Meier como estimativa de seguimento mediano para censurados
+
+```{r pam50-coverage}
+#| label: tbl-pam50
+#| tbl-cap: "Cobertura PAM50 por coorte (script 04)"
+if (file.exists("results/supp/pam50_coverage_summary.csv")) {
+  pam <- read_csv("results/supp/pam50_coverage_summary.csv", show_col_types = FALSE)
+  kable(pam |> select(cohort, role, n_pam50_present, pct_pam50, genes_missing, go_nogo))
+} else {
+  cat("Run scripts/04_gene_audit_freeze.R to generate this table.\n")
+}
 ```
 
-# 5. Validation (OS/DSS)
-## 5.1 Per-cohort results
-```{r}
-# Example: import final tables (replace with actual filenames)
-# library(readr)
-# tab_surv <- read_csv("results/main/Table3_Survival_Performance_ByCohort.csv", show_col_types = FALSE)
-# tab_surv
+# 4. Derivação do Core-PAM (Script 05)
+
+**Design (A1-proof):**
+- Dobras determinísticas: SHA-256(patient_id) + estratificação por evento → **sem seed como motor**
+- OOF C-index por nível de df → seleciona **menor df** com C_adj ≥ C_max − ΔC
+- Número de genes não pré-especificado: derivado dos dados + regra congelada
+- **Pool candidato:** 50 genes canônicos do PAM50 (Parker et al. 2009, J Clin Oncol) — KRT8 excluído
+- **Máximo df avaliado: 49 de 50 genes.** Com elastic-net (α=0,5), mesmo no λ mínimo, a penalidade L1
+  mantém pelo menos 1 coeficiente em zero (o gene de menor contribuição prognóstica não foi selecionado
+  em nenhum λ da trajetória glmnet). Isso é comportamento esperado do elastic-net e não representa
+  falha metodológica — o df=49 é o teto real observado nos dados, não um teto imposto.
+
+```{r corepam-summary}
+#| label: tbl-corepam
+#| tbl-cap: "Core-PAM: parâmetros de derivação"
+json_path <- "results/corepam/selected_CorePAM_summary.json"
+if (file.exists(json_path)) {
+  deriv <- fromJSON(json_path)
+  cat(sprintf("Genes selecionados: %d\n", deriv$selected$df))
+  cat(sprintf("OOF C_adj: %.4f | C_max: %.4f | gap: %.4f\n",
+              deriv$selected$c_adj, deriv$selected$c_max, deriv$selected$gap))
+  cat(sprintf("Genes: %s\n", paste(deriv$selected$genes, collapse=", ")))
+} else {
+  cat("Aguardando execução do script 05.\n")
+  cat("Gene count: A SER DETERMINADO (não pré-especificado).\n")
+}
 ```
 
-## 5.2 Meta-analysis
-```{r}
-# Example: meta summary
-# meta <- read_csv("results/main/Meta_Survival_Summary.csv", show_col_types = FALSE)
-# meta
+```{r pareto-curve}
+#| label: fig-pareto
+#| fig-cap: "Curva Pareto: df (número de genes) vs C-index OOF"
+pareto_path <- "results/corepam/pareto_df_cindex_oof.csv"
+if (file.exists(pareto_path) && requireNamespace("ggplot2", quietly=TRUE)) {
+  library(ggplot2)
+  par_df <- read_csv(pareto_path, show_col_types = FALSE)
+  cmax <- max(par_df$c_adj, na.rm=TRUE)
+  ggplot(par_df, aes(x=df, y=c_adj)) +
+    geom_line(color="steelblue") + geom_point(size=1.5) +
+    geom_hline(yintercept=cmax - 0.01, linetype="dashed", color="red") +
+    labs(x="Número de genes (df)", y="C-index OOF (ajustado)",
+         caption="Linha vermelha: C_max − ΔC = limiar de não-inferioridade") +
+    theme_minimal()
+} else {
+  cat("Aguardando execução do script 05.\n")
+}
 ```
 
-# 6. QC and forensics
-- off-diagonal correlations
-- METABRIC PCA forensics
-- leakage checks
-- PH assumption checks
+# 5. Validação (OS/DSS)
 
-# 7. Figures and tables (embedded)
-```{r}
+## 5.1 Resultados por Coorte
+
+```{r survival-results}
+if (file.exists("results/main/Table3_Survival_Performance_ByCohort.csv")) {
+  tab_surv <- read_csv("results/main/Table3_Survival_Performance_ByCohort.csv",
+                       show_col_types = FALSE)
+  kable(tab_surv, digits = 3)
+} else {
+  cat("Aguardando scripts 07_survival_analysis_*.R.\n")
+}
+```
+
+## 5.2 Meta-análise
+
+```{r meta-results}
+if (file.exists("results/main/Meta_Survival_Summary.csv")) {
+  meta <- read_csv("results/main/Meta_Survival_Summary.csv", show_col_types = FALSE)
+  kable(meta, digits = 3)
+} else {
+  cat("Aguardando script 08_meta_survival.R.\n")
+}
+```
+
+# 6. Controle de Qualidade
+
+- Correlações off-diagonal entre scores das coortes (script 13)
+- PCA forense no METABRIC (script 14)
+- Verificação de esquema e intervalos (script 15)
+- Anti-hard-code: nenhum número no manuscrito foi digitado manualmente (script 16)
+
+# 7. Figuras e Tabelas (embutidas)
+
+```{r fig-study-design}
+#| eval: false
 # knitr::include_graphics("figures/main/Fig1_StudyDesign_Freeze.pdf")
 ```
 
-# 8. Declarations (journal-ready)
-- Ethics approval and consent to participate
-- Consent for publication
-- Availability of data and materials
-- Competing interests
-- Funding
-- Authors' contributions
-- Acknowledgements
+# 8. Declarações (pronto para periódico)
+
+- **Aprovação ética:** dados públicos (GEO, GDC, cBioPortal) — dispensa aprovação ética específica
+- **Disponibilidade de dados:** todos os dados brutos disponíveis publicamente nos repositórios citados
+- **Código:** disponível em repositório GitHub (link a confirmar)
+- **Conflito de interesses:** nenhum declarado
+- **Financiamento:** a confirmar

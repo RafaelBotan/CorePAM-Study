@@ -35,17 +35,29 @@ reprodutibilidade dos dados de origem.
 ## Script 02 — Harmonização Clínica e Definição de Desfechos
 
 Os dados clínicos de cada coorte foram harmonizados de forma independente, sem
-cruzamento entre coortes. Para todas as coortes RNA-seq (SCAN-B, GSE96058,
-TCGA-BRCA, GSE20685), o desfecho primário foi a sobrevida global (OS), definida
-como o intervalo entre o diagnóstico e o óbito por qualquer causa ou a última
-observação (censura). Para o METABRIC, o desfecho primário foi a sobrevida
-específica por doença (DSS), codificada como evento=1 exclusivamente para óbito
-por doença; óbitos por outras causas foram censurados no momento do óbito.
-Os tempos de seguimento foram expressos em meses (divisor: 30,4375 dias/mês).
-Observações com tempo ≤ 0 foram excluídas e contabilizadas. A separação entre
-as amostras de treinamento (SCAN-B) e de validação (GSE96058) foi realizada
-utilizando a coluna de split do pData do GEO, com verificação formal de ausência
-de sobreposição (intersecção = 0).
+cruzamento entre coortes. A coorte de treinamento SCAN-B corresponde ao acesso
+GEO GSE96058 em sua totalidade (n=3.069 amostras). O pData do GEO foi inspecionado
+e não contém coluna de separação training/validation; portanto, todas as 3.069
+amostras foram alocadas ao conjunto de treinamento (Opção A, aprovada em 2026-02-28).
+Para as coortes RNA-seq (SCAN-B, TCGA-BRCA) e microarray de validação (GSE20685),
+o desfecho primário foi a sobrevida global (OS). Para o METABRIC, o desfecho
+primário foi a sobrevida específica por doença (DSS); óbitos por outras causas
+foram censurados no momento do óbito. Os tempos foram expressos em meses
+(divisor: 30,4375 dias/mês; anos × 12 para GSE20685).
+
+**Resultados (scripts 02–04, execução 2026-02-28):**
+
+| Coorte | N | Eventos OS | % | Mediana FU all | Mediana FU censurados | Max FU | PAM50 |
+|--------|---|------------|---|----------------|----------------------|--------|-------|
+| SCAN-B | 3.069 | 322 | 10,5% | 53,0 mo | 54,9 mo | 81,3 mo | 50/50 |
+| TCGA-BRCA | 1.072 | 150 | 14,0% | 28,3 mo | 25,6 mo | 282,7 mo | 49/50 |
+| METABRIC | 1.980 | 1.144 OS / 646 DSS | 57,8% | 116,5 mo | **157,9 mo** | 355,2 mo | 50/50 |
+| GSE20685 | 327 | 83 | 25,4% | 97,2 mo | 110,4 mo | 169,2 mo | 44/50† |
+
+† ANLN, CXXC5, GPR160, NUF2, TMEM45B, UBE2T ausentes: sem probes no HGU133A (GPL96);
+  44/50 (88%) é o teto absoluto da plataforma — acima do critério mínimo de 80%.
+
+A arquitetura final compreende 4 coortes: SCAN-B (treino) + 3 validação.
 
 ---
 
@@ -53,15 +65,17 @@ de sobreposição (intersecção = 0).
 
 O pré-processamento foi realizado de forma estritamente independente para cada
 coorte, sem pooling ou correção de batch inter-coorte. Para as coortes RNA-seq
-(SCAN-B, GSE96058, TCGA-BRCA), as contagens brutas foram normalizadas pelo método
+(SCAN-B, TCGA-BRCA), as contagens brutas foram normalizadas pelo método
 TMM (Trimmed Mean of M-values) utilizando o pacote edgeR, seguido de transformação
 logCPM com pseudo-contagem de 1. Para as coortes de microarray (METABRIC: Illumina;
 GSE20685: Affymetrix HGU133A), os valores de intensidade foram utilizados na escala
 log2 como obtidos, com aplicação de log2(x+1) quando o percentil 95 excedia 20,
 indicando dados não transformados. O mapeamento dos identificadores Ensembl para
-símbolos HGNC oficiais foi realizado via biomaRt com cache local em RDS. Os
-identificadores Affymetrix foram mapeados via pacote de anotação da plataforma
-correspondente. Em casos de múltiplas sondas mapeando para o mesmo símbolo HGNC,
+símbolos HGNC oficiais foi realizado via `org.Hs.eg.db` + `AnnotationDbi`
+(anotação offline, sem dependência de rede), com cache local em RDS para
+reutilização. O pacote `biomaRt` não foi utilizado por apresentar conflito de
+dependências nesta instalação. Os identificadores Affymetrix foram mapeados via
+pacote de anotação da plataforma correspondente (`hgu133a.db` para GSE20685). Em casos de múltiplas sondas mapeando para o mesmo símbolo HGNC,
 foi retida a sonda com maior variância intra-coorte. Genes com fração de dados
 ausentes superior a 20% foram removidos.
 
@@ -70,33 +84,49 @@ ausentes superior a 20% foram removidos.
 ## Script 04 — Auditoria de Cobertura do Painel PAM50
 
 Antes da derivação do Core-PAM, foi realizada uma auditoria transversal da
-cobertura dos 50 genes do painel PAM50 em todas as cinco coortes. Para a coorte
-de treinamento (SCAN-B), o critério go/no-go exigiu a presença de todos os 50 genes.
-Para as coortes de validação, o critério mínimo foi de 80% do painel PAM50 presente,
-sendo a cobertura do Core-PAM verificada novamente após a derivação do painel.
-Os resultados foram exportados em uma tabela gene × coorte (formato largo) e em
-uma tabela de resumo de cobertura por coorte, ambas registradas com seus hashes
-SHA-256.
+cobertura do painel PAM50 (50 genes) em todas as 4 coortes. Para a coorte
+de treinamento (SCAN-B), o critério go/no-go exigiu a presença de todos os 50 genes
+(resultado: 50/50; GO). Para as coortes de validação, o critério mínimo foi de 80%:
+TCGA-BRCA 49/50 (98%; MIA ausente — gene não mapeado pelo org.Hs.eg.db nesta coorte),
+METABRIC 50/50 (100%), GSE20685 44/50 (88%; ANLN, CXXC5, GPR160, NUF2, TMEM45B, UBE2T
+ausentes — limitação de plataforma: esses 6 genes não possuem probes no array HGU133A,
+confirmado via `hgu133a.db`; 44/50 é o teto absoluto desta plataforma).
+Os resultados foram exportados em tabela gene × coorte (formato largo) e em
+tabela de resumo de cobertura por coorte, ambas registradas com hashes SHA-256.
 
 ---
 
 ## Script 05 — Derivação do Painel Core-PAM
 
-O painel Core-PAM foi derivado exclusivamente na coorte de treinamento SCAN-B,
-sem qualquer acesso às coortes de validação. Utilizou-se regressão de Cox com
-regularização elástica (α = 0,5, pacote glmnet), com validação cruzada K=10 dobras
-estratificadas por evento (semente=42). A estratificação garantiu distribuição
-proporcional de eventos e censuras em cada dobra. O C-index fora da dobra (OOF)
-foi calculado para cada valor de λ na trajetória do modelo, utilizando predições
-lineares mantidas pelo argumento `keep=TRUE` do `cv.glmnet`. Para cada λ, calculou-se
-o C-index ajustado pela orientação: Cadj = max(C_bruto, 1 − C_bruto), tornando a
-métrica invariante à inversão de escala do score. O painel final foi selecionado
-como o modelo com menor número de genes não-zero cujo Cadj ficou dentro de ΔC=0,010
-do Cadj máximo observado (critério de não-inferioridade pré-especificado).
-Se HR(score) < 1, o sinal dos pesos foi invertido para que scores elevados
-correspondam a pior prognóstico. O painel resultante, seus pesos e os parâmetros
-de derivação foram registrados nos arquivos `CorePAM_weights.csv`,
-`CorePAM_model.rds` e `CorePAM_training_card.json`.
+O painel Core-PAM foi derivado exclusivamente na coorte de treinamento SCAN-B
+(n=3.069; Opção A), sem qualquer acesso às coortes de validação. Utilizou-se
+regressão de Cox com regularização elástica (α = 0,5, pacote glmnet) com K=10 dobras.
+
+A atribuição de amostras às dobras foi **determinística** — baseada nos primeiros
+8 dígitos hexadecimais do SHA-256 do identificador de paciente, com estratificação
+por status de evento. Essa abordagem garante que a mesma amostra sempre receba a
+mesma dobra independentemente da ordem dos dados, eliminando a dependência de uma
+semente aleatória como motor de seleção de genes. Os parâmetros de K e α foram
+pré-especificados e congelados antes de qualquer análise.
+
+O C-index de Harrell fora da dobra (OOF) foi calculado para cada nível único de
+graus de liberdade (df = número de genes não-zero) na trajetória de regularização.
+Para cada df, foi selecionado o λ mais parcimonioso (maior λ com aquele df).
+O C-index ajustado pela orientação — Cadj = max(C_bruto, 1 − C_bruto) — torna
+a métrica invariante à inversão de escala do score. O painel final (Core-PAM) foi
+selecionado como o **menor df** com Cadj ≥ Cadj_máximo − ΔC (ΔC = 0,010),
+aplicando o critério de não-inferioridade pré-especificado. O número de genes
+não foi pré-especificado: é derivado dos dados e da regra de não-inferioridade.
+
+Os pesos finais foram extraídos da trajetória completa do glmnet no λ escolhido
+(não do cv.glmnet), evitando variação de df entre treino completo e OOF.
+O máximo de genes não-zero avaliado na trajetória foi df=49 (de 50 candidatos):
+com regularização elastic-net (α=0,5), a penalidade L1 manteve um gene com
+coeficiente zero mesmo no λ mínimo — comportamento esperado do elastic-net que
+não implica limitação metodológica.
+O painel resultante, seus pesos e os metadados de derivação foram registrados nos
+arquivos `CorePAM_weights.csv`, `CorePAM_model.rds`, `selected_CorePAM_summary.json`
+e `pareto_df_cindex_oof.csv` (curva Pareto df × C-index OOF).
 
 ---
 
@@ -124,9 +154,9 @@ com intervalo de confiança de 95% por bootstrap (n=1.000 reamostras, semente=42
 Curvas de Kaplan-Meier foram construídas dicotomizando as amostras no ponto de corte
 da mediana intra-coorte (primário) e nos quartis (sensibilidade). Uma meta-análise
 de efeitos aleatórios (método REML, pacote metafor) foi conduzida combinando os
-log(HR) univariados e seus erros-padrão de todas as cinco coortes. A heterogeneidade
-foi quantificada pelo I² e τ². A análise leave-one-out foi conduzida como análise de
-sensibilidade.
+log(HR) univariados e seus erros-padrão das três coortes de validação (TCGA-BRCA,
+METABRIC, GSE20685). A heterogeneidade foi quantificada pelo I² e τ². A análise
+leave-one-out foi conduzida como análise de sensibilidade.
 
 ---
 

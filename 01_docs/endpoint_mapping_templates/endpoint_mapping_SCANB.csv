@@ -1,0 +1,2 @@
+cohort,endpoint,col_time_origin,col_event_origin,unit_origin,unit_final,conversion,event_1_means,n_samples,n_events,script,timestamp
+SCANB,OS,overall survival days:ch1,overall survival event:ch1,days,months,/ 30.4375,death_any_cause,3069,322,02_harmonize_clinical_SCANB.R,2026-02-28 14:38:31

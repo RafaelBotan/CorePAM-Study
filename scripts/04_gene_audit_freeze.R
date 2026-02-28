@@ -40,7 +40,6 @@ message(sprintf("[04_audit] Canonical PAM50: %d genes", length(PAM50_GENES)))
 # =============================================================================
 COHORTS <- list(
   list(id = "SCANB",     role = "TRAIN",      platform = "RNAseq"),
-  list(id = "GSE96058",  role = "VALIDATION", platform = "RNAseq"),
   list(id = "TCGA_BRCA", role = "VALIDATION", platform = "RNAseq"),
   list(id = "METABRIC",  role = "VALIDATION", platform = "Microarray"),
   list(id = "GSE20685",  role = "VALIDATION", platform = "Microarray")

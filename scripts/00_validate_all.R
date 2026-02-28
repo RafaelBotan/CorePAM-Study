@@ -50,7 +50,7 @@ syntax_df <- bind_rows(lapply(syntax_results, as_tibble))
 # ---------------------------------------------------------------------------
 # 2) OUTPUT FILE PRESENCE CHECK
 # ---------------------------------------------------------------------------
-COHORTS <- c("SCANB", "GSE96058", "TCGA_BRCA", "METABRIC", "GSE20685")
+COHORTS <- c("SCANB", "TCGA_BRCA", "METABRIC", "GSE20685")
 
 # Define expected outputs for each pipeline stage
 expected_outputs <- list(

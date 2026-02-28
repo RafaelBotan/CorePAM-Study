@@ -22,7 +22,9 @@
 source("scripts/00_setup.R")
 source("scripts/03_utils_gene_mapping.R")
 
-suppressPackageStartupMessages(library(edgeR))
+# NOTE: edgeR is loaded lazily inside the normalization block (section 5)
+# to avoid conflicts with Bioconductor method group bindings when
+# org.Hs.eg.db/AnnotationDbi is also loaded in the same session.
 
 SCRIPT_NAME <- "03_expression_preprocess_SCANB.R"
 COHORT      <- "SCANB"
@@ -30,10 +32,13 @@ COHORT      <- "SCANB"
 # =============================================================================
 # 1) LOAD SCANB IDs (from clinical_FINAL to filter training samples)
 # =============================================================================
-clin_path <- file.path(proc_cohort(COHORT), "clinical_FINAL.parquet")
-clin      <- strict_parquet(clin_path)
-scanb_ids <- normalize_id(clin$sample_id)
-message(sprintf("[03_SCANB] Training IDs loaded: %d samples", length(scanb_ids)))
+clin_path  <- file.path(proc_cohort(COHORT), "clinical_FINAL.parquet")
+clin       <- strict_parquet(clin_path)
+# GSE96058 expression matrix uses SCAN-B internal IDs (patient_id = "title", e.g. "F1")
+# NOT the GEO accession (sample_id = "geo_accession", e.g. "GSM2528079")
+scanb_ids  <- normalize_id(clin$patient_id)
+sample_lookup <- setNames(normalize_id(clin$sample_id), scanb_ids)   # patientId → sampleId
+message(sprintf("[03_SCANB] Training IDs loaded: %d samples (matching by patient_id)", length(scanb_ids)))
 
 # =============================================================================
 # 2) LOCATE RAW EXPRESSION FILE IN DATA LAKE
@@ -46,10 +51,12 @@ message("[03_SCANB] Files available in RAW/GSE96058:")
 print(basename(raw_files))
 
 # Detect counts file (priority) vs gene expression matrix
-counts_file <- raw_files[grep("count|raw|RAW\\.tar", basename(raw_files),
-                               ignore.case = TRUE)][1]
-expr_file   <- raw_files[grep("gene_expression|genematrix|expression",
-                               basename(raw_files), ignore.case = TRUE)][1]
+# Exclude .rds files (clinical metadata) from counts detection
+non_rds <- raw_files[!grepl("\\.rds$", raw_files, ignore.case = TRUE)]
+counts_file <- non_rds[grep("count|RAW\\.tar", basename(non_rds),
+                             ignore.case = TRUE)][1]
+expr_file   <- non_rds[grep("gene_expression|genematrix", basename(non_rds),
+                             ignore.case = TRUE)][1]
 
 # =============================================================================
 # 3A) READ RAW COUNTS (if available — preferred by Memorial)
@@ -155,6 +162,9 @@ message(sprintf("[03_SCANB] Filtered matrix: %d genes x %d SCANB samples",
 # =============================================================================
 if (input_type == "raw_counts") {
   message("[03_SCANB] Applying edgeR TMM → logCPM...")
+  old_warn_pkg <- getOption("warn"); options(warn = 0)
+  suppressPackageStartupMessages(library(edgeR))
+  options(warn = old_warn_pkg)
 
   # Filter genes with very low expression (edgeR recommendation)
   dge      <- edgeR::DGEList(counts = count_mat)
@@ -271,4 +281,4 @@ message(sprintf("[03_SCANB] Saved: %s | %d genes x %d samples | %.2f MB | SHA256
                 out_path, nrow(expr_mat), ncol(expr_mat), size, h))
 
 message("\n[03_SCANB] Completed: ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
-message("Next step: scripts/03_expression_preprocess_GSE96058.R")
+message("Next step: scripts/03_expression_preprocess_TCGA_BRCA.R")

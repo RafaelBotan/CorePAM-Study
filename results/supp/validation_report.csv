@@ -1,0 +1,46 @@
+file,status,detail,check_type,check
+00_setup.R,PASS,syntax OK,syntax,NA
+01_download_raw_data.R,PASS,syntax OK,syntax,NA
+02_harmonize_clinical_GSE20685.R,PASS,syntax OK,syntax,NA
+02_harmonize_clinical_METABRIC.R,PASS,syntax OK,syntax,NA
+02_harmonize_clinical_SCANB.R,PASS,syntax OK,syntax,NA
+02_harmonize_clinical_TCGA_BRCA.R,PASS,syntax OK,syntax,NA
+03_expression_preprocess_GSE20685.R,PASS,syntax OK,syntax,NA
+03_expression_preprocess_METABRIC.R,PASS,syntax OK,syntax,NA
+03_expression_preprocess_SCANB.R,PASS,syntax OK,syntax,NA
+03_expression_preprocess_TCGA_BRCA.R,PASS,syntax OK,syntax,NA
+03_utils_gene_mapping.R,PASS,syntax OK,syntax,NA
+04_gene_audit_freeze.R,PASS,syntax OK,syntax,NA
+05_reduce_pam50_to_corepam_FINAL.R,PASS,syntax OK,syntax,NA
+06_zscore_and_score_GSE20685.R,PASS,syntax OK,syntax,NA
+06_zscore_and_score_METABRIC.R,PASS,syntax OK,syntax,NA
+06_zscore_and_score_SCANB.R,PASS,syntax OK,syntax,NA
+06_zscore_and_score_TCGA_BRCA.R,PASS,syntax OK,syntax,NA
+07_survival_analysis_GSE20685.R,PASS,syntax OK,syntax,NA
+07_survival_analysis_METABRIC.R,PASS,syntax OK,syntax,NA
+07_survival_analysis_SCANB.R,PASS,syntax OK,syntax,NA
+07_survival_analysis_TCGA_BRCA.R,PASS,syntax OK,syntax,NA
+07A_preflight_files_strict.R,PASS,syntax OK,syntax,NA
+07D_validate_one_cohort_corepam.R,PASS,syntax OK,syntax,NA
+08_meta_survival.R,PASS,syntax OK,syntax,NA
+11_incremental_value_and_dca.R,PASS,syntax OK,syntax,NA
+13_qc_correlations_offdiag.R,PASS,syntax OK,syntax,NA
+14_qc_metabric_pca_forensics.R,PASS,syntax OK,syntax,NA
+15_qc_schema_range_checks.R,PASS,syntax OK,syntax,NA
+16_qc_text_vs_results_assert.R,PASS,syntax OK,syntax,NA
+17_render_manuscript_quarto.R,PASS,syntax OK,syntax,NA
+18_make_submission_bundle.R,PASS,syntax OK,syntax,NA
+NA,PASS,4/4 files present,output_presence,01_download: RAW dirs exist
+NA,MISSING,"0/4 files present; missing: clinical_FINAL.parquet, clinical_FINAL.parquet, clinical_FINAL.parquet, clinical_FINAL.parquet",output_presence,02_clinical: clinical_FINAL.parquet
+NA,MISSING,"0/4 files present; missing: expression_genelevel_preZ.parquet, expression_genelevel_preZ.parquet, expression_genelevel_preZ.parquet, expression_genelevel_preZ.parquet",output_presence,03_expression: expression_genelevel_preZ.parquet
+NA,MISSING,0/1 files present; missing: gene_audit_by_cohort.csv,output_presence,04_audit: gene_audit_by_cohort.csv
+NA,MISSING,0/1 files present; missing: CorePAM_weights.csv,output_presence,05_corepam: CorePAM_weights.csv
+NA,MISSING,0/1 files present; missing: CorePAM_training_card.json,output_presence,05_corepam: CorePAM_training_card.json
+NA,MISSING,"0/4 files present; missing: analysis_ready.parquet, analysis_ready.parquet, analysis_ready.parquet, analysis_ready.parquet",output_presence,06_score: analysis_ready.parquet
+NA,MISSING,"0/4 files present; missing: survival_results_SCANB.csv, survival_results_TCGA_BRCA.csv, survival_results_METABRIC.csv, survival_results_GSE20685.csv",output_presence,07_survival: survival_results_*.csv
+NA,MISSING,0/1 files present; missing: meta_survival_summary.csv,output_presence,08_meta: meta_survival_summary.csv
+NA,MISSING,0/1 files present; missing: incremental_value_results.csv,output_presence,11_incremental: incremental_value_results.csv
+NA,MISSING,0/1 files present; missing: qc_offdiag_correlations.csv,output_presence,13_qc_corr: qc_offdiag_correlations.csv
+NA,MISSING,0/1 files present; missing: metabric_pca_forensics.csv,output_presence,14_pca: metabric_pca_forensics.csv
+NA,MISSING,0/1 files present; missing: qc_schema_range_report.csv,output_presence,15_schema: qc_schema_range_report.csv
+NA,MISSING,0/1 files present; missing: qc_text_vs_results_report.csv,output_presence,16_text_vs: qc_text_vs_results_report.csv

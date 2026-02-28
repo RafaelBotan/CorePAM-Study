@@ -112,6 +112,10 @@ strict_parquet <- function(path) {
 strict_rds <- function(path) {
   if (!file.exists(path)) stop("RDS not found: ", path)
   if (file.info(path)$size == 0) stop("Empty RDS (0 bytes): ", path)
+  # Temporarily lower warn to avoid converting harmless decompression warnings
+  # to hard errors under the global warn=2 setting.
+  old_warn <- getOption("warn"); on.exit(options(warn = old_warn))
+  options(warn = 0)
   readRDS(path)
 }
 

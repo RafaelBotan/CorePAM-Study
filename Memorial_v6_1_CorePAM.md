@@ -67,13 +67,14 @@ Validar o **Core-PAM Risk Score** em coortes independentes, demonstrando:
 
 ### 3.1 Bloco Prognóstico (OS/DSS) — papéis congelados
 - **Treino / derivação do painel (Discovery):** SCAN-B (RNA-seq).  
-- **Validação externa RNA-seq:** TCGA-BRCA, GSE96058.  
+- **Validação externa RNA-seq:** TCGA-BRCA.
 - **Validação microarray:** METABRIC, GSE20685 (Taiwan).
 
-### 3.2 Regra “Leakage-Proof” (SCAN-B vs GSE96058)
-- Sobreposição entre treino e validação: proibida.  
-- Deduplicação determinística: cruzamento por Patient_ID + Sample_Barcode (ou chave equivalente).  
-- Artefato obrigatório: `results/leakage_check_scanb_vs_gse96058.csv` com hashes das listas de IDs e interseção=0.
+### 3.2 Regra “Leakage-Proof”
+- SCAN-B = acesso GEO completo GSE96058 (n=3069); o pData do GEO NÃO possui coluna de separação training/validation (confirmado em 2026-02-28). Decisão (Option A, aprovada por Rafael Botan em 2026-02-28): usar TODAS as 3069 amostras como treinamento.
+- GSE96058 deixa de existir como coorte de validação separada. Os scripts GSE96058 foram removidos.
+- Sobreposição entre treino e validação: proibida. A regra leakage-proof aplica-se agora entre SCAN-B e as coortes de validação externas (TCGA-BRCA, METABRIC, GSE20685).
+- Deduplicação determinística: cruzamento por Patient_ID + Sample_Barcode (ou chave equivalente) entre SCAN-B e cada coorte de validação.
 
 ### 3.3 Bloco NACT/pCR (secundário)
 - GSE25066, GSE20194, GSE32646, I-SPY1 e I-SPY2 (pendente).  
@@ -89,7 +90,7 @@ Validar o **Core-PAM Risk Score** em coortes independentes, demonstrando:
 - Follow-up mediana: Reverse Kaplan–Meier.  
 - Tempos ≤ 0: drop com contagem reportada por coorte (QC).
 
-### 4.2 RNA-seq (SCAN-B, TCGA, GSE96058)
+### 4.2 RNA-seq (SCAN-B, TCGA-BRCA)
 - Input congelado: raw counts.  
 - Normalização pré-Z: edgeR TMM → logCPM (intra-coorte).  
 - Padronização final: Z-score por gene intra-coorte.
@@ -121,10 +122,12 @@ Validar o **Core-PAM Risk Score** em coortes independentes, demonstrando:
 - Desempate: maior λ (mais parcimonioso) dentro do mesmo df.
 
 ### 5.4 Artefatos congelados da derivação
-- `results/corepam/pareto_df_cindex_oof.csv`  
-- `results/corepam/CorePAM_weights.csv`  
-- `results/corepam/CorePAM_model.rds` (usar `cv_full$glmnet.fit` no λ escolhido)  
-- `results/corepam/CorePAM_training_card.json` (inclui df final, λ, ΔC, seed, folds, hashes)
+- `results/corepam/pareto_df_cindex_oof.csv`
+- `results/corepam/CorePAM_weights.csv`
+- `results/corepam/CorePAM_model.rds` (usar `cv_full$glmnet.fit` no λ escolhido)
+- `results/corepam/selected_CorePAM_summary.json` (inclui df final, λ, ΔC, folds, hashes)
+  *(nota: referido como `CorePAM_training_card.json` em versões anteriores do memorial; nome real do arquivo gerado é `selected_CorePAM_summary.json`)*
+- `results/corepam/artifact_hashes.csv`
 
 ### 5.5 Regra de direção do score (congelada)
 - Se `coxph(Surv ~ score)` em uma coorte produzir HR < 1, inverter: `score := -score`.  

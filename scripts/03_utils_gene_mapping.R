@@ -11,15 +11,19 @@
 #   - Do NOT Z-score here — output is pre-Z (logCPM or log2 intensity).
 # =============================================================================
 
+old_warn <- getOption("warn"); options(warn = 0)
 suppressPackageStartupMessages({
-  library(biomaRt)
   library(HGNChelper)
+  library(org.Hs.eg.db)
+  library(AnnotationDbi)
 })
+options(warn = old_warn)
 
 # --------------------------------------------------------------------------
 # build_hgnc_map_ensembl
-#   Converts Ensembl IDs to HGNC official symbols via biomaRt.
-#   Cache: saves in registry to avoid re-download.
+#   Converts Ensembl IDs to HGNC official symbols via org.Hs.eg.db (offline).
+#   Replaces biomaRt (which had load failures on this R installation).
+#   Cache: saves in registry to avoid re-query.
 # --------------------------------------------------------------------------
 build_hgnc_map_ensembl <- function(ensembl_ids,
                                    cache_path = file.path(
@@ -27,31 +31,45 @@ build_hgnc_map_ensembl <- function(ensembl_ids,
                                      "hgnc_ensembl_map_cache.rds")) {
   if (file.exists(cache_path)) {
     message("  [gene_map] Using HGNC Ensembl cache: ", cache_path)
-    old_warn <- getOption("warn"); options(warn = 0)
+    old_warn <- getOption("warn"); on.exit(options(warn = old_warn))
+    options(warn = 0)
     map <- readRDS(cache_path)
-    options(warn = old_warn)
-  } else {
-    message("  [gene_map] Downloading Ensembl→HGNC map via biomaRt...")
-    old_warn <- getOption("warn"); options(warn = 0)
-    mart <- tryCatch(
-      biomaRt::useMart("ensembl", dataset = "hsapiens_gene_ensembl"),
-      error = function(e) {
-        options(warn = old_warn)
-        stop("biomaRt unavailable: ", conditionMessage(e),
-             "\nCheck connection or use manual cache.")
-      }
-    )
-    map <- biomaRt::getBM(
-      attributes = c("ensembl_gene_id", "hgnc_symbol",
-                     "entrezgene_id", "gene_biotype"),
-      filters    = "ensembl_gene_id",
-      values     = unique(ensembl_ids),
-      mart       = mart
-    )
-    options(warn = old_warn)
-    saveRDS(map, cache_path)
-    message("  [gene_map] Cache saved: ", cache_path)
+    return(map)
   }
+
+  message("  [gene_map] Building Ensembl→HGNC map via org.Hs.eg.db (offline)...")
+  old_warn <- getOption("warn"); on.exit(options(warn = old_warn))
+  options(warn = 0)
+
+  clean_ids <- unique(sub("\\..*$", "", ensembl_ids))   # strip version suffix
+
+  map_raw <- tryCatch(
+    AnnotationDbi::select(
+      org.Hs.eg.db,
+      keys    = clean_ids[!is.na(clean_ids) & nchar(clean_ids) > 0],
+      columns = c("ENSEMBL", "SYMBOL", "ENTREZID", "GENETYPE"),
+      keytype = "ENSEMBL"
+    ),
+    error = function(e) {
+      message("  [gene_map] org.Hs.eg.db mapping failed: ", conditionMessage(e))
+      data.frame(ENSEMBL = character(), SYMBOL = character(),
+                 ENTREZID = character(), GENETYPE = character(),
+                 stringsAsFactors = FALSE)
+    }
+  )
+
+  # Rename columns to match old biomaRt output format used downstream
+  map <- data.frame(
+    ensembl_gene_id = map_raw$ENSEMBL,
+    hgnc_symbol     = map_raw$SYMBOL,
+    entrezgene_id   = suppressWarnings(as.integer(map_raw$ENTREZID)),
+    gene_biotype    = map_raw$GENETYPE,
+    stringsAsFactors = FALSE
+  )
+
+  dir.create(dirname(cache_path), showWarnings = FALSE, recursive = TRUE)
+  saveRDS(map, cache_path)
+  message(sprintf("  [gene_map] Cache saved: %s (%d mappings)", cache_path, nrow(map)))
   map
 }
 

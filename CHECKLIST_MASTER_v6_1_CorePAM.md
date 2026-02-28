@@ -66,7 +66,7 @@ Commit: “Freeze v6.1 governance manifests (Core-PAM)”.
 
 ## 4) Ingestão RAW e hashes
 
-- [ ] Executar `01_download_raw_data.R` (coortes OS: GSE96058, METABRIC, TCGA-BRCA, GSE20685)
+- [ ] Executar `01_download_raw_data.R` (coortes OS: SCAN-B via GSE96058 [ALL 3069 amostras = treino], METABRIC, TCGA-BRCA, GSE20685)
 - [ ] Registrar SHA-256 dos RAW no `registry/study_registry.csv`.
 - [ ] **Bloco pCR (após OS selado):** executar `01_download_raw_data_pcr.R` (GSE25066, GSE20194, GSE32646, I-SPY1, I-SPY2)
 
@@ -74,7 +74,7 @@ Commit: “Freeze v6.1 governance manifests (Core-PAM)”.
 
 ## 5) Harmonização clínica
 
-- [ ] `02_harmonize_clinical_<COHORT>.R` por coorte.
+- [ ] `02_harmonize_clinical_<COHORT>.R` por coorte (4 coortes: SCANB, TCGA_BRCA, METABRIC, GSE20685).
 - [ ] Exportar `clinical_FINAL.parquet` por coorte.
 - [ ] METABRIC: DSS (principal) + OS (sensibilidade).
 
@@ -82,7 +82,7 @@ Commit: “Freeze v6.1 governance manifests (Core-PAM)”.
 
 ## 6) Expressão pré-Z
 
-- [ ] `03_expression_preprocess_<COHORT>.R`
+- [ ] `03_expression_preprocess_<COHORT>.R` (4 coortes: SCANB, TCGA_BRCA, METABRIC, GSE20685)
 - [ ] Exportar `expression_genelevel_preZ.parquet`.
 - [ ] Exportar `gene_mapping_audit_<COHORT>.csv`.
 
@@ -111,8 +111,8 @@ Commit: “Freeze v6.1 governance manifests (Core-PAM)”.
 
 ## 9) Score por coorte e sobrevida
 
-- [ ] `06_zscore_and_score_<COHORT>.R` (usa `results/corepam/CorePAM_weights.csv`)
-- [ ] `07_survival_analysis_<COHORT>.R`
+- [ ] `06_zscore_and_score_<COHORT>.R` (4 coortes: SCANB, TCGA_BRCA, METABRIC, GSE20685; usa `results/corepam/CorePAM_weights.csv`)
+- [ ] `07_survival_analysis_<COHORT>.R` (4 coortes: SCANB, TCGA_BRCA, METABRIC, GSE20685)
 - [ ] Exportar `survival_results_<COHORT>.csv` + figuras (KM em painéis).
 
 ---

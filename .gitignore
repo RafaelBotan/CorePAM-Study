@@ -28,3 +28,15 @@ Thumbs.db
 
 # Registry (versionar apenas templates, não o executado)
 registry/study_registry.csv
+
+# Documentos confidenciais — NUNCA versionar
+"Artigo antigo enviado a springer/"
+Artigo antigo enviado a springer/
+Perguntas dos revisoes.docx
+*.docx
+
+# Estado interno do Claude
+.claude/
+
+# Logs de execução
+logs/*.log

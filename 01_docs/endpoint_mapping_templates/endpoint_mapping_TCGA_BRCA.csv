@@ -1,0 +1,2 @@
+cohort,endpoint_primary,col_days_death,col_days_follow_up,col_vital_status,unit_origin,unit_final,conversion,event_1_means,sensitivity_note,n_samples,n_events,script,timestamp
+TCGA_BRCA,OS,days_to_death,days_to_last_follow_up,vital_status,days,months,/ 30.4375,death_any_cause,horizonte_24m_executado_em_07_survival_TCGA_BRCA.R,1072,150,02_harmonize_clinical_TCGA_BRCA.R,2026-02-28 14:42:21

@@ -21,7 +21,7 @@ if (!FORCE && file.exists(stamp_path)) {
 
 message("[07A] Starting strict pre-flight check for all cohorts...")
 
-COHORTS <- c("SCANB", "GSE96058", "TCGA_BRCA", "METABRIC", "GSE20685")
+COHORTS <- c("SCANB", "TCGA_BRCA", "METABRIC", "GSE20685")
 
 # Required files per cohort
 REQUIRED_FILES <- list(

@@ -8,7 +8,7 @@ time_unit_divisor,30.4375,Divisor para converter dias em meses (365.25/12)
 primary_endpoint_scanb,OS,Endpoint primario na coorte de treino
 primary_endpoint_metabric,DSS,Endpoint primario METABRIC (DSS; OS como sensibilidade)
 primary_endpoint_tcga,OS,Endpoint primario TCGA-BRCA
-primary_endpoint_gse96058,OS,Endpoint primario GSE96058
+primary_endpoint_scanb_training,OS,Endpoint primario SCAN-B treino (GSE96058; Opcao A: todas 3069 amostras = treino)
 primary_endpoint_gse20685,OS,Endpoint primario GSE20685
 km_cutpoint,median,Cutpoint principal para KM (mediana intra-coorte)
 km_cutpoint_sensitivity,quartiles,Cutpoint de sensibilidade para KM

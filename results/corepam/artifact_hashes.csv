@@ -1,0 +1,5 @@
+artifact,path,sha256
+pareto_df_cindex_oof.csv,Y:\Phd-Genomic-claude/results/corepam/pareto_df_cindex_oof.csv,16d4675112dad3a3352fed4505db2ab51507d1d671c4e98ed656ace3ba500e7a
+CorePAM_weights.csv,Y:\Phd-Genomic-claude/results/corepam/CorePAM_weights.csv,0241afd556302c3332f0e82b5ca3a72f3ac54786d14904d9b2c47670846eba48
+CorePAM_model.rds,Y:\Phd-Genomic-claude/results/corepam/CorePAM_model.rds,3b8a297b7a93248fe16c89ae4dbfd7535bb0166b3ba056d9a227d4ff0a46ab36
+selected_CorePAM_summary.json,Y:\Phd-Genomic-claude/results/corepam/selected_CorePAM_summary.json,d5d6923462ae2aab66eab8203d67db14192a415029e54cd315d00c1d7ba45079

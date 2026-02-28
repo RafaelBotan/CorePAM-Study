@@ -40,9 +40,33 @@ print(basename(raw_files))
 expr_file <- raw_files[grep("matrix|expression|series_matrix",
                              basename(raw_files), ignore.case = TRUE)][1]
 
+# Fallback: download series matrix via GEOquery if only CEL/TAR files present
 if (is.na(expr_file) || !file.exists(expr_file)) {
-  stop("[03_GSE20685] Expression file not found in RAW/GSE20685/.\n",
-       "Run 01_download_raw_data.R first.")
+  message("[03_GSE20685] No expression matrix found. Downloading series matrix via GEOquery...")
+  if (!requireNamespace("GEOquery", quietly = TRUE)) {
+    stop("GEOquery required: BiocManager::install('GEOquery')")
+  }
+  old_warn_gq <- getOption("warn"); options(warn = 0)
+  suppressPackageStartupMessages(library(GEOquery))
+  options(warn = old_warn_gq)
+  sm_path <- file.path(raw_dir, "GSE20685_series_matrix.txt.gz")
+  if (!file.exists(sm_path)) {
+    old_warn_dl <- getOption("warn"); options(warn = 0)
+    tryCatch({
+      gse_tmp <- GEOquery::getGEO("GSE20685", GSEMatrix = TRUE,
+                                   destdir = raw_dir, getGPL = FALSE)
+    }, error = function(e) {
+      options(warn = old_warn_dl)
+      stop("[03_GSE20685] GEOquery download failed: ", conditionMessage(e))
+    })
+    options(warn = old_warn_dl)
+  }
+  expr_file <- list.files(raw_dir, pattern = "series_matrix", full.names = TRUE)[1]
+  if (is.na(expr_file) || !file.exists(expr_file)) {
+    stop("[03_GSE20685] Series matrix still not found after GEOquery download.\n",
+         "Check network connection.")
+  }
+  message("[03_GSE20685] Series matrix saved: ", basename(expr_file))
 }
 message("[03_GSE20685] Using file: ", basename(expr_file))
 

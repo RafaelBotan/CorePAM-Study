@@ -90,7 +90,7 @@ At minimum:
 # 3) Cohorts: what must exist locally, what is optional
 
 ## 3.1 Mandatory (OS/DSS focus)
-- SCAN-B (TRAIN; RNA-seq)
+- SCAN-B (TRAIN; RNA-seq; GEO accession GSE96058, ALL 3069 samples = training; no internal split; confirmed 2026-02-28)
 - METABRIC (VALIDATION; microarray; OS + cause-of-death field for DSS mapping)
 - TCGA-BRCA (VALIDATION; RNA-seq)
 - GSE20685 (VALIDATION; microarray; OS)

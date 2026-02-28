@@ -19,12 +19,11 @@ suppressPackageStartupMessages({
 set.seed(FREEZE$seed_folds)
 message(sprintf("[%s] Starting CorePAM incremental value analysis", SCRIPT_NAME))
 
-COHORTS <- c("SCANB", "GSE96058", "TCGA_BRCA", "METABRIC", "GSE20685")
+COHORTS <- c("SCANB", "TCGA_BRCA", "METABRIC", "GSE20685")
 
 # Endpoint per cohort (from freeze)
 ENDPOINT_MAP <- list(
   SCANB     = list(time = "os_time",  event = "os_event"),
-  GSE96058  = list(time = "os_time",  event = "os_event"),
   TCGA_BRCA = list(time = "os_time",  event = "os_event"),
   METABRIC  = list(time = "dss_time", event = "dss_event"),
   GSE20685  = list(time = "os_time",  event = "os_event")

@@ -1,395 +1,433 @@
 # =============================================================================
 # SCRIPT: 05_reduce_pam50_to_corepam_FINAL.R
-# PURPOSE: Core-PAM derivation — smallest PAM50 subset non-inferior to the
-#          full PAM50 model by OOF C-index (Harrell) on SCAN-B.
+# PURPOSE: Reduce PAM50 → Core-PAM (minimal gene set) via OOF non-inferiority.
 # PROJETO: Core-PAM (Memorial v6.1 §5)
 #
-# ALGORITHM (frozen):
-#   1. Prepare X (50 PAM50 genes, intra-SCANB Z-score) + y (Surv OS)
-#   2. Fixed stratified K=10 folds (frozen seed)
-#   3. cv.glmnet (alpha=0.5, keep=TRUE) → OOF linear predictors per lambda
-#   4. For each point on path (lambda, df):
-#        Cadj = max(Craw, 1-Craw)  — orientation-free
-#   5. Cmax = max(Cadj); threshold = Cmax - delta_c
-#   6. Select smallest df with Cadj >= threshold
-#      Tiebreak: largest lambda (most parsimonious) within same df
-#   7. Refit on full data: glmnet.fit at chosen lambda
-#   8. Freeze: CorePAM_weights.csv, CorePAM_model.rds,
-#              CorePAM_training_card.json, pareto_df_cindex_oof.csv
+# DESIGN (A1-proof, audit-friendly):
+#   • Train only: SCAN-B (all N=3069; Option A — no internal split)
+#   • Elastic-Net Cox (alpha = FREEZE$alpha = 0.5)
+#   • K=10 folds — deterministic via SHA-256(patient_id) + event stratification
+#     → Reproducible WITHOUT set.seed() as primary driver
+#     → Same patient always assigned to same fold, regardless of data order
+#   • OOF Harrell C-index computed per unique df level in lambda path
+#   • Core-PAM = smallest df with C_adj ≥ C_max − FREEZE$delta_c
+#   • Gene count (XX) is DERIVED, not pre-specified
 #
 # INPUTS:
 #   01_Base_Pura_CorePAM/PROCESSED/SCANB/expression_genelevel_preZ.parquet
 #   01_Base_Pura_CorePAM/PROCESSED/SCANB/clinical_FINAL.parquet
 #
-# OUTPUTS (all in results/corepam/):
-#   pareto_df_cindex_oof.csv
-#   CorePAM_weights.csv
-#   CorePAM_model.rds
-#   CorePAM_training_card.json
-#   artifact_hashes.csv
+# OUTPUTS:
+#   results/corepam/pareto_df_cindex_oof.csv
+#   results/corepam/selected_CorePAM_summary.json
+#   results/corepam/CorePAM_weights.csv
+#   results/corepam/CorePAM_model.rds
+#   results/corepam/artifact_hashes.csv
 # =============================================================================
 
 source("scripts/00_setup.R")
 
+SCRIPT_NAME <- "05_reduce_pam50_to_corepam_FINAL.R"
+COHORT      <- "SCANB"
+
+# Load modeling packages
+old_warn_pkg <- getOption("warn"); options(warn = 0)
 suppressPackageStartupMessages({
   library(glmnet)
   library(survival)
-  library(jsonlite)
 })
+options(warn = old_warn_pkg)
 
-SCRIPT_NAME <- "05_reduce_pam50_to_corepam_FINAL.R"
+# =============================================================================
+# 0) FROZEN PARAMETERS
+# =============================================================================
+ALPHA_EN <- FREEZE$alpha                # 0.5 (elastic-net mixing)
+K_FOLDS  <- as.integer(FREEZE$k_folds) # 10
+DELTA_C  <- FREEZE$delta_c             # 0.010 (non-inferiority margin)
 
+message(sprintf("[05] Frozen: alpha=%.1f | K=%d | delta_c=%.3f", ALPHA_EN, K_FOLDS, DELTA_C))
+message("[05] Fold assignment: deterministic (SHA-256 of patient_id + event stratification)")
+message("[05] NOTE: FREEZE$seed_folds is NOT the primary selection driver in this design.")
+
+# =============================================================================
+# 1) PAM50 CANDIDATE GENE LIST
+#    50 genes — canonical PAM50 (Parker et al. 2009, J Clin Oncol)
+#    Reference: Table 1 of Parker JS et al. Supervised Risk Predictor of Breast
+#    Cancer Based on Intrinsic Subtypes. J Clin Oncol 2009;27:1160-1167.
+#    KRT8 is NOT included (it is not part of the 50-gene canonical list).
+# =============================================================================
 PAM50_GENES <- c(
-  "ACTR3B","ANLN","BAG1","BCL2","BIRC5","BLVRA","CCNB1","CCNE1","CDC20",
-  "CDC6","CDH3","CENPF","CEP55","CXXC5","EGFR","ERBB2","ESR1","EXO1",
-  "FGFR4","FOXA1","FOXC1","GPR160","GRB7","KIF2C","KRT14","KRT17","KRT5",
-  "MAPT","MDM2","MELK","MIA","MKI67","MLPH","MMP11","MYBL2","MYC","NAT1",
-  "NDC80","NUF2","ORC6","PGR","PHGDH","PTTG1","RRM2","SFRP1","SLC39A6",
-  "TMEM45B","TYMS","UBE2C","UBE2T"
+  "ACTR3B","ANLN","BAG1","BCL2","BIRC5","BLVRA","CCNB1","CCNE1","CDC20","CDC6",
+  "CDH3","CENPF","CEP55","CXXC5","EGFR","ERBB2","ESR1","EXO1","FGFR4","FOXA1",
+  "FOXC1","GPR160","GRB7","KIF2C","KRT14","KRT17","KRT5","MAPT","MDM2",
+  "MELK","MIA","MKI67","MLPH","MMP11","MYBL2","MYC","NAT1","NDC80","NUF2",
+  "ORC6","PGR","PHGDH","PTTG1","RRM2","SFRP1","SLC39A6","TMEM45B","TYMS","UBE2C","UBE2T"
+)
+message(sprintf("[05] PAM50 candidate pool: %d genes", length(PAM50_GENES)))
+
+# =============================================================================
+# 2) LOAD EXPRESSION (PAM50 genes only — memory-efficient lazy filter)
+# =============================================================================
+path_expr <- file.path(proc_cohort(COHORT), "expression_genelevel_preZ.parquet")
+message("[05] Loading PAM50 genes from expression parquet...")
+
+old_warn_arrow <- getOption("warn"); options(warn = 0)
+expr_full <- arrow::read_parquet(path_expr)
+pam50_df  <- expr_full[expr_full$gene %in% PAM50_GENES, ]
+rm(expr_full)
+options(warn = old_warn_arrow)
+
+gene_names_found   <- pam50_df$gene
+missing_genes      <- setdiff(PAM50_GENES, gene_names_found)
+X_genes_x_samples <- as.matrix(pam50_df[, !names(pam50_df) %in% "gene"])
+rownames(X_genes_x_samples) <- gene_names_found
+
+if (length(missing_genes) > 0) {
+  message(sprintf("[05] PAM50 genes absent in SCANB: %s", paste(missing_genes, collapse=",")))
+}
+message(sprintf("[05] PAM50 genes loaded: %d/%d | absent: %d",
+                length(gene_names_found), length(PAM50_GENES), length(missing_genes)))
+
+# Transpose: samples × genes (glmnet convention: X is n_samples × n_features)
+X_raw <- t(X_genes_x_samples)   # rownames = patient_ids, colnames = genes
+message(sprintf("[05] X transposed: %d samples × %d genes", nrow(X_raw), ncol(X_raw)))
+
+# =============================================================================
+# 3) LOAD CLINICAL + JOIN ON patient_id
+# =============================================================================
+path_clin <- file.path(proc_cohort(COHORT), "clinical_FINAL.parquet")
+clin      <- strict_parquet(path_clin)
+
+common_ids <- intersect(clin$patient_id, rownames(X_raw))
+message(sprintf("[05] Sample overlap: %d / %d clinical | %d expression",
+                length(common_ids), nrow(clin), nrow(X_raw)))
+
+clin_sub <- clin[match(common_ids, clin$patient_id), ]
+X_sub    <- X_raw[common_ids, , drop = FALSE]
+
+df_train <- data.frame(
+  patient_id = common_ids,
+  OS_Time    = clin_sub$os_time_months,
+  OS_Status  = as.integer(clin_sub$os_event),
+  stringsAsFactors = FALSE
 )
 
 # =============================================================================
-# 1) LOAD SCANB DATA
+# 4) QC GUARDS
 # =============================================================================
-message("[05] Loading SCANB expression and clinical data...")
+n_samples <- nrow(df_train)
+n_events  <- sum(df_train$OS_Status)
+n_genes   <- ncol(X_sub)
 
-expr <- strict_parquet(file.path(proc_cohort("SCANB"),
-                                 "expression_genelevel_preZ.parquet"))
-clin <- strict_parquet(file.path(proc_cohort("SCANB"),
-                                 "clinical_FINAL.parquet"))
+message(sprintf("[05] QC TRAIN | N=%d | events=%d (%.1f%%) | genes=%d",
+                n_samples, n_events, 100 * n_events / n_samples, n_genes))
 
-message(sprintf("[05] Expression: %d genes x %d samples", nrow(expr), ncol(expr) - 1))
-message(sprintf("[05] Clinical: %d samples | OS events: %d (%.1f%%)",
-                nrow(clin),
-                sum(clin$os_event, na.rm = TRUE),
-                100 * mean(clin$os_event, na.rm = TRUE)))
+if (n_samples < 500)
+  stop("[05] ABORT: too few samples (< 500).")
+if (n_events < 100)
+  stop("[05] ABORT: too few events (< 100) for penalized Cox.")
+if (n_genes < floor(0.90 * length(PAM50_GENES)))
+  stop("[05] ABORT: > 10% of PAM50 candidate genes missing in training data.")
+if (any(df_train$OS_Time <= 0, na.rm = TRUE))
+  stop("[05] ABORT: OS_Time <= 0 detected.")
+if (any(!df_train$OS_Status %in% c(0L, 1L)))
+  stop("[05] ABORT: OS_Status values outside {0, 1}.")
 
 # =============================================================================
-# 2) ALIGN SAMPLES (expression x clinical)
+# 5) SCALE X (once upstream; standardize=FALSE in all glmnet calls)
 # =============================================================================
-expr_mat  <- as.matrix(expr[, -1])
-rownames(expr_mat) <- expr$gene
-expr_mat  <- t(expr_mat)           # samples x genes
-rownames(expr_mat) <- normalize_id(rownames(expr_mat))
+old_warn_sc <- getOption("warn"); options(warn = 0)
+X_scaled <- scale(X_sub)
+options(warn = old_warn_sc)
 
-clin_ids  <- normalize_id(clin$sample_id)
-common_ids <- intersect(rownames(expr_mat), clin_ids)
+sd_check <- attr(X_scaled, "scaled:scale")
+if (any(!is.finite(sd_check)) || any(sd_check == 0))
+  stop("[05] ABORT: zero or non-finite SD in a PAM50 gene — check expression preprocessing.")
 
-if (length(common_ids) == 0) {
-  stop("[05] No samples in common between expression and SCANB clinical data.")
+y_surv <- survival::Surv(df_train$OS_Time, df_train$OS_Status)
+message("[05] X scaled (center + scale). standardize=FALSE used in all glmnet calls.")
+
+# =============================================================================
+# 6) DETERMINISTIC FOLDID — SHA-256(patient_id) + event stratification
+# =============================================================================
+hash_to_int <- function(x) {
+  h <- substr(digest::digest(x, algo = "sha256"), 1, 8)
+  strtoi(h, base = 16L)
 }
-message(sprintf("[05] Common samples: %d", length(common_ids)))
 
-expr_mat <- expr_mat[common_ids, , drop = FALSE]
-clin_sub <- clin[match(common_ids, clin_ids), ]
-
-# =============================================================================
-# 3) FILTER PAM50 GENES AND APPLY INTRA-SCANB Z-SCORE
-#    Z-score here is only for derivation (coefficients in SD units).
-#    Validation Z-score will be intra-cohort in 06_zscore_and_score_<COHORT>.R
-# =============================================================================
-pam50_available <- intersect(PAM50_GENES, colnames(expr_mat))
-pam50_missing   <- setdiff(PAM50_GENES, colnames(expr_mat))
-
-if (length(pam50_missing) > 0) {
-  message(sprintf("[05] WARNING: %d PAM50 genes missing in SCANB: %s",
-                  length(pam50_missing), paste(pam50_missing, collapse = ",")))
+make_foldid_stratified <- function(patient_id, event, K) {
+  event  <- as.integer(event > 0)
+  id_int <- vapply(patient_id, hash_to_int, integer(1L))
+  foldid <- integer(length(patient_id))
+  for (e in c(0L, 1L)) {
+    idx <- which(event == e)
+    ord <- idx[order(id_int[idx])]
+    foldid[ord] <- rep(seq_len(K), length.out = length(ord))
+  }
+  foldid
 }
-if (length(pam50_available) < 40) {
-  stop(sprintf("[05] Only %d PAM50 genes available — minimum 40 required for derivation.",
-               length(pam50_available)))
-}
-message(sprintf("[05] PAM50 genes available for derivation: %d/50",
-                length(pam50_available)))
 
-X_raw <- expr_mat[, pam50_available, drop = FALSE]
+foldid <- make_foldid_stratified(df_train$patient_id, df_train$OS_Status, K_FOLDS)
 
-# Z-score per gene intra-SCANB (for derivation)
-X <- scale(X_raw)
-# Remove genes with no variance (sd=0 → NA column after scale)
-zero_var <- apply(X, 2, function(col) all(is.na(col)))
-if (any(zero_var)) {
-  message(sprintf("[05] Removing %d genes with zero variance.", sum(zero_var)))
-  X <- X[, !zero_var, drop = FALSE]
-}
-message(sprintf("[05] Final X matrix: %d samples x %d genes (Z-scored)",
-                nrow(X), ncol(X)))
-
-# Survival response
-y <- survival::Surv(time  = clin_sub$os_time_months,
-                    event = clin_sub$os_event)
+fold_events <- vapply(seq_len(K_FOLDS),
+                      function(k) sum(df_train$OS_Status[foldid == k]),
+                      integer(1L))
+message(sprintf("[05] Foldid assigned: K=%d | events/fold: %s",
+                K_FOLDS, paste(fold_events, collapse = "/")))
 
 # =============================================================================
-# 4) FIXED STRATIFIED FOLDS (K=10, frozen seed)
-#    Stratification by event to balance events/censored across folds.
+# 7) CV.GLMNET — full lambda path (foldid fixed; used for path definition)
 # =============================================================================
-set.seed(FREEZE$seed_folds)
-
-# Manual stratification by event status
-event_idx   <- which(clin_sub$os_event == 1L)
-censor_idx  <- which(clin_sub$os_event == 0L)
-
-foldid <- integer(nrow(X))
-foldid[event_idx]  <- sample(rep(1:FREEZE$k_folds,
-                                  length.out = length(event_idx)))
-foldid[censor_idx] <- sample(rep(1:FREEZE$k_folds,
-                                  length.out = length(censor_idx)))
-
-message(sprintf("[05] Folds created: K=%d | seed=%d | events per fold: ~%d",
-                FREEZE$k_folds, FREEZE$seed_folds,
-                round(sum(clin_sub$os_event) / FREEZE$k_folds)))
-
-# =============================================================================
-# 5) CV.GLMNET WITH keep=TRUE (stores OOF linear predictors)
-# =============================================================================
-message("[05] Running cv.glmnet (alpha=", FREEZE$alpha,
-        ", K=", FREEZE$k_folds, ")...")
-
-old_warn <- getOption("warn"); options(warn = 0)
-cv_fit <- glmnet::cv.glmnet(
-  x       = X,
-  y       = y,
-  family  = "cox",
-  alpha   = FREEZE$alpha,
-  foldid  = foldid,
-  keep    = TRUE,   # stores fit.preval (OOF linear predictors)
-  grouped = TRUE
+message("[05] Running cv.glmnet (defines lambda path)...")
+old_warn_cv <- getOption("warn"); options(warn = 0)
+cv_full <- glmnet::cv.glmnet(
+  x           = X_scaled,
+  y           = y_surv,
+  family      = "cox",
+  alpha       = ALPHA_EN,
+  foldid      = foldid,
+  standardize = FALSE
 )
-options(warn = old_warn)
+options(warn = old_warn_cv)
 
-message(sprintf("[05] Lambda path: %d points | lambda.min=%.6f | lambda.1se=%.6f",
-                length(cv_fit$lambda), cv_fit$lambda.min, cv_fit$lambda.1se))
+lambda_path <- cv_full$glmnet.fit$lambda
+df_path     <- as.integer(cv_full$glmnet.fit$df)
+message(sprintf("[05] Lambda path: %d steps | df range: %d – %d",
+                length(lambda_path), min(df_path), max(df_path)))
+
+# One lambda per unique df (most parsimonious = largest lambda at that df)
+path_tbl <- tibble::tibble(lambda = lambda_path, df = df_path) |>
+  dplyr::group_by(df) |>
+  dplyr::summarise(lambda = max(lambda), .groups = "drop") |>
+  dplyr::arrange(df)
+
+message(sprintf("[05] Unique df levels to evaluate: %d", nrow(path_tbl)))
 
 # =============================================================================
-# 6) CALCULATE OOF C-INDEX FOR EACH POINT ON PATH
-#    fit.preval: n_samples x n_lambdas matrix with OOF linear predictors
+# 8) OOF C-INDEX PER df LEVEL
 # =============================================================================
-message("[05] Calculating OOF C-index per lambda...")
+harrell_c <- function(time, status, lp) {
+  old_w <- getOption("warn"); options(warn = 0)
+  val   <- as.numeric(survival::concordance(survival::Surv(time, status) ~ lp)$concordance)
+  options(warn = old_w)
+  val
+}
+c_adj_fn <- function(c_raw) max(c_raw, 1 - c_raw, na.rm = TRUE)
 
-oof_lp  <- cv_fit$fit.preval   # n × n_lambda
-lambdas <- cv_fit$lambda
-dfs     <- cv_fit$glmnet.fit$df  # número de coeficientes não-zero por lambda
-
-pareto_list <- vector("list", length(lambdas))
-
-for (j in seq_along(lambdas)) {
-  lp <- oof_lp[, j]
-
-  # Samples with valid predictions (some may be NA at first lambdas)
-  valid_idx <- !is.na(lp)
-  if (sum(valid_idx) < 20) {
-    pareto_list[[j]] <- tibble(
-      lambda = lambdas[j], df = dfs[j],
-      craw = NA_real_, cadj = NA_real_, n_valid = sum(valid_idx)
+oof_lp <- function(X, time, status, foldid, lam) {
+  K  <- max(foldid)
+  lp <- rep(NA_real_, nrow(X))
+  for (k in seq_len(K)) {
+    tr <- which(foldid != k)
+    te <- which(foldid == k)
+    old_w <- getOption("warn"); options(warn = 0)
+    fit_k <- glmnet::glmnet(
+      x           = X[tr, , drop = FALSE],
+      y           = survival::Surv(time[tr], status[tr]),
+      family      = "cox",
+      alpha       = ALPHA_EN,
+      lambda      = lam,
+      standardize = FALSE
     )
-    next
+    lp[te] <- as.numeric(stats::predict(fit_k,
+                                         newx = X[te, , drop = FALSE],
+                                         s    = lam,
+                                         type = "link"))
+    options(warn = old_w)
+  }
+  lp
+}
+
+message(sprintf("[05] OOF C-index loop: %d levels × K=%d folds...",
+                nrow(path_tbl), K_FOLDS))
+oof_list <- vector("list", nrow(path_tbl))
+
+for (i in seq_len(nrow(path_tbl))) {
+  lam <- path_tbl$lambda[i]
+  dfi <- path_tbl$df[i]
+
+  lp_i <- oof_lp(X_scaled, df_train$OS_Time, df_train$OS_Status, foldid, lam)
+
+  if (any(is.na(lp_i))) {
+    oof_list[[i]] <- tibble::tibble(df = dfi, lambda = lam,
+                                     c_raw = NA_real_, c_adj = NA_real_)
+  } else {
+    c_raw <- harrell_c(df_train$OS_Time, df_train$OS_Status, lp_i)
+    oof_list[[i]] <- tibble::tibble(df = dfi, lambda = lam,
+                                     c_raw = c_raw, c_adj = c_adj_fn(c_raw))
   }
 
-  old_warn <- getOption("warn"); options(warn = 0)
-  craw <- tryCatch({
-    conc <- survival::concordance(y[valid_idx] ~ lp[valid_idx])
-    as.numeric(conc$concordance)
-  }, error = function(e) NA_real_)
-  options(warn = old_warn)
-
-  cadj <- if (!is.na(craw)) max(craw, 1 - craw) else NA_real_
-
-  pareto_list[[j]] <- tibble(
-    lambda  = lambdas[j],
-    df      = dfs[j],
-    craw    = craw,
-    cadj    = cadj,
-    n_valid = sum(valid_idx)
-  )
+  if (i %% 5 == 0 || i == nrow(path_tbl)) {
+    message(sprintf("[05]   %d/%d | df=%d | C_adj=%s",
+                    i, nrow(path_tbl), dfi,
+                    if (is.na(oof_list[[i]]$c_adj)) "NA"
+                    else sprintf("%.4f", oof_list[[i]]$c_adj)))
+  }
 }
 
-df_pareto <- bind_rows(pareto_list) |>
-  filter(!is.na(cadj)) |>
-  # For each df: keep only the largest lambda (most parsimonious)
-  group_by(df) |>
-  slice_max(lambda, n = 1, with_ties = FALSE) |>
-  ungroup() |>
-  arrange(df)
+res_oof <- dplyr::bind_rows(oof_list) |> dplyr::arrange(df)
 
-message(sprintf("[05] Pareto computed: %d unique df points", nrow(df_pareto)))
+out_pareto <- file.path(PATHS$results$corepam, "pareto_df_cindex_oof.csv")
+readr::write_csv(res_oof, out_pareto)
+message("[05] Pareto table saved: ", basename(out_pareto))
 
 # =============================================================================
-# 7) SELECTION BY NON-INFERIORITY
+# 9) SELECT MINIMAL NON-INFERIOR df
 # =============================================================================
-cmax      <- max(df_pareto$cadj, na.rm = TRUE)
-threshold <- cmax - FREEZE$delta_c
+res_valid <- dplyr::filter(res_oof, !is.na(c_adj))
+if (nrow(res_valid) == 0) stop("[05] ABORT: all OOF evaluations returned NA.")
 
-message(sprintf("[05] Cmax=%.4f | threshold=%.4f (delta_c=%.3f)",
-                cmax, threshold, FREEZE$delta_c))
+C_max    <- max(res_valid$c_adj)
+C_thresh <- C_max - DELTA_C
 
-# Smallest df with Cadj >= threshold; tiebreak: largest lambda
-selected <- df_pareto |>
-  filter(cadj >= threshold) |>
-  arrange(df, desc(lambda)) |>
-  slice(1)
+candidates <- res_valid |>
+  dplyr::filter(c_adj >= C_thresh) |>
+  dplyr::arrange(df, dplyr::desc(lambda))
 
-if (nrow(selected) == 0) {
-  stop("[05] No model satisfies the non-inferiority criterion. ",
-       "Check delta_c in analysis_freeze.csv.")
+if (nrow(candidates) == 0)
+  stop(sprintf("[05] ABORT: no model meets non-inferiority (delta_c=%.3f | C_max=%.4f).",
+               DELTA_C, C_max))
+
+chosen        <- candidates[1, ]
+lambda_chosen <- chosen$lambda
+df_chosen     <- as.integer(chosen$df)
+
+message(strrep("=", 60))
+message(sprintf("[05] SELECTED Core-PAM | df = %d genes", df_chosen))
+message(sprintf("[05] lambda_chosen = %.6g", lambda_chosen))
+message(sprintf("[05] C_adj = %.4f | C_max = %.4f | gap = %.4f",
+                chosen$c_adj, C_max, C_max - chosen$c_adj))
+message(strrep("=", 60))
+
+# =============================================================================
+# 10) FREEZE WEIGHTS (from full-path fit at chosen lambda — avoids df drift)
+# =============================================================================
+old_warn_coef <- getOption("warn"); options(warn = 0)
+b <- as.matrix(coef(cv_full$glmnet.fit, s = lambda_chosen))
+options(warn = old_warn_coef)
+
+nonzero_genes   <- rownames(b)[as.numeric(b) != 0]
+nonzero_weights <- as.numeric(b[nonzero_genes, 1])
+
+if (length(nonzero_genes) != df_chosen) {
+  message(sprintf("[05] NOTE: coef() returned %d nonzero genes; adjusting df to match.",
+                  length(nonzero_genes)))
+  df_chosen <- length(nonzero_genes)
 }
 
-message(sprintf(
-  "[05] Core-PAM SELECTED: df=%d genes | Cadj=%.4f | lambda=%.6f",
-  selected$df, selected$cadj, selected$lambda
-))
+message(sprintf("[05] Core-PAM genes (%d): %s",
+                length(nonzero_genes), paste(sort(nonzero_genes), collapse = ", ")))
+
+weights_tbl <- tibble::tibble(
+  gene   = nonzero_genes,
+  weight = nonzero_weights
+) |> dplyr::arrange(dplyr::desc(abs(weight)))
+
+out_weights <- file.path(PATHS$results$corepam, "CorePAM_weights.csv")
+readr::write_csv(weights_tbl, out_weights)
+message("[05] Weights saved: ", basename(out_weights))
 
 # =============================================================================
-# 8) REFIT ON FULL DATA (glmnet.fit at chosen lambda — Memorial §5.4)
-#    Use glmnet.fit from cv_fit (full-data path), not single-lambda refit
+# 11) MODEL OBJECT (for scoring in scripts 06–07)
 # =============================================================================
-message("[05] Extracting coefficients from full-data path at chosen lambda...")
-
-old_warn <- getOption("warn"); options(warn = 0)
-coefs_raw <- coef(cv_fit$glmnet.fit, s = selected$lambda)
-options(warn = old_warn)
-
-# Genes with non-zero coefficient
-nonzero_idx <- which(coefs_raw != 0)
-corepam_genes  <- rownames(coefs_raw)[nonzero_idx]
-corepam_weights <- as.numeric(coefs_raw[nonzero_idx])
-n_genes <- length(corepam_genes)
-
-if (n_genes != selected$df) {
-  message(sprintf("[05] WARNING: path df=%d but non-zero coefs=%d (normal rounding discrepancy).",
-                  selected$df, n_genes))
-}
-
-message(sprintf("[05] Core-PAM: %d genes | Weights (first 10):", n_genes))
-weights_df <- tibble(gene = corepam_genes, weight = corepam_weights) |>
-  arrange(desc(abs(weight)))
-print(head(weights_df, 10))
-
-# =============================================================================
-# 9) SCORE DIRECTION (Memorial §5.5)
-#    If HR < 1 in training cohort → invert sign of weights
-# =============================================================================
-score_train <- as.numeric(X[, corepam_genes, drop = FALSE] %*% corepam_weights)
-score_train_z <- scale(score_train)[, 1]
-
-old_warn <- getOption("warn"); options(warn = 0)
-cox_dir <- survival::coxph(y ~ score_train_z)
-options(warn = old_warn)
-
-hr_train <- exp(coef(cox_dir))
-message(sprintf("[05] Training HR (per 1 SD): %.3f", hr_train))
-
-if (hr_train < 1) {
-  message("[05] HR < 1 → inverting sign of weights (score_direction = -1)")
-  corepam_weights <- -corepam_weights
-  score_direction <- -1L
-} else {
-  message("[05] HR >= 1 → original direction (score_direction = +1)")
-  score_direction <- 1L
-}
-
-weights_final <- tibble(gene = corepam_genes, weight = corepam_weights) |>
-  arrange(desc(abs(weight)))
-
-# =============================================================================
-# 10) SAVE ARTIFACTS (results/corepam/)
-# =============================================================================
-dir.create(PATHS$results$corepam, showWarnings = FALSE, recursive = TRUE)
-
-artifact_hashes <- list()
-
-# --- 10a) pareto_df_cindex_oof.csv ---
-pareto_path <- file.path(PATHS$results$corepam, "pareto_df_cindex_oof.csv")
-write_csv(df_pareto, pareto_path)
-h <- sha256_file(pareto_path)
-registry_append("SCANB", "Pareto_OOF", pareto_path, h, "INTEGRO", SCRIPT_NAME,
-                file.info(pareto_path)$size / 1024^2)
-artifact_hashes$pareto_df_cindex_oof <- h
-message("[05] Saved: ", pareto_path)
-
-# --- 10b) CorePAM_weights.csv ---
-weights_path <- file.path(PATHS$results$corepam, "CorePAM_weights.csv")
-write_csv(weights_final, weights_path)
-h <- sha256_file(weights_path)
-registry_append("SCANB", "CorePAM_Weights", weights_path, h, "INTEGRO", SCRIPT_NAME,
-                file.info(weights_path)$size / 1024^2)
-artifact_hashes$CorePAM_weights <- h
-message("[05] Saved: ", weights_path)
-
-# --- 10c) CorePAM_model.rds (complete glmnet.fit) ---
-model_path <- file.path(PATHS$results$corepam, "CorePAM_model.rds")
-saveRDS(cv_fit$glmnet.fit, model_path)
-h <- sha256_file(model_path)
-registry_append("SCANB", "CorePAM_Model", model_path, h, "INTEGRO", SCRIPT_NAME,
-                file.info(model_path)$size / 1024^2)
-artifact_hashes$CorePAM_model <- h
-message("[05] Saved: ", model_path)
-
-# --- 10d) CorePAM_training_card.json ---
-training_card <- list(
-  project          = "Core-PAM",
-  memorial_version = "v6.1",
-  script           = SCRIPT_NAME,
-  timestamp        = format(Sys.time(), "%Y-%m-%dT%H:%M:%S"),
-  cohort_train     = "SCANB",
-  n_samples_train  = nrow(X),
-  n_events_train   = sum(clin_sub$os_event, na.rm = TRUE),
-  freeze = list(
-    alpha              = FREEZE$alpha,
-    k_folds            = FREEZE$k_folds,
-    seed_folds         = FREEZE$seed_folds,
-    delta_c            = FREEZE$delta_c,
-    min_genes_fraction = FREEZE$min_genes_fraction
-  ),
-  derivation = list(
-    pam50_genes_available = length(pam50_available),
-    pam50_genes_missing   = pam50_missing,
-    lambda_chosen  = selected$lambda,
-    df_chosen      = selected$df,
-    cadj_chosen    = selected$cadj,
-    cmax           = cmax,
-    threshold      = threshold,
-    score_direction = score_direction
-  ),
-  corepam = list(
-    n_genes  = n_genes,
-    genes    = corepam_genes,
-    weights  = corepam_weights
-  ),
-  artifact_hashes = artifact_hashes
+model_obj <- list(
+  glmnet_fit     = cv_full$glmnet.fit,
+  lambda_chosen  = lambda_chosen,
+  df_chosen      = length(nonzero_genes),
+  alpha          = ALPHA_EN,
+  genes_selected = nonzero_genes,
+  weights        = weights_tbl,
+  pam50_candidate = PAM50_GENES,
+  pam50_present  = gene_names_found,
+  foldid         = foldid,
+  scale_center   = attr(X_scaled, "scaled:center"),
+  scale_sd       = attr(X_scaled, "scaled:scale"),
+  c_adj_chosen   = chosen$c_adj,
+  c_max_oof      = C_max,
+  delta_c        = DELTA_C,
+  n_train        = n_samples,
+  n_events_train = n_events,
+  script         = SCRIPT_NAME,
+  timestamp      = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
 )
 
-card_path <- file.path(PATHS$results$corepam, "CorePAM_training_card.json")
-jsonlite::write_json(training_card, card_path, pretty = TRUE, auto_unbox = TRUE)
-h <- sha256_file(card_path)
-registry_append("SCANB", "CorePAM_Training_Card", card_path, h,
-                "INTEGRO", SCRIPT_NAME,
-                file.info(card_path)$size / 1024^2)
-artifact_hashes$CorePAM_training_card <- h
-message("[05] Saved: ", card_path)
-
-# --- 10e) artifact_hashes.csv ---
-hashes_df   <- tibble(artifact = names(artifact_hashes),
-                      sha256   = unlist(artifact_hashes))
-hashes_path <- file.path(PATHS$results$corepam, "artifact_hashes.csv")
-write_csv(hashes_df, hashes_path)
-message("[05] Saved: ", hashes_path)
+out_model <- file.path(PATHS$results$corepam, "CorePAM_model.rds")
+old_warn_rds <- getOption("warn"); options(warn = 0)
+saveRDS(model_obj, out_model)
+options(warn = old_warn_rds)
+message("[05] Model saved: ", basename(out_model))
 
 # =============================================================================
-# 11) FINAL REPORT (printed to console)
+# 12) TRAINING CARD (JSON)
+# =============================================================================
+summary_json <- list(
+  method         = "Core-PAM: PAM50 reduction via OOF non-inferiority (Harrell C-index)",
+  train_cohort   = COHORT,
+  alpha_en       = ALPHA_EN,
+  k_folds        = K_FOLDS,
+  delta_c        = DELTA_C,
+  fold_method    = "Deterministic SHA-256(patient_id) + event stratification (no seed as driver)",
+  n_train        = n_samples,
+  n_events_train = n_events,
+  pam50_candidate_n  = length(PAM50_GENES),
+  pam50_present_n    = length(gene_names_found),
+  pam50_missing_list = missing_genes,
+  selected = list(
+    df     = length(nonzero_genes),
+    lambda = lambda_chosen,
+    c_adj  = chosen$c_adj,
+    c_max  = C_max,
+    gap    = C_max - chosen$c_adj,
+    genes  = sort(nonzero_genes)
+  ),
+  input_sha256 = list(
+    expr = sha256_file(path_expr),
+    clin = sha256_file(path_clin)
+  ),
+  timestamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+)
+
+out_json <- file.path(PATHS$results$corepam, "selected_CorePAM_summary.json")
+jsonlite::write_json(summary_json, out_json, pretty = TRUE, auto_unbox = TRUE)
+message("[05] Training card saved: ", basename(out_json))
+
+# =============================================================================
+# 13) ARTIFACT HASHES + REGISTRY
+# =============================================================================
+artifacts  <- c(out_pareto, out_weights, out_model, out_json)
+hashes_tbl <- tibble::tibble(
+  artifact = basename(artifacts),
+  path     = artifacts,
+  sha256   = vapply(artifacts, sha256_file, character(1L))
+)
+
+out_hashes <- file.path(PATHS$results$corepam, "artifact_hashes.csv")
+readr::write_csv(hashes_tbl, out_hashes)
+
+for (i in seq_along(artifacts)) {
+  registry_append(
+    cohort    = COHORT,
+    file_type = sub("\\..*$", "", basename(artifacts[i])),
+    file_path = artifacts[i],
+    sha256    = hashes_tbl$sha256[i],
+    status    = "INTEGRO",
+    script    = SCRIPT_NAME,
+    size_mb   = file.info(artifacts[i])$size / 1024^2
+  )
+}
+message("[05] Artifact hashes and registry updated.")
+
+# =============================================================================
+# FINAL SUMMARY
 # =============================================================================
 message("\n", strrep("=", 60))
-message("[05] CORE-PAM — FINAL RESULT (FREEZE)")
+message("[05] Core-PAM derivation complete")
 message(strrep("=", 60))
-message(sprintf("  Core-PAM genes    : %d", n_genes))
-message(sprintf("  Cadj OOF          : %.4f", selected$cadj))
-message(sprintf("  Cmax PAM50        : %.4f", cmax))
-message(sprintf("  Margin used       : %.3f (frozen delta_c)", FREEZE$delta_c))
-message(sprintf("  Lambda chosen     : %.6f", selected$lambda))
-message(sprintf("  Score direction   : %+d", score_direction))
-message(sprintf("  Training HR (1SD) : %.3f", exp(coef(cox_dir)) * score_direction^2))
-message("\n  Genes and weights:")
-print(weights_final, n = Inf)
+message(sprintf("  Selected: %d genes", length(nonzero_genes)))
+message(sprintf("  OOF C_adj: %.4f", chosen$c_adj))
+message(sprintf("  C_max:     %.4f", C_max))
+message(sprintf("  Gap:       %.4f (threshold: delta_c=%.3f)", C_max - chosen$c_adj, DELTA_C))
+message(sprintf("  Genes: %s", paste(sort(nonzero_genes), collapse = ", ")))
 message(strrep("=", 60))
-message("[05] Artifacts in: ", PATHS$results$corepam)
+message("\nNext step: scripts/06_zscore_and_score_SCANB.R")
 message("[05] Completed: ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
-message("Next step: scripts/06_zscore_and_score_<COHORT>.R")

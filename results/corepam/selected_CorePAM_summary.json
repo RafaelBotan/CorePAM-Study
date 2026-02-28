@@ -1,0 +1,26 @@
+{
+  "method": "Core-PAM: PAM50 reduction via OOF non-inferiority (Harrell C-index)",
+  "train_cohort": "SCANB",
+  "alpha_en": 0.5,
+  "k_folds": 10,
+  "delta_c": 0.01,
+  "fold_method": "Deterministic SHA-256(patient_id) + event stratification (no seed as driver)",
+  "n_train": 3069,
+  "n_events_train": 322,
+  "pam50_candidate_n": 50,
+  "pam50_present_n": 50,
+  "pam50_missing_list": [],
+  "selected": {
+    "df": 24,
+    "lambda": 0.0079,
+    "c_adj": 0.6699,
+    "c_max": 0.6792,
+    "gap": 0.0092,
+    "genes": ["ACTR3B", "BCL2", "BLVRA", "CENPF", "CXXC5", "ERBB2", "ESR1", "EXO1", "FGFR4", "FOXC1", "GPR160", "GRB7", "KRT17", "KRT5", "MDM2", "MIA", "MLPH", "MYBL2", "MYC", "NAT1", "PGR", "PHGDH", "PTTG1", "SFRP1"]
+  },
+  "input_sha256": {
+    "expr": "8878f56554974b53d476d451652b32299cf90d5daeea239fcaebaf7efc2f9875",
+    "clin": "1864cecf57f44e6da03f41ad4916e0165c31a83cd7ecf42176cb9a737c9cd626"
+  },
+  "timestamp": "2026-02-28 15:50:33"
+}

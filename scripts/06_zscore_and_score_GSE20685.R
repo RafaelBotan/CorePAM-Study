@@ -35,17 +35,17 @@ message(sprintf("[%s] CorePAM panel: %d genes with weight != 0", SCRIPT_NAME, le
 expr_path <- file.path(proc_cohort(COHORT), "expression_genelevel_preZ.parquet")
 expr_mat   <- strict_parquet(expr_path)
 
-sample_col <- names(expr_mat)[1]
-sample_ids  <- expr_mat[[sample_col]]
-gene_cols   <- setdiff(names(expr_mat), sample_col)
+# Format: first column = "gene" (rows are genes); remaining cols = sample IDs
+gene_names <- expr_mat[["gene"]]
+sample_ids  <- setdiff(names(expr_mat), "gene")
 
-message(sprintf("[%s] Expression: %d samples x %d genes", SCRIPT_NAME, length(sample_ids), length(gene_cols)))
+message(sprintf("[%s] Expression: %d samples x %d genes", SCRIPT_NAME, length(sample_ids), length(gene_names)))
 
 # --------------------------------------------------------------------------
 # 3) Intra-cohort Z-score per gene
 # --------------------------------------------------------------------------
-expr_vals <- as.matrix(expr_mat[, gene_cols])
-rownames(expr_vals) <- sample_ids
+expr_vals <- t(as.matrix(expr_mat[, sample_ids]))  # transpose: samples x genes
+colnames(expr_vals) <- gene_names
 
 old_warn <- getOption("warn"); options(warn = 0)
 gene_means <- colMeans(expr_vals, na.rm = TRUE)
@@ -100,7 +100,7 @@ options(warn = old_warn)
 # --------------------------------------------------------------------------
 # 6) Load clinical data to check score direction
 # --------------------------------------------------------------------------
-clin_path <- file.path(proc_cohort(COHORT), "clinical_harmonized.parquet")
+clin_path <- file.path(proc_cohort(COHORT), "clinical_FINAL.parquet")
 clin_df   <- strict_parquet(clin_path)
 
 score_df <- tibble(
@@ -119,7 +119,7 @@ if (n_join == 0) stop(sprintf("[%s] Join resulted in 0 rows. Check join keys.", 
 # --------------------------------------------------------------------------
 # 7) Determine score direction (GSE20685 primary endpoint = OS)
 # --------------------------------------------------------------------------
-endpoint_col <- "os_time"
+endpoint_col <- "os_time_months"
 event_col    <- "os_event"
 stopifnot(all(c(endpoint_col, event_col) %in% names(clin_score)))
 

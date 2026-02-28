@@ -2,7 +2,8 @@
 
 > **PhD thesis project — Rafael Botan**
 > Reducing the PAM50 gene panel to the smallest subset (Core-PAM) that maintains non-inferior
-> prognostic performance across five independent cohorts.
+> prognostic performance across three independent validation cohorts.
+> Gene count is derived from data — not pre-specified.
 
 ---
 
@@ -11,10 +12,10 @@
 PAM50 is a 50-gene expression panel widely used to classify breast cancer subtypes and predict
 prognosis. Core-PAM asks: *how few of those 50 genes do we actually need?*
 
-Using elastic-net Cox regression on the SCAN-B training cohort (n ≈ 3,000), this pipeline
+Using elastic-net Cox regression on the SCAN-B training cohort (GEO accession GSE96058, ALL 3,069 samples = training), this pipeline
 derives the **minimum gene subset** whose prognostic C-index is within ΔC = 0.010 of the full
-PAM50 model — then validates it across four independent cohorts covering RNA-seq and microarray
-platforms.
+PAM50 model — then validates it across three independent cohorts covering RNA-seq and microarray
+platforms (TCGA-BRCA, METABRIC, GSE20685).
 
 ---
 
@@ -51,16 +52,14 @@ Open R (or RStudio) in the project root and run each script sequentially:
 # 1. Download all raw data (~10 GB, requires internet, ~1–4 hours depending on speed)
 source("scripts/01_download_raw_data.R")
 
-# 2. Harmonize clinical data (run for each cohort)
+# 2. Harmonize clinical data (run for each cohort; 4 cohorts total)
 source("scripts/02_harmonize_clinical_SCANB.R")
-source("scripts/02_harmonize_clinical_GSE96058.R")
 source("scripts/02_harmonize_clinical_TCGA_BRCA.R")
 source("scripts/02_harmonize_clinical_METABRIC.R")
 source("scripts/02_harmonize_clinical_GSE20685.R")
 
-# 3. Preprocess gene expression (run for each cohort)
+# 3. Preprocess gene expression (run for each cohort; 4 cohorts total)
 source("scripts/03_expression_preprocess_SCANB.R")
-source("scripts/03_expression_preprocess_GSE96058.R")
 source("scripts/03_expression_preprocess_TCGA_BRCA.R")
 source("scripts/03_expression_preprocess_METABRIC.R")
 source("scripts/03_expression_preprocess_GSE20685.R")
@@ -71,17 +70,15 @@ source("scripts/04_gene_audit_freeze.R")
 # 5. Derive Core-PAM panel (training only — SCAN-B)
 source("scripts/05_reduce_pam50_to_corepam_FINAL.R")
 
-# 6. Calculate Core-PAM score per cohort
+# 6. Calculate Core-PAM score per cohort (4 cohorts)
 source("scripts/06_zscore_and_score_SCANB.R")
-source("scripts/06_zscore_and_score_GSE96058.R")
 source("scripts/06_zscore_and_score_TCGA_BRCA.R")
 source("scripts/06_zscore_and_score_METABRIC.R")
 source("scripts/06_zscore_and_score_GSE20685.R")
 
-# 7. Pre-flight check, then survival analysis per cohort
+# 7. Pre-flight check, then survival analysis per cohort (4 cohorts)
 source("scripts/07A_preflight_files_strict.R")
 source("scripts/07_survival_analysis_SCANB.R")
-source("scripts/07_survival_analysis_GSE96058.R")
 source("scripts/07_survival_analysis_TCGA_BRCA.R")
 source("scripts/07_survival_analysis_METABRIC.R")
 source("scripts/07_survival_analysis_GSE20685.R")
@@ -127,15 +124,14 @@ All data are publicly available. The download script handles everything automati
 
 | Cohort | Role | Platform | Accession | n (approx) |
 |--------|------|----------|-----------|-----------|
-| SCAN-B | **Training** | RNA-seq (Illumina) | [GSE96058](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE96058) | ~3 000 |
-| GSE96058 | Validation | RNA-seq (Illumina) | [GSE96058](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE96058) | ~1 000 |
-| TCGA-BRCA | Validation | RNA-seq (STAR) | GDC portal | ~1 100 |
-| METABRIC | Validation | Microarray (Illumina HT-12) | [cBioPortal](https://www.cbioportal.org/study/summary?id=brca_metabric) | ~2 000 |
-| GSE20685 | Validation | Microarray (Affymetrix HGU133A) | [GSE20685](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE20685) | ~327 |
+| SCAN-B | **Training** | RNA-seq (Illumina) | [GSE96058](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE96058) | **3,069** (ALL samples; median FU 54.9 mo) |
+| TCGA-BRCA | Validation | RNA-seq (STAR) | GDC portal | **1,072** (150 OS events; 14.0%) |
+| METABRIC | Validation | Microarray (Illumina HT-12) | [cBioPortal](https://www.cbioportal.org/study/summary?id=brca_metabric) | **1,980** (1,144 OS events; 57.8%; median FU 157.9 mo) |
+| GSE20685 | Validation | Microarray (Affymetrix HGU133A) | [GSE20685](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE20685) | **327** (83 OS events; 25.4%; median FU 97.2 mo) |
 
-> **Note:** SCAN-B and GSE96058 share the same GEO accession (GSE96058). They are split
-> deterministically by the `training/validation` column in the series matrix. There is zero
-> sample overlap between training and validation (verified in script 01).
+> **Note:** SCAN-B uses GEO accession GSE96058. ALL 3,069 samples are used as training — the GEO
+> pData contains no training/validation split column (confirmed 2026-02-28). There is no internal
+> split; GSE96058 is not a separate validation cohort.
 
 ---
 
@@ -149,7 +145,7 @@ They are stored in `01_docs/registry/analysis_freeze.csv` and loaded automatical
 | `delta_c` | 0.010 | Non-inferiority margin (C-index OOF) |
 | `alpha` | 0.5 | Elastic-net mixing (0 = ridge, 1 = lasso) |
 | `k_folds` | 10 | Stratified cross-validation folds |
-| `seed_folds` | 42 | Random seed for reproducibility |
+| `seed_folds` | 42 | Seed for reproducibility (fold assignment is deterministic via SHA-256 — seed is not the primary selection driver) |
 | `min_genes_fraction` | 0.80 | Minimum panel coverage required per cohort |
 | `bootstrap_n` | 1000 | Bootstrap resamples for 95% CI |
 
@@ -204,7 +200,8 @@ After a complete run, the main deliverables are:
 |------|----------|-------------|
 | `CorePAM_weights.csv` | `results/corepam/` | Final gene panel with Cox weights |
 | `CorePAM_model.rds` | `results/corepam/` | Fitted glmnet model object |
-| `CorePAM_training_card.json` | `results/corepam/` | Derivation metadata (n, C-index, genes) |
+| `selected_CorePAM_summary.json` | `results/corepam/` | Derivation metadata (n, C-index, selected genes) |
+| `pareto_df_cindex_oof.csv` | `results/corepam/` | Pareto curve: df (gene count) vs OOF C-index |
 | `survival_results_*.csv` | `results/corepam_os/` | Per-cohort Cox + C-index results |
 | `meta_survival_summary.csv` | `results/corepam_os/` | Random-effects meta-analysis |
 | `submission_bundle_*.zip` | `results/` | Complete reproducible submission package |

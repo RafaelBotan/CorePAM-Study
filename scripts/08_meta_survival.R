@@ -16,7 +16,7 @@ suppressPackageStartupMessages({
 
 message(sprintf("[%s] Starting CorePAM survival meta-analysis", SCRIPT_NAME))
 
-COHORTS <- c("SCANB", "GSE96058", "TCGA_BRCA", "METABRIC", "GSE20685")
+COHORTS <- c("SCANB", "TCGA_BRCA", "METABRIC", "GSE20685")
 
 # --------------------------------------------------------------------------
 # 1) Read survival results from all cohorts

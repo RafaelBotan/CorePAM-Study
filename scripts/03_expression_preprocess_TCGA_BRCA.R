@@ -17,12 +17,16 @@
 # =============================================================================
 
 source("scripts/00_setup.R")
-source("scripts/03_utils_gene_mapping.R")
-
+# Load edgeR and SummarizedExperiment BEFORE 03_utils_gene_mapping.R
+# to avoid Bioconductor locked binding conflicts (edgeR must load before AnnotationDbi)
+old_warn_pkg <- getOption("warn"); options(warn = 0)
 suppressPackageStartupMessages({
   library(edgeR)
   library(SummarizedExperiment)
 })
+options(warn = old_warn_pkg)
+
+source("scripts/03_utils_gene_mapping.R")
 
 SCRIPT_NAME <- "03_expression_preprocess_TCGA_BRCA.R"
 COHORT      <- "TCGA_BRCA"
@@ -90,7 +94,9 @@ message(sprintf("[03_TCGA] After removing non-Ensembl: %d genes", nrow(count_mat
 # =============================================================================
 message("[03_TCGA] Applying edgeR TMM → logCPM...")
 dge  <- edgeR::DGEList(counts = count_mat)
+old_warn_filter <- getOption("warn"); options(warn = 0)
 keep <- edgeR::filterByExpr(dge)
+options(warn = old_warn_filter)
 dge  <- dge[keep, , keep.lib.sizes = FALSE]
 message(sprintf("[03_TCGA] Genes after edgeR filter: %d (removed: %d)",
                 sum(keep), sum(!keep)))

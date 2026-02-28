@@ -1,0 +1,7 @@
+"step","n","note"
+"N_raw_clinical",3069,"All SCAN-B samples in clinical_FINAL.parquet (GSE96058, Option A)"
+"N_duplicate_patient_ids_removed",0,"Technical replicates or duplicate IDs removed"
+"N_after_dedup",3069,"After removing duplicate patient_ids"
+"N_complete_OS_time_and_event",3069,"OS_Time > 0 AND OS_Event not NA"
+"N_with_expression_data",3069,"patient_id present in expression matrix columns"
+"N_final_training_set",3069,"Used in script 05 model training"

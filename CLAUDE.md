@@ -15,7 +15,7 @@ Projeto de doutorado de Rafael Botan. Redução do painel PAM50 para um núcleo 
 - **Tempo sempre em meses** (dias / 30.4375)
 - **time ≤ 0 → DROP** (reportar contagem)
 - **METABRIC endpoint primário = DSS** (não OS)
-- **SCAN-B ∩ GSE96058 = 0** (leakage-proof obrigatório)
+- **Leakage-proof obrigatório** entre SCAN-B e coortes de validação externas (TCGA-BRCA, METABRIC, GSE20685)
 - Todo artefato recebe **SHA-256** e é registrado em `registry/study_registry.csv`
 - Manuscrito **sem números hard-coded** (lê de CSVs/JSONs)
 
@@ -62,19 +62,18 @@ Y:/Phd-Genomic-claude/          ← ROOT_REPO (working directory)
 | Coorte | Papel | Plataforma | Endpoint |
 |---|---|---|---|
 | SCAN-B | TRAIN | RNA-seq | OS |
-| GSE96058 | VALIDATION | RNA-seq | OS |
 | TCGA-BRCA | VALIDATION | RNA-seq | OS (sensib. 24m) |
 | METABRIC | VALIDATION | Microarray Illumina | DSS (OS = sensib.) |
 | GSE20685 | VALIDATION | Microarray Affymetrix | OS |
 
-**SCAN-B e GSE96058 compartilham o mesmo acesso GEO (GSE96058) mas têm amostras disjuntas.** O split é feito em `02_harmonize_clinical_SCANB.R` pela coluna de grupo do pData.
+**SCAN-B usa o acesso GEO GSE96058 (TODAS as 3069 amostras = treinamento). Não há split interno.** O pData do GEO não possui coluna de separação training/validation. Decisão aprovada em 2026-02-28 (Option A): usar todas as amostras como treino.
 
 ## Pipeline de execução (ordem)
 
 ```
 00_setup.R                          ← sourced por todos; nunca executar diretamente
 01_download_raw_data.R              ← GEO + GDC + cBioPortal + SHA-256
-02_harmonize_clinical_<COHORT>.R    ← clínica + endpoints + endpoint_mapping
+02_harmonize_clinical_<COHORT>.R    ← clínica + endpoints + endpoint_mapping (4 coortes: SCANB, TCGA_BRCA, METABRIC, GSE20685; SCANB cobre dataset GSE96058 completo)
 03_expression_preprocess_<COHORT>.R ← TMM/logCPM (RNA-seq) ou log2 as-is (array) + HGNC
 04_gene_audit_freeze.R              ← auditoria transversal PAM50 (GO/NO-GO)
 05_reduce_pam50_to_corepam_FINAL.R  ← derivação Core-PAM (FREEZE)
@@ -165,14 +164,14 @@ Se HR(score) < 1 → inverter sinal; registrar `score_direction = -1`.
 | 00_setup.R | Complete and tested |
 | 00_validate_all.R | Complete (syntax + output presence check) |
 | 01_download_raw_data.R | Complete (requires data) |
-| 02_harmonize_clinical_*.R | Complete (5 cohorts) |
-| 03_expression_preprocess_*.R | Complete (5 cohorts) |
+| 02_harmonize_clinical_*.R | Complete (4 cohorts: SCANB, TCGA_BRCA, METABRIC, GSE20685) |
+| 03_expression_preprocess_*.R | Complete (4 cohorts: SCANB, TCGA_BRCA, METABRIC, GSE20685) |
 | 04_gene_audit_freeze.R | Complete |
 | 05_reduce_pam50_to_corepam_FINAL.R | Complete |
-| 06_zscore_and_score_*.R | Complete (5 cohorts) |
+| 06_zscore_and_score_*.R | Complete (4 cohorts: SCANB, TCGA_BRCA, METABRIC, GSE20685) |
 | 07A_preflight_files_strict.R | Complete |
 | 07D_validate_one_cohort_corepam.R | Complete |
-| 07_survival_analysis_*.R | Complete (5 cohorts) |
+| 07_survival_analysis_*.R | Complete (4 cohorts: SCANB, TCGA_BRCA, METABRIC, GSE20685) |
 | 08_meta_survival.R | Complete |
 | 11_incremental_value_and_dca.R | Complete |
 | 13_qc_correlations_offdiag.R | Complete |

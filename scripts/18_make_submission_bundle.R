@@ -162,25 +162,21 @@ readme_text <- sprintf(
 ```bash
 Rscript scripts/01_download_raw_data.R
 Rscript scripts/02_harmonize_clinical_SCANB.R
-Rscript scripts/02_harmonize_clinical_GSE96058.R
 Rscript scripts/02_harmonize_clinical_TCGA_BRCA.R
 Rscript scripts/02_harmonize_clinical_METABRIC.R
 Rscript scripts/02_harmonize_clinical_GSE20685.R
 Rscript scripts/03_expression_preprocess_SCANB.R
-Rscript scripts/03_expression_preprocess_GSE96058.R
 Rscript scripts/03_expression_preprocess_TCGA_BRCA.R
 Rscript scripts/03_expression_preprocess_METABRIC.R
 Rscript scripts/03_expression_preprocess_GSE20685.R
 Rscript scripts/04_gene_audit_freeze.R
 Rscript scripts/05_reduce_pam50_to_corepam_FINAL.R
 Rscript scripts/06_zscore_and_score_SCANB.R
-Rscript scripts/06_zscore_and_score_GSE96058.R
 Rscript scripts/06_zscore_and_score_TCGA_BRCA.R
 Rscript scripts/06_zscore_and_score_METABRIC.R
 Rscript scripts/06_zscore_and_score_GSE20685.R
 Rscript scripts/07A_preflight_files_strict.R
 Rscript scripts/07_survival_analysis_SCANB.R
-Rscript scripts/07_survival_analysis_GSE96058.R
 Rscript scripts/07_survival_analysis_TCGA_BRCA.R
 Rscript scripts/07_survival_analysis_METABRIC.R
 Rscript scripts/07_survival_analysis_GSE20685.R

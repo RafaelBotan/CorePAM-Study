@@ -28,7 +28,7 @@ COHORT <- if (length(args) >= 1 && nchar(trimws(args[1])) > 0) {
   if (nchar(env_coh) > 0) env_coh else "SCANB"   # default for interactive use
 }
 
-valid_cohorts <- c("SCANB", "GSE96058", "TCGA_BRCA", "METABRIC", "GSE20685")
+valid_cohorts <- c("SCANB", "TCGA_BRCA", "METABRIC", "GSE20685")
 if (!COHORT %in% valid_cohorts) {
   stop(sprintf("[07D] Unknown cohort: '%s'. Valid: %s", COHORT,
                paste(valid_cohorts, collapse = ", ")))
