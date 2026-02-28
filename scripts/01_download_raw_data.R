@@ -112,6 +112,22 @@ download_file_safe <- function(url, destfile, cohort, file_type,
 # =============================================================================
 geo_supp_download <- function(geo_acc, dest_dir, cohort) {
   dir.create(dest_dir, showWarnings = FALSE, recursive = TRUE)
+
+  # Skip if dest_dir already contains at least one non-RDS file with size > 10 KB
+  existing <- list.files(dest_dir, full.names = TRUE, pattern = "\\.gz$|\\.txt$|\\.csv$")
+  if (length(existing) > 0 && all(file.info(existing)$size > 10240, na.rm = TRUE)) {
+    message(sprintf("  [SKIP] GEO supplementary files already in %s (%d files). Registering.",
+                    dest_dir, length(existing)))
+    for (f in existing) {
+      h  <- sha256_file(f)
+      sz <- file.info(f)$size / 1024^2
+      registry_append(cohort, paste0("Expression_supp_cached_", basename(f)),
+                      f, h, "INTEGRO_CACHED", "01_download_raw_data.R", sz)
+      message(sprintf("  [SKIP] %s | %.1f MB", basename(f), sz))
+    }
+    return(invisible(existing))
+  }
+
   message(sprintf("\n  [GEO-SUPP] Downloading supplementary files from %s ...", geo_acc))
 
   # GEOquery saves in subfolder with accession name; move afterwards
@@ -319,8 +335,9 @@ if (file.exists(tcga_expr_rds) && file.info(tcga_expr_rds)$size > 1e6 &&
 # "SSL connect error". Disabling peer verification is safe here because:
 #   1) GDC server identity is verified at OS level
 #   2) Downloaded file integrity is verified with SHA-256
-old_ssl_config <- httr::get_config()
-httr::set_config(httr::config(ssl_verifypeer = FALSE), override = FALSE)
+# httr::get_config() does not exist in httr; httr::set_config/reset_config are the API.
+# reset_config() restores defaults at the end of the TCGA section.
+httr::set_config(httr::config(ssl_verifypeer = FALSE))
 message("  [GDC] SSL peer verification disabled for TCGAbiolinks calls (SHA-256 integrity check applied after download)")
 
 # 3a. Expression query (STAR counts)

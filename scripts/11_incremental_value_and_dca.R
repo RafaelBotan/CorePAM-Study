@@ -1,10 +1,10 @@
 # =============================================================================
 # SCRIPT: 11_incremental_value_and_dca.R
-# PURPOSE: Valor incremental do CorePAM alem do CORE-A:
+# PURPOSE: Incremental value of CorePAM beyond CORE-A:
 #          Delta C-index bootstrap (CORE-A vs CORE-A+score),
-#          calibracao 60m (quando disponivel),
-#          DCA apenas como sensibilidade.
-#          Segue Memorial v6.1 §2.1 + FIGURES §Fig5.
+#          60m calibration (when available),
+#          DCA as sensitivity only.
+#          Follows Memorial v6.1 sec.2.1 + FIGURES sec.Fig5.
 # PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
@@ -17,11 +17,11 @@ suppressPackageStartupMessages({
 })
 
 set.seed(FREEZE$seed_folds)
-message(sprintf("[%s] Iniciando analise de valor incremental CorePAM", SCRIPT_NAME))
+message(sprintf("[%s] Starting CorePAM incremental value analysis", SCRIPT_NAME))
 
 COHORTS <- c("SCANB", "GSE96058", "TCGA_BRCA", "METABRIC", "GSE20685")
 
-# Endpoint por coorte (do freeze)
+# Endpoint per cohort (from freeze)
 ENDPOINT_MAP <- list(
   SCANB     = list(time = "os_time",  event = "os_event"),
   GSE96058  = list(time = "os_time",  event = "os_event"),
@@ -31,14 +31,14 @@ ENDPOINT_MAP <- list(
 )
 
 # --------------------------------------------------------------------------
-# Helper: Bootstrap Delta C-index
+# Helper: Bootstrap Delta C-index (incremental value)
 # --------------------------------------------------------------------------
 bootstrap_delta_cindex <- function(time, event, score_z, corea_mat,
                                    n_boot = 1000, seed = 42) {
   set.seed(seed)
   n <- length(time)
 
-  # C-index base (CORE-A) e CORE-A+score
+  # Base C-index (CORE-A) and CORE-A+score
   old_warn <- getOption("warn"); options(warn = 0)
   c_base <- tryCatch(
     concordance(Surv(time, event) ~ corea_mat)$concordance,
@@ -74,33 +74,33 @@ bootstrap_delta_cindex <- function(time, event, score_z, corea_mat,
   )
 }
 
-# Helper: calibracao 60m
+# Helper: 60m calibration
 calibrate_60m <- function(time, event, score_z, horizon = 60) {
   df_cal <- data.frame(time = time, event = event, score_z = score_z)
   df_cal <- df_cal[df_cal$time > 0 & !is.na(df_cal$score_z), ]
   if (nrow(df_cal) < 20) return(NULL)
 
-  # Ajustar Cox e obter probabilidade predita em 60m
+  # Fit Cox and obtain predicted probability at 60m
   old_warn <- getOption("warn"); options(warn = 0)
   cox_cal <- tryCatch(coxph(Surv(time, event) ~ score_z, data = df_cal, x = TRUE),
                       error = function(e) NULL)
   options(warn = old_warn)
   if (is.null(cox_cal)) return(NULL)
 
-  # Preditos em 60m
+  # Predictions at 60m
   old_warn <- getOption("warn"); options(warn = 0)
   sf  <- tryCatch(survfit(cox_cal, newdata = df_cal), error = function(e) NULL)
   options(warn = old_warn)
   if (is.null(sf)) return(NULL)
 
-  # Obter S(t=60m) para cada observacao
+  # Get S(t=60m) for each observation
   times_sf <- sf$time
   if (max(times_sf) < horizon) return(NULL)
 
   t_idx <- max(which(times_sf <= horizon))
   pred_surv <- sf$surv[t_idx, ]
 
-  # Observado: KM estratificado por decis de risco
+  # Observed: KM stratified by risk deciles
   df_cal$pred_surv <- pred_surv
   df_cal$decile    <- cut(df_cal$pred_surv,
                           breaks = quantile(df_cal$pred_surv, probs = seq(0, 1, 0.1), na.rm = TRUE),
@@ -126,16 +126,16 @@ calibrate_60m <- function(time, event, score_z, horizon = 60) {
 }
 
 # --------------------------------------------------------------------------
-# 1) Loop por coorte
+# 1) Loop over cohorts
 # --------------------------------------------------------------------------
 results_list <- list()
 
 for (coh in COHORTS) {
-  message(sprintf("[%s] Processando coorte: %s", SCRIPT_NAME, coh))
+  message(sprintf("[%s] Processing cohort: %s", SCRIPT_NAME, coh))
 
   ready_path <- file.path(proc_cohort(coh), "analysis_ready.parquet")
   if (!file.exists(ready_path)) {
-    message(sprintf("[%s] AVISO: %s nao encontrado. Pulando.", SCRIPT_NAME, ready_path))
+    message(sprintf("[%s] WARNING: %s not found. Skipping.", SCRIPT_NAME, ready_path))
     next
   }
 
@@ -144,22 +144,22 @@ for (coh in COHORTS) {
   time_col   <- ep$time
   event_col  <- ep$event
 
-  # Fallback para OS se DSS nao disponivel
+  # Fallback to OS if DSS not available
   if (!time_col %in% names(df)) {
     time_col  <- "os_time"
     event_col <- "os_event"
-    message(sprintf("[%s] %s: endpoint primario indisponivel; usando OS", SCRIPT_NAME, coh))
+    message(sprintf("[%s] %s: primary endpoint unavailable; using OS", SCRIPT_NAME, coh))
   }
 
   if (!all(c(time_col, event_col, "score_z") %in% names(df))) {
-    message(sprintf("[%s] %s: colunas essenciais ausentes. Pulando.", SCRIPT_NAME, coh))
+    message(sprintf("[%s] %s: essential columns missing. Skipping.", SCRIPT_NAME, coh))
     next
   }
 
   df <- df[!is.na(df[[time_col]]) & df[[time_col]] > 0 &
              !is.na(df[[event_col]]) & !is.na(df$score_z), ]
 
-  # CORE-A: idade e/ou ER
+  # CORE-A: age and/or ER
   corea_vars  <- c("age", "er_status")
   corea_avail <- intersect(corea_vars, names(df))
 
@@ -169,7 +169,7 @@ for (coh in COHORTS) {
   if (length(corea_avail) > 0) {
     df_m <- df[complete.cases(df[, c(corea_avail, "score_z", time_col, event_col)]), ]
     if (nrow(df_m) >= 30) {
-      # Converter er_status para numerico se necessario
+      # Convert er_status to numeric if needed
       corea_mat <- df_m[, corea_avail, drop = FALSE]
       for (v in names(corea_mat)) {
         if (is.character(corea_mat[[v]]) || is.factor(corea_mat[[v]])) {
@@ -191,13 +191,13 @@ for (coh in COHORTS) {
       message(sprintf("[%s] %s: C_base=%.4f | C_full=%.4f | DC=%.4f (%.4f, %.4f)",
                       SCRIPT_NAME, coh, c_base, c_full, delta, ci_lo, ci_hi))
     } else {
-      message(sprintf("[%s] %s: n=%d insuficiente para delta C-index", SCRIPT_NAME, coh, nrow(df_m)))
+      message(sprintf("[%s] %s: n=%d insufficient for delta C-index", SCRIPT_NAME, coh, nrow(df_m)))
     }
   } else {
-    message(sprintf("[%s] %s: CORE-A indisponivel (sem age/er_status)", SCRIPT_NAME, coh))
+    message(sprintf("[%s] %s: CORE-A unavailable (no age/er_status)", SCRIPT_NAME, coh))
   }
 
-  # Calibracao 60m
+  # 60m calibration
   cal_df    <- NULL
   cal_note  <- NA_character_
   has_cal60 <- max(df[[time_col]], na.rm = TRUE) >= 60
@@ -206,14 +206,14 @@ for (coh in COHORTS) {
     cal_df <- calibrate_60m(df[[time_col]], df[[event_col]], df$score_z, horizon = 60)
     if (!is.null(cal_df)) {
       cal_df$cohort <- coh
-      cal_note <- "calibracao_60m_ok"
-      message(sprintf("[%s] %s: calibracao 60m calculada (%d decis)", SCRIPT_NAME, coh, nrow(cal_df)))
+      cal_note <- "calibration_60m_ok"
+      message(sprintf("[%s] %s: 60m calibration computed (%d deciles)", SCRIPT_NAME, coh, nrow(cal_df)))
     } else {
-      cal_note <- "calibracao_60m_falhou"
+      cal_note <- "calibration_60m_failed"
     }
   } else {
-    cal_note <- "follow_up_menor_60m"
-    message(sprintf("[%s] %s: follow-up maximo < 60m; calibracao omitida", SCRIPT_NAME, coh))
+    cal_note <- "follow_up_less_than_60m"
+    message(sprintf("[%s] %s: maximum follow-up < 60m; calibration omitted", SCRIPT_NAME, coh))
   }
 
   results_list[[coh]] <- tibble(
@@ -228,7 +228,7 @@ for (coh in COHORTS) {
     cal60_note      = cal_note
   )
 
-  # Salvar calibracao por coorte
+  # Save calibration per cohort
   if (!is.null(cal_df)) {
     cal_path <- file.path(PATHS$results$supp, sprintf("calibration_60m_%s.csv", coh))
     readr::write_csv(cal_df, cal_path)
@@ -239,10 +239,10 @@ for (coh in COHORTS) {
 }
 
 # --------------------------------------------------------------------------
-# 2) Salvar resultado incremental
+# 2) Save incremental value results
 # --------------------------------------------------------------------------
 if (length(results_list) == 0) {
-  stop(sprintf("[%s] Nenhum resultado de valor incremental gerado.", SCRIPT_NAME))
+  stop(sprintf("[%s] No incremental value results generated.", SCRIPT_NAME))
 }
 
 incr_df <- bind_rows(results_list)
@@ -257,7 +257,7 @@ registry_append("ALL", "incremental_value", incr_path, h_incr, "ok", SCRIPT_NAME
                 file.info(incr_path)$size / 1e6)
 
 # --------------------------------------------------------------------------
-# 3) Figura Fig5 — Delta C-index por coorte
+# 3) Figure Fig5 — Delta C-index per cohort
 # --------------------------------------------------------------------------
 fig_dir <- PATHS$figures$main
 dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
@@ -271,8 +271,8 @@ if (nrow(df_plot) > 0) {
                    height = 0.3, linewidth = 0.8, color = "#2980B9") +
     geom_point(size = 4, color = "#2980B9") +
     labs(
-      title = "Valor Incremental CorePAM: Delta C-index (CORE-A vs CORE-A + CorePAM)",
-      x     = "Delta C-index (IC95% bootstrap)",
+      title = "CorePAM Incremental Value: Delta C-index (CORE-A vs CORE-A + CorePAM)",
+      x     = "Delta C-index (95% CI bootstrap)",
       y     = NULL
     ) +
     theme_classic(base_size = 12) +
@@ -293,7 +293,7 @@ if (nrow(df_plot) > 0) {
 }
 
 # --------------------------------------------------------------------------
-# 4) Figura Fig5 — Calibracao 60m (painel, sensibilidade)
+# 4) Figure Fig5 — 60m calibration (panel, sensitivity)
 # --------------------------------------------------------------------------
 cal_files <- list.files(PATHS$results$supp, pattern = "^calibration_60m_.+\\.csv$",
                          full.names = TRUE)
@@ -315,9 +315,9 @@ if (length(cal_files) > 0) {
                   formula = y ~ x) +
       facet_wrap(~cohort) +
       labs(
-        title = "Calibracao 60m CorePAM (sensibilidade)",
-        x     = "Sobrevida predita a 60m",
-        y     = "Sobrevida observada a 60m (KM)"
+        title = "CorePAM 60m Calibration (sensitivity)",
+        x     = "Predicted survival at 60m",
+        y     = "Observed survival at 60m (KM)"
       ) +
       theme_classic(base_size = 11) +
       theme(legend.position = "none")
@@ -337,4 +337,4 @@ if (length(cal_files) > 0) {
   }
 }
 
-message(sprintf("[%s] CONCLUIDO | %d coortes processadas", SCRIPT_NAME, nrow(incr_df)))
+message(sprintf("[%s] COMPLETED | %d cohorts processed", SCRIPT_NAME, nrow(incr_df)))

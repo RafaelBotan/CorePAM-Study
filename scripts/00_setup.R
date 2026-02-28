@@ -1,20 +1,20 @@
 # =============================================================================
 # SCRIPT: 00_setup.R
-# PURPOSE: Ambiente reprodutível — paths, strict I/O, helpers, parâmetros
-#          congelados. Deve ser sourced no início de todos os outros scripts.
+# PURPOSE: Reproducible environment — paths, strict I/O, helpers, frozen
+#          parameters. Must be sourced at the beginning of all other scripts.
 # PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
-# REGRA:   Nunca conter números de genes (ex: PAM29) em paths ou variáveis.
+# REGRA:   Never contain gene counts (e.g. PAM29) in paths or variables.
 # =============================================================================
 
 suppressPackageStartupMessages({
   library(tidyverse)
   library(digest)
-  library(arrow)      # leitura/escrita parquet
+  library(arrow)      # parquet read/write
   library(jsonlite)   # training card JSON
 })
 
 # --------------------------------------------------------------------------
-# 1) PATHS — single source of truth (ajustar ROOT_REPO uma única vez)
+# 1) PATHS — single source of truth (adjust ROOT_REPO once)
 # --------------------------------------------------------------------------
 ROOT_REPO <- normalizePath("Y:/Phd-Genomic-claude", mustWork = TRUE)
 DATA_LAKE <- file.path(ROOT_REPO, "01_Base_Pura_CorePAM")
@@ -40,24 +40,24 @@ PATHS <- list(
   run_registry = file.path(ROOT_REPO, "registry", "study_registry.csv")
 )
 
-# Helpers de path por coorte
+# Cohort path helpers
 raw_cohort    <- function(cohort) file.path(PATHS$raw, cohort)
 proc_cohort   <- function(cohort) file.path(PATHS$processed, cohort)
 
 # --------------------------------------------------------------------------
-# 2) STRICT I/O — warning = error (obrigatório; Memorial v6.1 §1.4 / §9.1)
+# 2) STRICT I/O — warning = error (required; Memorial v6.1 §1.4 / §9.1)
 # --------------------------------------------------------------------------
 options(warn = 2)
 
 # --------------------------------------------------------------------------
-# 3) PARÂMETROS CONGELADOS (analysis_freeze.csv — não editar diretamente)
+# 3) FROZEN PARAMETERS (analysis_freeze.csv — do not edit directly)
 # --------------------------------------------------------------------------
 freeze_path <- file.path(PATHS$registry_docs, "analysis_freeze.csv")
 
 if (!file.exists(freeze_path)) {
   stop(
-    "FREEZE NAO ENCONTRADO: ", freeze_path,
-    "\nCrie 01_docs/registry/analysis_freeze.csv antes de qualquer analise."
+    "FREEZE NOT FOUND: ", freeze_path,
+    "\nCreate 01_docs/registry/analysis_freeze.csv before any analysis."
   )
 }
 
@@ -71,12 +71,12 @@ FREEZE <- setNames(
 )
 rm(.freeze_raw)
 
-# Validação mínima
+# Minimum validation
 .required <- c("delta_c", "alpha", "k_folds", "seed_folds",
                "min_genes_fraction", "time_unit_divisor")
 .missing  <- setdiff(.required, names(FREEZE))
 if (length(.missing) > 0) {
-  stop("Parametros ausentes em analysis_freeze.csv: ",
+  stop("Parameters missing in analysis_freeze.csv: ",
        paste(.missing, collapse = ", "))
 }
 rm(.required, .missing)
@@ -85,37 +85,37 @@ rm(.required, .missing)
 # 4) HELPERS
 # --------------------------------------------------------------------------
 
-#' SHA-256 de um arquivo — verifica existência e tamanho > 0
+#' SHA-256 of a file — checks existence and size > 0
 sha256_file <- function(path) {
-  if (!file.exists(path))       stop("Arquivo nao encontrado: ", path)
-  if (file.info(path)$size == 0) stop("Arquivo vazio (0 bytes): ", path)
+  if (!file.exists(path))       stop("File not found: ", path)
+  if (file.info(path)$size == 0) stop("Empty file (0 bytes): ", path)
   digest::digest(path, algo = "sha256", file = TRUE)
 }
 
-#' Normalizar ID de paciente/amostra
+#' Normalize patient/sample ID
 normalize_id <- function(x) trimws(toupper(as.character(x)))
 
-#' Leitura estrita de CSV
+#' Strict CSV read
 strict_csv <- function(path, ...) {
-  if (!file.exists(path)) stop("CSV nao encontrado: ", path)
+  if (!file.exists(path)) stop("CSV not found: ", path)
   readr::read_csv(path, show_col_types = FALSE, ...)
 }
 
-#' Leitura estrita de Parquet
+#' Strict Parquet read
 strict_parquet <- function(path) {
-  if (!file.exists(path)) stop("Parquet nao encontrado: ", path)
-  if (file.info(path)$size == 0) stop("Parquet vazio (0 bytes): ", path)
+  if (!file.exists(path)) stop("Parquet not found: ", path)
+  if (file.info(path)$size == 0) stop("Empty parquet (0 bytes): ", path)
   arrow::read_parquet(path)
 }
 
-#' Leitura estrita de RDS
+#' Strict RDS read
 strict_rds <- function(path) {
-  if (!file.exists(path)) stop("RDS nao encontrado: ", path)
-  if (file.info(path)$size == 0) stop("RDS vazio (0 bytes): ", path)
+  if (!file.exists(path)) stop("RDS not found: ", path)
+  if (file.info(path)$size == 0) stop("Empty RDS (0 bytes): ", path)
   readRDS(path)
 }
 
-#' Append ao registry (append-only; cria header se arquivo ainda não existe)
+#' Append to registry (append-only; creates header if file does not yet exist)
 registry_append <- function(cohort, file_type, file_path, sha256,
                             status, script, size_mb = NA_real_,
                             extra = list()) {
@@ -141,7 +141,7 @@ registry_append <- function(cohort, file_type, file_path, sha256,
 }
 
 # --------------------------------------------------------------------------
-# 5) VALIDAÇÃO DE ESTRUTURA DE PASTAS (cria se ausente)
+# 5) DIRECTORY STRUCTURE VALIDATION (creates if missing)
 # --------------------------------------------------------------------------
 .required_dirs <- c(
   PATHS$raw, PATHS$processed,

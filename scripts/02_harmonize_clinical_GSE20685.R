@@ -1,6 +1,6 @@
 # =============================================================================
 # SCRIPT: 02_harmonize_clinical_GSE20685.R
-# PURPOSE: Harmonização clínica do GSE20685 (Taiwan; microarray Affymetrix).
+# PURPOSE: Clinical harmonization of GSE20685 (Taiwan; Affymetrix microarray).
 # PROJETO: Core-PAM (Memorial v6.1)
 #
 # INPUT:
@@ -10,11 +10,11 @@
 #   01_Base_Pura_CorePAM/PROCESSED/GSE20685/clinical_FINAL.parquet
 #   01_docs/endpoint_mapping_templates/endpoint_mapping_GSE20685.csv
 #
-# REFERÊNCIA: Lu et al. 2012 — 327 pacientes com BC (BC específico-survival)
+# REFERENCE: Lu et al. 2012 — 327 patients with BC (BC specific-survival)
 #
-# REGRAS (Memorial v6.1):
-#   - Endpoint: OS (verificar se dataset fornece OS ou RFS/BCSS).
-#   - Tempo em meses (dias / 30.4375 se necessário).
+# RULES (Memorial v6.1):
+#   - Endpoint: OS (verify if dataset provides OS or RFS/BCSS).
+#   - Time in months (days / 30.4375 if needed).
 #   - time <= 0: DROP.
 # =============================================================================
 
@@ -22,25 +22,25 @@ source("scripts/00_setup.R")
 SCRIPT_NAME <- "02_harmonize_clinical_GSE20685.R"
 
 # =============================================================================
-# 1) LEITURA ESTRITA
+# 1) STRICT READ
 # =============================================================================
 raw_path <- file.path(raw_cohort("GSE20685"), "GSE20685_clinical_raw.rds")
 pheno    <- strict_rds(raw_path)
 
-message(sprintf("[02_GSE20685] pData: %d amostras x %d colunas",
+message(sprintf("[02_GSE20685] pData: %d samples x %d columns",
                 nrow(pheno), ncol(pheno)))
-message("[02_GSE20685] Colunas disponiveis:")
+message("[02_GSE20685] Available columns:")
 print(names(pheno))
-message("[02_GSE20685] Amostra das primeiras linhas (colunas characteristics):")
+message("[02_GSE20685] Sample of first rows (characteristics columns):")
 char_cols <- grep("characteristics", names(pheno), value = TRUE)
 if (length(char_cols) > 0) print(head(pheno[, char_cols, drop = FALSE], 3))
 
 # =============================================================================
-# 2) MAPEAMENTO (GSE20685 — ajustar após inspecionar pData real)
-#    GSE20685 costuma ter os dados clínicos em colunas "characteristics_ch1.*"
-#    Inspecionar e ajustar os nomes abaixo.
+# 2) MAPPING (GSE20685 — adjust after inspecting actual pData)
+#    GSE20685 typically has clinical data in "characteristics_ch1.*" columns
+#    Inspect and adjust the names below.
 # =============================================================================
-# Identificação automática de colunas de tempo e evento
+# Automatic identification of time and event columns
 .find_col <- function(pheno, patterns) {
   candidates <- names(pheno)[
     grepl(paste(patterns, collapse = "|"), tolower(names(pheno)))
@@ -57,19 +57,19 @@ AGE_COL   <- .find_col(pheno, c("age"))
 ER_COL    <- .find_col(pheno, c("er ", "er_", "estrogen"))
 
 message(sprintf(
-  "[02_GSE20685] Colunas detectadas — tempo: '%s' | evento: '%s' | idade: '%s' | ER: '%s'",
+  "[02_GSE20685] Detected columns — time: '%s' | event: '%s' | age: '%s' | ER: '%s'",
   TIME_COL, EVENT_COL, AGE_COL, ER_COL
 ))
 
 if (is.na(TIME_COL) || is.na(EVENT_COL)) {
-  message("[02_GSE20685] AVISO: colunas de tempo/evento nao detectadas automaticamente.")
-  message("  Inspecione pheno e defina TIME_COL / EVENT_COL manualmente.")
-  message("  Colunas disponiveis: ", paste(names(pheno), collapse = " | "))
-  stop("Definir TIME_COL e EVENT_COL manualmente antes de prosseguir.")
+  message("[02_GSE20685] WARNING: time/event columns not detected automatically.")
+  message("  Inspect pheno and define TIME_COL / EVENT_COL manually.")
+  message("  Available columns: ", paste(names(pheno), collapse = " | "))
+  stop("Define TIME_COL and EVENT_COL manually before proceeding.")
 }
 
 # =============================================================================
-# 3) HARMONIZAÇÃO
+# 3) HARMONIZATION
 # =============================================================================
 n_raw <- nrow(pheno)
 
@@ -78,27 +78,27 @@ out <- tibble(
   patient_id = normalize_id(pheno$title)
 )
 
-# Tempo de sobrevida
+# Survival time
 raw_time <- suppressWarnings(as.numeric(pheno[[TIME_COL]]))
 
-# Heurística unidade: se mediana > 200 → dias; senão → meses
+# Unit heuristic: if median > 200 → days; else → months
 if (!all(is.na(raw_time)) && median(raw_time, na.rm = TRUE) > 200) {
   message(sprintf(
-    "[02_GSE20685] Tempo detectado em DIAS (mediana=%.1f). Convertendo para meses.",
+    "[02_GSE20685] Time detected in DAYS (median=%.1f). Converting to months.",
     median(raw_time, na.rm = TRUE)
   ))
   out$os_time_months <- raw_time / FREEZE$time_unit_divisor
   time_unit_origin   <- "days"
 } else {
   message(sprintf(
-    "[02_GSE20685] Tempo em MESES (mediana=%.1f).",
+    "[02_GSE20685] Time in MONTHS (median=%.1f).",
     median(raw_time, na.rm = TRUE)
   ))
   out$os_time_months <- raw_time
   time_unit_origin   <- "months"
 }
 
-# Evento OS
+# OS event
 raw_event <- tolower(trimws(pheno[[EVENT_COL]]))
 out$os_event <- dplyr::case_when(
   raw_event %in% c("1", "dead", "deceased", "yes", "true",  "death") ~ 1L,
@@ -106,7 +106,7 @@ out$os_event <- dplyr::case_when(
   TRUE ~ NA_integer_
 )
 
-# Idade
+# Age
 if (!is.na(AGE_COL)) {
   out$age <- suppressWarnings(as.numeric(pheno[[AGE_COL]]))
 } else {
@@ -124,7 +124,7 @@ if (!is.na(ER_COL)) {
   )
 } else {
   out$er_status <- NA_character_
-  message("[02_GSE20685] AVISO: ER status nao encontrado — marcado como NA.")
+  message("[02_GSE20685] WARNING: ER status not found — marked as NA.")
 }
 
 # DROP: time <= 0
@@ -133,18 +133,18 @@ n_na  <- sum(is.na(out$os_time_months))
 out   <- out |> filter(os_time_months > 0, !is.na(os_time_months))
 
 message(sprintf(
-  "[02_GSE20685] N raw=%d | Removidos time<=0: %d | NA time: %d | N final=%d",
+  "[02_GSE20685] N raw=%d | Removed time<=0: %d | NA time: %d | N final=%d",
   n_raw, n_le0, n_na, nrow(out)
 ))
 message(sprintf(
-  "[02_GSE20685] OS eventos: %d (%.1f%%) | Mediana follow-up: %.1f meses",
+  "[02_GSE20685] OS events: %d (%.1f%%) | Median follow-up: %.1f months",
   sum(out$os_event, na.rm = TRUE),
   100 * mean(out$os_event, na.rm = TRUE),
   median(out$os_time_months, na.rm = TRUE)
 ))
 
 # =============================================================================
-# 4) SALVAR
+# 4) SAVE
 # =============================================================================
 dest_dir <- proc_cohort("GSE20685")
 dir.create(dest_dir, showWarnings = FALSE, recursive = TRUE)
@@ -155,7 +155,7 @@ h    <- sha256_file(out_path)
 size <- file.info(out_path)$size / 1024^2
 registry_append("GSE20685", "Clinical_FINAL", out_path, h,
                 "INTEGRO", SCRIPT_NAME, size)
-message(sprintf("[02_GSE20685] Salvo: %s | %d amostras | %.2f MB | SHA256: %s",
+message(sprintf("[02_GSE20685] Saved: %s | %d samples | %.2f MB | SHA256: %s",
                 out_path, nrow(out), size, h))
 
 # =============================================================================
@@ -181,5 +181,5 @@ ep_path <- file.path(PATHS$docs, "endpoint_mapping_templates",
 write_csv(ep_map, ep_path)
 message("[02_GSE20685] Endpoint map: ", ep_path)
 
-message("\n[02_GSE20685] Concluido: ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
-message("Proximo passo: scripts/03_expression_preprocess_GSE20685.R")
+message("\n[02_GSE20685] Completed: ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
+message("Next step: scripts/03_expression_preprocess_GSE20685.R")

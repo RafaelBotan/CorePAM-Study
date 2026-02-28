@@ -1,8 +1,8 @@
 # =============================================================================
 # SCRIPT: 13_qc_correlations_offdiag.R
-# PURPOSE: Correlacoes entre scores CorePAM das coortes EXCLUINDO diagonal
-#          (sem autocorrelacao self=1). Figura FigS3.
-#          Segue Memorial v6.1 §1.2 (sem pooling; correlacao apenas de scores).
+# PURPOSE: Correlations between CorePAM scores across cohorts EXCLUDING diagonal
+#          (no self-autocorrelation self=1). Figure FigS3.
+#          Follows Memorial v6.1 sec.1.2 (no pooling; score correlations only).
 # PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
@@ -13,51 +13,51 @@ suppressPackageStartupMessages({
   library(ggplot2)
 })
 
-message(sprintf("[%s] Iniciando QC de correlacoes entre scores (off-diagonal)", SCRIPT_NAME))
+message(sprintf("[%s] Starting QC of score correlations (off-diagonal)", SCRIPT_NAME))
 
 COHORTS <- c("SCANB", "GSE96058", "TCGA_BRCA", "METABRIC", "GSE20685")
 
 # --------------------------------------------------------------------------
-# 1) Carregar score por coorte (score_z de analysis_ready.parquet)
+# 1) Load score per cohort (score_z from analysis_ready.parquet)
 # --------------------------------------------------------------------------
 score_list <- list()
 
 for (coh in COHORTS) {
   ready_path <- file.path(proc_cohort(coh), "analysis_ready.parquet")
   if (!file.exists(ready_path)) {
-    message(sprintf("[%s] AVISO: %s nao encontrado. Pulando %s.", SCRIPT_NAME, ready_path, coh))
+    message(sprintf("[%s] WARNING: %s not found. Skipping %s.", SCRIPT_NAME, ready_path, coh))
     next
   }
   df <- strict_parquet(ready_path)
   if (!"score_z" %in% names(df)) {
-    message(sprintf("[%s] %s: coluna score_z ausente. Pulando.", SCRIPT_NAME, coh))
+    message(sprintf("[%s] %s: score_z column missing. Skipping.", SCRIPT_NAME, coh))
     next
   }
-  # Usar sample_id como chave
+  # Use sample_id as key
   if (!"sample_id" %in% names(df)) {
-    message(sprintf("[%s] %s: sample_id ausente. Pulando.", SCRIPT_NAME, coh))
+    message(sprintf("[%s] %s: sample_id missing. Skipping.", SCRIPT_NAME, coh))
     next
   }
   score_list[[coh]] <- df[, c("sample_id", "score_z")]
   names(score_list[[coh]])[2] <- coh
-  message(sprintf("[%s] %s: %d amostras com score_z carregadas", SCRIPT_NAME, coh, nrow(df)))
+  message(sprintf("[%s] %s: %d samples with score_z loaded", SCRIPT_NAME, coh, nrow(df)))
 }
 
 if (length(score_list) < 2) {
-  stop(sprintf("[%s] Menos de 2 coortes com dados. Impossivel calcular correlacoes.", SCRIPT_NAME))
+  stop(sprintf("[%s] Fewer than 2 cohorts with data. Cannot compute correlations.", SCRIPT_NAME))
 }
 
 # --------------------------------------------------------------------------
-# 2) Calcular correlacoes par-a-par (off-diagonal; os IDs nao se repetem entre coortes)
-#    Estrategia: correlacao da distribuicao de scores dentro de cada coorte
-#    (transformacao quantil-quantil ou Spearman entre percentis)
-#    Nota: amostras nao se sobrepoem entre coortes (principio Zero-Pooling).
-#    Correlamos os quantis empiricos (percentis) dos scores entre coortes.
+# 2) Compute pairwise correlations (off-diagonal; IDs do not overlap between cohorts)
+#    Strategy: correlate score distributions within each cohort
+#    (quantile-quantile transformation or Spearman between percentiles)
+#    Note: samples do not overlap across cohorts (Zero-Pooling principle).
+#    Correlate empirical quantiles (percentiles) of scores across cohorts.
 # --------------------------------------------------------------------------
 cohort_names <- names(score_list)
 n_coh        <- length(cohort_names)
 
-# Calcular percentis uniformes para cada coorte
+# Compute uniform percentiles for each cohort
 n_pts   <- 100
 pct_seq <- seq(0.01, 0.99, length.out = n_pts)
 
@@ -72,14 +72,14 @@ for (coh in cohort_names) {
   options(warn = old_warn)
 }
 
-# Matriz de correlacoes Spearman entre percentis das coortes
+# Spearman correlation matrix between cohort percentiles
 cor_mat <- matrix(NA_real_, nrow = n_coh, ncol = n_coh,
                   dimnames = list(cohort_names, cohort_names))
 
 for (i in seq_len(n_coh)) {
   for (j in seq_len(n_coh)) {
     if (i == j) {
-      cor_mat[i, j] <- NA_real_  # Diagonal excluida (off-diagonal)
+      cor_mat[i, j] <- NA_real_  # Diagonal excluded (off-diagonal)
     } else {
       old_warn <- getOption("warn"); options(warn = 0)
       cor_val <- tryCatch(
@@ -92,11 +92,11 @@ for (i in seq_len(n_coh)) {
   }
 }
 
-message(sprintf("[%s] Matriz de correlacao off-diagonal calculada:", SCRIPT_NAME))
+message(sprintf("[%s] Off-diagonal correlation matrix computed:", SCRIPT_NAME))
 print(round(cor_mat, 3))
 
 # --------------------------------------------------------------------------
-# 3) Salvar matriz de correlacoes
+# 3) Save correlation matrix
 # --------------------------------------------------------------------------
 cor_df <- as.data.frame(cor_mat)
 cor_df$cohort_row <- rownames(cor_mat)
@@ -112,18 +112,18 @@ registry_append("ALL", "qc_correlations_offdiag", cor_path, h_cor, "ok", SCRIPT_
                 file.info(cor_path)$size / 1e6)
 
 # --------------------------------------------------------------------------
-# 4) Figura FigS3 — heatmap de correlacoes off-diagonal
+# 4) Figure FigS3 — off-diagonal correlation heatmap
 # --------------------------------------------------------------------------
-# Converter para formato longo para ggplot
-cor_long <- reshape2::melt(cor_mat, varnames = c("Coorte_A", "Coorte_B"),
+# Convert to long format for ggplot
+cor_long <- reshape2::melt(cor_mat, varnames = c("Cohort_A", "Cohort_B"),
                             value.name = "Spearman_rho", na.rm = TRUE)
 
-# Garantir reshape2 disponivel
+# Ensure reshape2 is available
 if (!requireNamespace("reshape2", quietly = TRUE)) {
   cor_long <- do.call(rbind, lapply(cohort_names, function(i) {
     do.call(rbind, lapply(cohort_names, function(j) {
       if (i != j) {
-        data.frame(Coorte_A = i, Coorte_B = j, Spearman_rho = cor_mat[i, j],
+        data.frame(Cohort_A = i, Cohort_B = j, Spearman_rho = cor_mat[i, j],
                    stringsAsFactors = FALSE)
       }
     }))
@@ -133,7 +133,7 @@ if (!requireNamespace("reshape2", quietly = TRUE)) {
 supp_fig_dir <- PATHS$figures$supp
 dir.create(supp_fig_dir, showWarnings = FALSE, recursive = TRUE)
 
-p_cor <- ggplot(cor_long, aes(x = Coorte_A, y = Coorte_B, fill = Spearman_rho)) +
+p_cor <- ggplot(cor_long, aes(x = Cohort_A, y = Cohort_B, fill = Spearman_rho)) +
   geom_tile(color = "white", linewidth = 0.5) +
   geom_text(aes(label = sprintf("%.2f", Spearman_rho)),
             color = "black", size = 4, na.rm = TRUE) +
@@ -143,8 +143,8 @@ p_cor <- ggplot(cor_long, aes(x = Coorte_A, y = Coorte_B, fill = Spearman_rho)) 
     name = "Spearman rho\n(percentis)"
   ) +
   labs(
-    title    = "Correlacoes entre scores CorePAM (off-diagonal, via percentis)",
-    subtitle = "Diagonal excluida (sem autocorrelacao self=1)",
+    title    = "CorePAM score correlations (off-diagonal, via percentiles)",
+    subtitle = "Diagonal excluded (no self-autocorrelation self=1)",
     x        = NULL,
     y        = NULL
   ) +
@@ -170,4 +170,4 @@ registry_append("ALL", "figure_qc_corr_offdiag", figs3_pdf, h_s3_pdf, "ok", SCRI
 registry_append("ALL", "figure_qc_corr_offdiag_png", figs3_png, h_s3_png, "ok", SCRIPT_NAME,
                 file.info(figs3_png)$size / 1e6)
 
-message(sprintf("[%s] CONCLUIDO | FigS3 salva", SCRIPT_NAME))
+message(sprintf("[%s] COMPLETED | FigS3 saved", SCRIPT_NAME))

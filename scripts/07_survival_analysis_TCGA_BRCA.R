@@ -1,9 +1,9 @@
 # =============================================================================
 # SCRIPT: 07_survival_analysis_TCGA_BRCA.R
-# PURPOSE: Analise de sobrevida CorePAM na coorte TCGA-BRCA:
-#          Cox univariado + CORE-A, C-index bootstrap, KM (mediana + quartis),
-#          sensibilidade horizonte 24m. Segue Memorial v6.1 §8 + §9.4.
-# COORTE:  TCGA_BRCA | Endpoint primario: OS
+# PURPOSE: CorePAM survival analysis in the TCGA-BRCA cohort:
+#          Univariate Cox + CORE-A, C-index bootstrap, KM (median + quartiles),
+#          24m horizon sensitivity. Follows Memorial v6.1 sec.8 + sec.9.4.
+# COHORT:  TCGA_BRCA | Primary endpoint: OS
 # PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
@@ -19,12 +19,12 @@ suppressPackageStartupMessages({
 })
 
 set.seed(FREEZE$seed_folds)
-message(sprintf("[%s] Iniciando analise de sobrevida %s | %s", SCRIPT_NAME, COHORT, ENDPOINT))
+message(sprintf("[%s] Starting survival analysis %s | %s", SCRIPT_NAME, COHORT, ENDPOINT))
 
-HORIZON_SENS <- as.integer(FREEZE$horizon_sensitivity_months)  # 24 meses
+HORIZON_SENS <- as.integer(FREEZE$horizon_sensitivity_months)  # 24 months
 
 # --------------------------------------------------------------------------
-# Helpers internos
+# Internal helpers
 # --------------------------------------------------------------------------
 bootstrap_cindex <- function(time, event, score_z, n_boot = 1000, seed = 42) {
   set.seed(seed)
@@ -56,7 +56,7 @@ reverse_km_median <- function(time, event) {
 }
 
 # --------------------------------------------------------------------------
-# 1) Carregar dados
+# 1) Load data
 # --------------------------------------------------------------------------
 ready_path <- file.path(proc_cohort(COHORT), "analysis_ready.parquet")
 df         <- strict_parquet(ready_path)
@@ -67,10 +67,10 @@ stopifnot(all(c(time_col, event_col, "score_z") %in% names(df)))
 
 df <- df[!is.na(df[[time_col]]) & df[[time_col]] > 0 &
            !is.na(df[[event_col]]) & !is.na(df$score_z), ]
-message(sprintf("[%s] N analise: %d | Eventos: %d", SCRIPT_NAME, nrow(df), sum(df[[event_col]])))
+message(sprintf("[%s] N analysis: %d | Events: %d", SCRIPT_NAME, nrow(df), sum(df[[event_col]])))
 
 # --------------------------------------------------------------------------
-# 2) Cox univariado
+# 2) Univariate Cox
 # --------------------------------------------------------------------------
 old_warn <- getOption("warn"); options(warn = 0)
 cox_uni <- coxph(Surv(df[[time_col]], df[[event_col]]) ~ score_z, data = df)
@@ -84,7 +84,7 @@ p_uni   <- sm_uni$coefficients[1, "Pr(>|z|)"]
 message(sprintf("[%s] Cox uni HR=%.3f (%.3f-%.3f) p=%.4g", SCRIPT_NAME, hr_uni, lo_uni, hi_uni, p_uni))
 
 # --------------------------------------------------------------------------
-# 3) Cox multivariado CORE-A + score_z
+# 3) Multivariate Cox CORE-A + score_z
 # --------------------------------------------------------------------------
 corea_vars  <- c("age", "er_status")
 corea_avail <- intersect(corea_vars, names(df))
@@ -111,7 +111,7 @@ if (length(corea_avail) > 0) {
 }
 
 # --------------------------------------------------------------------------
-# 4) C-index bootstrap
+# 4) C-index with bootstrap CI
 # --------------------------------------------------------------------------
 message(sprintf("[%s] Bootstrap C-index (n=%d)...", SCRIPT_NAME, FREEZE$bootstrap_n))
 boot_res <- bootstrap_cindex(
@@ -123,10 +123,10 @@ message(sprintf("[%s] C-index=%.4f (%.4f-%.4f)", SCRIPT_NAME,
                 boot_res$c_index, boot_res$ci_low, boot_res$ci_high))
 
 fu_median <- reverse_km_median(df[[time_col]], df[[event_col]])
-message(sprintf("[%s] Follow-up mediana (Reverse KM): %.1f meses", SCRIPT_NAME, fu_median))
+message(sprintf("[%s] Median follow-up (Reverse KM): %.1f months", SCRIPT_NAME, fu_median))
 
 # --------------------------------------------------------------------------
-# 5) KM: mediana intra-coorte (principal)
+# 5) KM: intra-cohort median (primary)
 # --------------------------------------------------------------------------
 fig_dir <- PATHS$figures$main
 dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
@@ -145,9 +145,9 @@ km_plot_med <- ggsurvplot(
   pval        = TRUE,
   conf.int    = TRUE,
   palette     = c("#E74C3C", "#2980B9"),
-  title       = sprintf("KM CorePAM — %s | %s | Mediana cutpoint", COHORT, ENDPOINT),
-  xlab        = "Tempo (meses)",
-  ylab        = "Sobrevida geral",
+  title       = sprintf("KM CorePAM — %s | %s | Median cutpoint", COHORT, ENDPOINT),
+  xlab        = "Time (months)",
+  ylab        = "Overall survival",
   legend.labs = c("High", "Low"),
   ggtheme     = theme_classic()
 )
@@ -166,7 +166,7 @@ registry_append(COHORT, "figure_km_main", km_pdf, sha256_file(km_pdf), "ok", SCR
 registry_append(COHORT, "figure_km_main_png", km_png, sha256_file(km_png), "ok", SCRIPT_NAME,
                 file.info(km_png)$size / 1e6)
 
-# Quartis (sensibilidade)
+# Quartiles (sensitivity)
 quart_cuts <- quantile(df$score_z, probs = c(0.25, 0.75), na.rm = TRUE)
 df$risk_group_quartile <- cut(df$score_z,
                                breaks = c(-Inf, quart_cuts[1], quart_cuts[2], Inf),
@@ -181,8 +181,8 @@ km_fit_q <- survfit(
 )
 km_plot_q <- ggsurvplot(
   km_fit_q, data = df, risk.table = TRUE, pval = TRUE, conf.int = FALSE,
-  title = sprintf("KM CorePAM — %s | %s | Quartis (sensibilidade)", COHORT, ENDPOINT),
-  xlab = "Tempo (meses)", ylab = "Sobrevida geral", ggtheme = theme_classic()
+  title = sprintf("KM CorePAM — %s | %s | Quartiles (sensitivity)", COHORT, ENDPOINT),
+  xlab = "Time (months)", ylab = "Overall survival", ggtheme = theme_classic()
 )
 options(warn = old_warn)
 
@@ -194,9 +194,9 @@ registry_append(COHORT, "figure_km_quartile", km_q_pdf, sha256_file(km_q_pdf), "
                 SCRIPT_NAME, file.info(km_q_pdf)$size / 1e6)
 
 # --------------------------------------------------------------------------
-# 6) Sensibilidade horizonte 24m (TCGA — follow-up curto; §9.4)
+# 6) Sensitivity horizon 24m (TCGA — short follow-up; sec.9.4)
 # --------------------------------------------------------------------------
-message(sprintf("[%s] Sensibilidade: horizonte %dm", SCRIPT_NAME, HORIZON_SENS))
+message(sprintf("[%s] Sensitivity: horizon %dm", SCRIPT_NAME, HORIZON_SENS))
 
 df_h <- df
 df_h$os_time_h  <- pmin(df_h[[time_col]], HORIZON_SENS)
@@ -217,17 +217,17 @@ if (!is.null(cox_h)) {
   lo_h  <- sm_h$conf.int[1, "lower .95"]
   hi_h  <- sm_h$conf.int[1, "upper .95"]
   p_h   <- sm_h$coefficients[1, "Pr(>|z|)"]
-  message(sprintf("[%s] Horizonte %dm: HR=%.3f (%.3f-%.3f) p=%.4g",
+  message(sprintf("[%s] Horizon %dm: HR=%.3f (%.3f-%.3f) p=%.4g",
                   SCRIPT_NAME, HORIZON_SENS, hr_h, lo_h, hi_h, p_h))
 }
 
-# KM sensibilidade 24m
+# KM sensitivity 24m
 old_warn <- getOption("warn"); options(warn = 0)
 km_fit_h <- survfit(Surv(os_time_h, os_event_h) ~ risk_group_median, data = df_h)
 km_plot_h <- ggsurvplot(
   km_fit_h, data = df_h, risk.table = TRUE, pval = TRUE, conf.int = TRUE,
-  title      = sprintf("KM CorePAM — %s | OS %dm (sens)", COHORT, HORIZON_SENS),
-  xlab       = "Tempo (meses)", ylab = "Sobrevida geral",
+  title      = sprintf("KM CorePAM — %s | OS %dm (sensitivity)", COHORT, HORIZON_SENS),
+  xlab       = "Time (months)", ylab = "Overall survival",
   xlim       = c(0, HORIZON_SENS),
   palette    = c("#E74C3C", "#2980B9"),
   legend.labs = c("High", "Low"),
@@ -249,7 +249,7 @@ registry_append(COHORT, "figure_km_sensitivity_24m_png", km_h_png, sha256_file(k
                 SCRIPT_NAME, file.info(km_h_png)$size / 1e6)
 
 # --------------------------------------------------------------------------
-# 7) Output resultados
+# 7) Output results
 # --------------------------------------------------------------------------
 supp_dir <- PATHS$results$supp
 dir.create(supp_dir, showWarnings = FALSE, recursive = TRUE)
@@ -286,4 +286,4 @@ h_res <- sha256_file(supp_path)
 registry_append(COHORT, "survival_results", supp_path, h_res, "ok", SCRIPT_NAME,
                 file.info(supp_path)$size / 1e6)
 
-message(sprintf("[%s] CONCLUIDO para %s | %s", SCRIPT_NAME, COHORT, ENDPOINT))
+message(sprintf("[%s] COMPLETED for %s | %s", SCRIPT_NAME, COHORT, ENDPOINT))

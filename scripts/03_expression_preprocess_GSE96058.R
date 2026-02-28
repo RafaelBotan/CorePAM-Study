@@ -1,21 +1,21 @@
 # =============================================================================
 # SCRIPT: 03_expression_preprocess_GSE96058.R
-# PURPOSE: Pré-processamento de expressão GSE96058 (subconjunto validação).
-#          Mesma fonte raw que SCANB, mas amostras diferentes — TMM separado.
+# PURPOSE: Expression preprocessing for GSE96058 (validation subset).
+#          Same raw source as SCANB, but different samples — separate TMM.
 # PROJETO: Core-PAM (Memorial v6.1 §4.2)
 #
 # INPUTS:
-#   01_Base_Pura_CorePAM/RAW/GSE96058/  (mesmo raw do SCANB)
-#   01_Base_Pura_CorePAM/PROCESSED/GSE96058/clinical_FINAL.parquet (IDs validação)
+#   01_Base_Pura_CorePAM/RAW/GSE96058/  (same raw as SCANB)
+#   01_Base_Pura_CorePAM/PROCESSED/GSE96058/clinical_FINAL.parquet (validation IDs)
 #
 # OUTPUTS:
 #   01_Base_Pura_CorePAM/PROCESSED/GSE96058/expression_genelevel_preZ.parquet
 #   results/supp/gene_mapping_audit_GSE96058.csv
 #
-# REGRA CRÍTICA (Memorial §1.2 / §3.2):
-#   TMM calculado APENAS nas amostras GSE96058 (validação).
-#   NUNCA combinar com SCANB para normalização.
-#   Z-score intra-coorte feito em 06_zscore_and_score_GSE96058.R.
+# CRITICAL RULE (Memorial §1.2 / §3.2):
+#   TMM calculated ONLY on GSE96058 samples (validation).
+#   NEVER combine with SCANB for normalization.
+#   Intra-cohort Z-score done in 06_zscore_and_score_GSE96058.R.
 # =============================================================================
 
 source("scripts/00_setup.R")
@@ -27,15 +27,15 @@ SCRIPT_NAME <- "03_expression_preprocess_GSE96058.R"
 COHORT      <- "GSE96058"
 
 # =============================================================================
-# 1) CARREGAR IDs GSE96058 (validação)
+# 1) LOAD GSE96058 IDs (validation)
 # =============================================================================
 clin_path <- file.path(proc_cohort(COHORT), "clinical_FINAL.parquet")
 clin      <- strict_parquet(clin_path)
 valid_ids  <- normalize_id(clin$sample_id)
-message(sprintf("[03_GSE96058] IDs validacao carregados: %d amostras", length(valid_ids)))
+message(sprintf("[03_GSE96058] Validation IDs loaded: %d samples", length(valid_ids)))
 
 # =============================================================================
-# 2) LOCALIZAR ARQUIVO DE EXPRESSÃO (mesmo diretório que SCANB)
+# 2) LOCATE EXPRESSION FILE (same directory as SCANB)
 # =============================================================================
 raw_dir   <- raw_cohort("GSE96058")
 raw_files <- list.files(raw_dir, full.names = TRUE, recursive = FALSE)
@@ -46,10 +46,10 @@ expr_file   <- raw_files[grep("gene_expression|genematrix|expression",
                                basename(raw_files), ignore.case = TRUE)][1]
 
 # =============================================================================
-# 3) LEITURA (idêntica ao SCANB — reutiliza mesma lógica de parsing)
+# 3) READ (identical to SCANB — reuses same parsing logic)
 # =============================================================================
 if (!is.na(counts_file) && file.exists(counts_file)) {
-  message("[03_GSE96058] Usando counts brutos: ", basename(counts_file))
+  message("[03_GSE96058] Using raw counts: ", basename(counts_file))
 
   if (grepl("\\.tar$", counts_file)) {
     tmp_dir     <- file.path(raw_dir, "RAW_extracted")
@@ -89,7 +89,7 @@ if (!is.na(counts_file) && file.exists(counts_file)) {
   }
 
 } else if (!is.na(expr_file) && file.exists(expr_file)) {
-  message("[03_GSE96058] FALLBACK: gene expression matrix pré-normalizada.")
+  message("[03_GSE96058] FALLBACK: pre-normalized gene expression matrix.")
   old_warn <- getOption("warn"); options(warn = 0)
   expr_df  <- read_csv(expr_file, show_col_types = FALSE)
   options(warn = old_warn)
@@ -100,48 +100,48 @@ if (!is.na(counts_file) && file.exists(counts_file)) {
   input_type <- "preprocessed_matrix"
 
 } else {
-  stop("[03_GSE96058] Nenhum arquivo de expressão em RAW/GSE96058/.")
+  stop("[03_GSE96058] No expression file found in RAW/GSE96058/.")
 }
 
 # =============================================================================
-# 4) FILTRAR APENAS AMOSTRAS GSE96058 (validação) — TMM SEPARADO DO SCANB
+# 4) FILTER ONLY GSE96058 SAMPLES (validation) — SEPARATE TMM FROM SCANB
 # =============================================================================
 col_ids_norm <- normalize_id(colnames(count_mat))
 keep_cols    <- col_ids_norm %in% valid_ids
 n_matched    <- sum(keep_cols)
 
-message(sprintf("[03_GSE96058] Match: %d de %d IDs de validacao encontrados.",
+message(sprintf("[03_GSE96058] Match: %d of %d validation IDs found.",
                 n_matched, length(valid_ids)))
 
 if (n_matched == 0) {
-  stop("[03_GSE96058] Nenhuma amostra GSE96058 encontrada. ",
-       "Verifique IDs em clinical_FINAL.parquet vs nomes de coluna.")
+  stop("[03_GSE96058] No GSE96058 samples found. ",
+       "Check IDs in clinical_FINAL.parquet vs column names.")
 }
 
 count_mat <- count_mat[, keep_cols, drop = FALSE]
 colnames(count_mat) <- col_ids_norm[keep_cols]
 
-message(sprintf("[03_GSE96058] Matriz filtrada: %d genes x %d amostras GSE96058",
+message(sprintf("[03_GSE96058] Filtered matrix: %d genes x %d GSE96058 samples",
                 nrow(count_mat), ncol(count_mat)))
 
 # =============================================================================
-# 5) NORMALIZAÇÃO (intra-coorte GSE96058 APENAS)
+# 5) NORMALIZATION (intra-cohort GSE96058 ONLY)
 # =============================================================================
 if (input_type == "raw_counts") {
-  message("[03_GSE96058] Aplicando edgeR TMM → logCPM (intra-GSE96058)...")
+  message("[03_GSE96058] Applying edgeR TMM → logCPM (intra-GSE96058)...")
   dge  <- edgeR::DGEList(counts = count_mat)
   keep <- edgeR::filterByExpr(dge)
   dge  <- dge[keep, , keep.lib.sizes = FALSE]
-  message(sprintf("[03_GSE96058] Genes apos filtro edgeR: %d", sum(keep)))
+  message(sprintf("[03_GSE96058] Genes after edgeR filter: %d", sum(keep)))
   dge      <- edgeR::calcNormFactors(dge, method = "TMM")
   expr_mat <- edgeR::cpm(dge, log = TRUE, prior.count = 1)
 } else {
   expr_mat <- count_mat
-  message("[03_GSE96058] Matriz pré-normalizada usada diretamente.")
+  message("[03_GSE96058] Pre-normalized matrix used directly.")
 }
 
 # =============================================================================
-# 6) MAPEAMENTO HGNC
+# 6) HGNC MAPPING
 # =============================================================================
 gene_ids_raw <- rownames(expr_mat)
 is_ensembl   <- grepl("^ENSG", gene_ids_raw[1])
@@ -159,18 +159,18 @@ if (is_ensembl) {
 keep_genes   <- !is.na(gene_symbols) & gene_symbols != ""
 expr_mat     <- expr_mat[keep_genes, , drop = FALSE]
 gene_symbols <- gene_symbols[keep_genes]
-message(sprintf("[03_GSE96058] Mapeados: %d | Descartados: %d",
+message(sprintf("[03_GSE96058] Mapped: %d | Discarded: %d",
                 sum(keep_genes), sum(!keep_genes)))
 
 # =============================================================================
-# 7) COLAPSO DE PROBES
+# 7) PROBE COLLAPSE
 # =============================================================================
 n_before <- nrow(expr_mat)
 expr_mat  <- collapse_probes_by_variance(expr_mat, gene_symbols)
-message(sprintf("[03_GSE96058] Colapso: %d → %d genes únicos", n_before, nrow(expr_mat)))
+message(sprintf("[03_GSE96058] Collapse: %d → %d unique genes", n_before, nrow(expr_mat)))
 
 # =============================================================================
-# 8) AUDIT PAM50
+# 8) PAM50 AUDIT
 # =============================================================================
 pam50_genes <- c(
   "ACTR3B","ANLN","BAG1","BCL2","BIRC5","BLVRA","CCNB1","CCNE1","CDC20",
@@ -182,7 +182,7 @@ pam50_genes <- c(
 )
 pam50_present <- intersect(pam50_genes, rownames(expr_mat))
 pam50_missing <- setdiff(pam50_genes, rownames(expr_mat))
-message(sprintf("[03_GSE96058] PAM50: %d/50 presentes", length(pam50_present)))
+message(sprintf("[03_GSE96058] PAM50: %d/50 present", length(pam50_present)))
 
 audit_df <- tibble(cohort = COHORT, gene = rownames(expr_mat),
                    present = TRUE, in_pam50 = rownames(expr_mat) %in% pam50_genes) |>
@@ -191,7 +191,7 @@ audit_df <- tibble(cohort = COHORT, gene = rownames(expr_mat),
 save_gene_mapping_audit(audit_df, COHORT, SCRIPT_NAME)
 
 # =============================================================================
-# 9) SALVAR
+# 9) SAVE
 # =============================================================================
 dest_dir <- proc_cohort(COHORT)
 dir.create(dest_dir, showWarnings = FALSE, recursive = TRUE)
@@ -203,8 +203,8 @@ h    <- sha256_file(out_path)
 size <- file.info(out_path)$size / 1024^2
 registry_append(COHORT, "Expression_preZ", out_path, h,
                 "INTEGRO", SCRIPT_NAME, size)
-message(sprintf("[03_GSE96058] Salvo: %d genes x %d amostras | %.2f MB | SHA256: %s",
+message(sprintf("[03_GSE96058] Saved: %d genes x %d samples | %.2f MB | SHA256: %s",
                 nrow(expr_mat), ncol(expr_mat), size, h))
 
-message("\n[03_GSE96058] Concluido: ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
-message("Proximo passo: scripts/03_expression_preprocess_TCGA_BRCA.R")
+message("\n[03_GSE96058] Completed: ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
+message("Next step: scripts/03_expression_preprocess_TCGA_BRCA.R")

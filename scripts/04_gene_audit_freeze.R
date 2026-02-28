@@ -1,28 +1,28 @@
 # =============================================================================
 # SCRIPT: 04_gene_audit_freeze.R
-# PURPOSE: Auditoria transversal de genes PAM50 em todas as coortes.
-#          Verifica cobertura do painel em treino e validações.
+# PURPOSE: Cross-cohort audit of PAM50 genes in all cohorts.
+#          Verifies panel coverage in training and validation sets.
 # PROJETO: Core-PAM (Memorial v6.1 §4.5 / Checklist §7)
 #
 # INPUTS:
 #   01_Base_Pura_CorePAM/PROCESSED/<COHORT>/expression_genelevel_preZ.parquet
 #
 # OUTPUTS:
-#   results/supp/gene_audit_by_cohort.csv   (auditoria principal)
-#   results/supp/pam50_coverage_summary.csv (cobertura por coorte)
+#   results/supp/gene_audit_by_cohort.csv   (main audit)
+#   results/supp/pam50_coverage_summary.csv (coverage by cohort)
 #
-# CRITÉRIO GO/NO-GO (Memorial §0 Checklist):
-#   SCANB (treino): todos os 50 genes PAM50 devem estar presentes.
-#   Validações:     genes_present >= 80% do Core-PAM final.
-#                   (neste script: auditamos PAM50; cobertura do Core-PAM
-#                    é re-auditada em 06_zscore_and_score_<COHORT>.R)
+# GO/NO-GO CRITERIA (Memorial §0 Checklist):
+#   SCANB (training): all 50 PAM50 genes must be present.
+#   Validations:      genes_present >= 80% of final Core-PAM.
+#                     (in this script: we audit PAM50; Core-PAM coverage
+#                      is re-audited in 06_zscore_and_score_<COHORT>.R)
 # =============================================================================
 
 source("scripts/00_setup.R")
 SCRIPT_NAME <- "04_gene_audit_freeze.R"
 
 # =============================================================================
-# 1) LISTA CANÔNICA PAM50 (50 genes)
+# 1) CANONICAL PAM50 LIST (50 genes)
 # =============================================================================
 PAM50_GENES <- c(
   "ACTR3B","ANLN","BAG1","BCL2","BIRC5","BLVRA","CCNB1","CCNE1","CDC20",
@@ -33,10 +33,10 @@ PAM50_GENES <- c(
   "TMEM45B","TYMS","UBE2C","UBE2T"
 )
 stopifnot(length(PAM50_GENES) == 50)
-message(sprintf("[04_audit] PAM50 canônico: %d genes", length(PAM50_GENES)))
+message(sprintf("[04_audit] Canonical PAM50: %d genes", length(PAM50_GENES)))
 
 # =============================================================================
-# 2) COORTES A AUDITAR
+# 2) COHORTS TO AUDIT
 # =============================================================================
 COHORTS <- list(
   list(id = "SCANB",     role = "TRAIN",      platform = "RNAseq"),
@@ -47,7 +47,7 @@ COHORTS <- list(
 )
 
 # =============================================================================
-# 3) AUDITORIA POR COORTE
+# 3) AUDIT BY COHORT
 # =============================================================================
 audit_rows <- list()
 coverage_rows <- list()
@@ -60,11 +60,11 @@ for (coh in COHORTS) {
   expr_path <- file.path(proc_cohort(cohort), "expression_genelevel_preZ.parquet")
 
   if (!file.exists(expr_path)) {
-    message(sprintf("[04_audit] AVISO: %s — arquivo nao encontrado: %s",
+    message(sprintf("[04_audit] WARNING: %s — file not found: %s",
                     cohort, expr_path))
-    message(sprintf("  Execute 03_expression_preprocess_%s.R primeiro.", cohort))
+    message(sprintf("  Run 03_expression_preprocess_%s.R first.", cohort))
 
-    # Registrar como ausente mesmo assim
+    # Register as missing anyway
     coverage_rows[[cohort]] <- tibble(
       cohort   = cohort,
       role     = role,
@@ -73,37 +73,37 @@ for (coh in COHORTS) {
       n_pam50_missing  = NA_integer_,
       pct_pam50        = NA_real_,
       genes_missing    = NA_character_,
-      go_nogo          = "NO-GO (arquivo ausente)",
+      go_nogo          = "NO-GO (file missing)",
       file_exists      = FALSE
     )
     next
   }
 
-  # Leitura estrita
+  # Strict read
   expr <- strict_parquet(expr_path)
-  genes_in_cohort <- expr$gene   # coluna "gene" adicionada em 03_*.R
+  genes_in_cohort <- expr$gene   # "gene" column added in 03_*.R
 
-  # Cobertura PAM50
+  # PAM50 coverage
   present <- intersect(PAM50_GENES, genes_in_cohort)
   missing <- setdiff(PAM50_GENES, genes_in_cohort)
   pct     <- 100 * length(present) / length(PAM50_GENES)
 
-  message(sprintf("[04_audit] %-12s | %d genes totais | PAM50: %d/50 (%.1f%%) | ausentes: %s",
+  message(sprintf("[04_audit] %-12s | %d total genes | PAM50: %d/50 (%.1f%%) | missing: %s",
                   cohort, length(genes_in_cohort), length(present), pct,
-                  if (length(missing) == 0) "nenhum" else paste(missing, collapse = ",")))
+                  if (length(missing) == 0) "none" else paste(missing, collapse = ",")))
 
-  # GO/NO-GO para treino: exigir 50/50
+  # GO/NO-GO for training: require 50/50
   if (role == "TRAIN") {
     go_nogo <- if (length(missing) == 0) "GO" else
-      sprintf("NO-GO (faltam %d genes PAM50 no treino: %s)",
+      sprintf("NO-GO (missing %d PAM50 genes in training: %s)",
               length(missing), paste(missing, collapse = ","))
   } else {
-    # Validação: GO se >=80% do PAM50 (proxy; será re-verificado para Core-PAM)
+    # Validation: GO if >=80% of PAM50 (proxy; will be re-checked for Core-PAM)
     go_nogo <- if (pct >= 80) "GO (>=80% PAM50)" else
-      sprintf("AVISO (<80%% PAM50: %.1f%%)", pct)
+      sprintf("WARNING (<80%% PAM50: %.1f%%)", pct)
   }
 
-  # Linha de cobertura
+  # Coverage row
   coverage_rows[[cohort]] <- tibble(
     cohort          = cohort,
     role            = role,
@@ -117,7 +117,7 @@ for (coh in COHORTS) {
     file_exists     = TRUE
   )
 
-  # Linha por gene (para tabela gene × coorte)
+  # Row per gene (for gene x cohort table)
   for (g in PAM50_GENES) {
     audit_rows[[paste0(cohort, "_", g)]] <- tibble(
       cohort   = cohort,
@@ -130,7 +130,7 @@ for (coh in COHORTS) {
 }
 
 # =============================================================================
-# 4) TABELA GENE × COORTE (wide)
+# 4) GENE x COHORT TABLE (wide)
 # =============================================================================
 df_audit <- bind_rows(audit_rows)
 
@@ -141,58 +141,58 @@ df_wide <- df_audit |>
   mutate(n_cohorts_present = rowSums(across(where(is.logical)))) |>
   arrange(desc(n_cohorts_present), gene)
 
-message("\n[04_audit] Tabela gene × coorte (PAM50):")
+message("\n[04_audit] Gene x cohort table (PAM50):")
 print(df_wide)
 
 # =============================================================================
-# 5) TABELA DE COBERTURA POR COORTE
+# 5) COVERAGE TABLE BY COHORT
 # =============================================================================
 df_coverage <- bind_rows(coverage_rows)
 
-message("\n[04_audit] Resumo de cobertura:")
+message("\n[04_audit] Coverage summary:")
 print(df_coverage |> select(cohort, role, n_pam50_present, pct_pam50, go_nogo))
 
 # =============================================================================
-# 6) SALVAR E REGISTRAR
+# 6) SAVE AND REGISTER
 # =============================================================================
-# Tabela gene × coorte
+# Gene x cohort table
 out_audit <- file.path(PATHS$results$supp, "gene_audit_by_cohort.csv")
 write_csv(df_wide, out_audit)
 h    <- sha256_file(out_audit)
 size <- file.info(out_audit)$size / 1024^2
 registry_append("ALL", "Gene_Audit_PAM50", out_audit, h,
                 "INTEGRO", SCRIPT_NAME, size)
-message("\n[04_audit] Salvo: ", out_audit)
+message("\n[04_audit] Saved: ", out_audit)
 
-# Resumo de cobertura
+# Coverage summary
 out_cov <- file.path(PATHS$results$supp, "pam50_coverage_summary.csv")
 write_csv(df_coverage, out_cov)
 h    <- sha256_file(out_cov)
 size <- file.info(out_cov)$size / 1024^2
 registry_append("ALL", "PAM50_Coverage_Summary", out_cov, h,
                 "INTEGRO", SCRIPT_NAME, size)
-message("[04_audit] Salvo: ", out_cov)
+message("[04_audit] Saved: ", out_cov)
 
 # =============================================================================
 # 7) GO / NO-GO FINAL
 # =============================================================================
 message("\n", strrep("=", 60))
-message("[04_audit] VEREDICTO FINAL")
+message("[04_audit] FINAL VERDICT")
 message(strrep("=", 60))
 
 train_row <- df_coverage |> filter(role == "TRAIN")
 if (nrow(train_row) > 0 && !is.na(train_row$n_pam50_missing)) {
   if (train_row$n_pam50_missing == 0) {
-    message("GO — todos os 50 genes PAM50 presentes no SCANB (treino).")
-    message("Proximo passo: scripts/05_reduce_pam50_to_corepam_FINAL.R")
+    message("GO — all 50 PAM50 genes present in SCANB (training).")
+    message("Next step: scripts/05_reduce_pam50_to_corepam_FINAL.R")
   } else {
-    message(sprintf("NO-GO — %d genes PAM50 ausentes no SCANB:",
+    message(sprintf("NO-GO — %d PAM50 genes missing in SCANB:",
                     train_row$n_pam50_missing))
     message("  ", train_row$genes_missing)
-    message("Revisar 03_expression_preprocess_SCANB.R antes de prosseguir.")
+    message("Review 03_expression_preprocess_SCANB.R before proceeding.")
   }
 } else {
-  message("INDETERMINADO — execute 03_expression_preprocess_SCANB.R primeiro.")
+  message("INDETERMINATE — run 03_expression_preprocess_SCANB.R first.")
 }
 
-message("\n[04_audit] Concluido: ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
+message("\n[04_audit] Completed: ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))

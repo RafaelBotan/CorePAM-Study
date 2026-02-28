@@ -1,6 +1,6 @@
 # =============================================================================
 # SCRIPT: 02_harmonize_clinical_METABRIC.R
-# PURPOSE: Harmonização clínica do METABRIC — cria OS e DSS corretamente.
+# PURPOSE: Clinical harmonization of METABRIC — correctly creates OS and DSS.
 # PROJETO: Core-PAM (Memorial v6.1)
 #
 # INPUTS:
@@ -11,75 +11,75 @@
 #   01_Base_Pura_CorePAM/PROCESSED/METABRIC/clinical_FINAL.parquet
 #   01_docs/endpoint_mapping_templates/endpoint_mapping_METABRIC.csv
 #
-# REGRAS (Memorial v6.1 §7.1-7.2):
-#   - Endpoint primário: DSS (dss_event=1 apenas causa câncer).
-#   - OS como sensibilidade.
-#   - dss_time == os_time (tempo ao óbito, independente da causa).
-#   - Demais causas de óbito → censura no tempo do óbito (competing events).
-#   - Tempo em meses (dias / 30.4375).
+# RULES (Memorial v6.1 §7.1-7.2):
+#   - Primary endpoint: DSS (dss_event=1 only cancer cause).
+#   - OS as sensitivity.
+#   - dss_time == os_time (time to death, regardless of cause).
+#   - Other causes of death → censored at time of death (competing events).
+#   - Time in months (days / 30.4375).
 #   - time <= 0: DROP.
-#   - Plano B: se RDS corrompido → usar este parquet como fonte primária.
+#   - Plan B: if RDS corrupted → use this parquet as primary source.
 # =============================================================================
 
 source("scripts/00_setup.R")
 SCRIPT_NAME <- "02_harmonize_clinical_METABRIC.R"
 
 # =============================================================================
-# 1) LEITURA (cBioPortal: linhas de header começam com "#")
+# 1) READ (cBioPortal: header lines start with "#")
 # =============================================================================
 metabric_dir <- file.path(raw_cohort("METABRIC"), "brca_metabric")
 
 .read_cbio <- function(fname) {
   fpath <- file.path(metabric_dir, fname)
-  if (!file.exists(fpath)) stop("Arquivo nao encontrado: ", fpath)
-  # cBioPortal usa "#" para linhas de metadados → pular
+  if (!file.exists(fpath)) stop("File not found: ", fpath)
+  # cBioPortal uses "#" for metadata lines → skip
   lines    <- readLines(fpath, warn = FALSE)
   skip_n   <- sum(startsWith(lines, "#"))
   read_tsv(fpath, skip = skip_n, show_col_types = FALSE,
            name_repair = "unique")
 }
 
-message("[02_METABRIC] Lendo data_clinical_patient.txt ...")
+message("[02_METABRIC] Reading data_clinical_patient.txt ...")
 clin_pat <- .read_cbio("data_clinical_patient.txt")
 
-message("[02_METABRIC] Lendo data_clinical_sample.txt ...")
+message("[02_METABRIC] Reading data_clinical_sample.txt ...")
 clin_sam <- .read_cbio("data_clinical_sample.txt")
 
-message(sprintf("[02_METABRIC] Pacientes: %d | Amostras: %d",
+message(sprintf("[02_METABRIC] Patients: %d | Samples: %d",
                 nrow(clin_pat), nrow(clin_sam)))
-message("[02_METABRIC] Colunas paciente: ", paste(names(clin_pat), collapse = ", "))
-message("[02_METABRIC] Colunas amostra:  ", paste(names(clin_sam), collapse = ", "))
+message("[02_METABRIC] Patient columns: ", paste(names(clin_pat), collapse = ", "))
+message("[02_METABRIC] Sample columns:  ", paste(names(clin_sam), collapse = ", "))
 
 # =============================================================================
-# 2) JOIN paciente × amostra
+# 2) JOIN patient x sample
 # =============================================================================
-# Chave de join: PATIENT_ID (cBioPortal padrão)
+# Join key: PATIENT_ID (cBioPortal standard)
 clin_full <- clin_pat |>
   left_join(clin_sam, by = "PATIENT_ID", suffix = c("", ".sample"))
 
-message(sprintf("[02_METABRIC] Apos join: %d linhas", nrow(clin_full)))
+message(sprintf("[02_METABRIC] After join: %d rows", nrow(clin_full)))
 
 # =============================================================================
-# 3) MAPEAMENTO DE COLUNAS cBioPortal → nomes padronizados
-#    Nomes cBioPortal padrão do METABRIC (verificar se diferem na versão atual)
+# 3) COLUMN MAPPING cBioPortal → standardized names
+#    Standard cBioPortal METABRIC names (check if they differ in current version)
 # =============================================================================
 # OS
 OS_TIME_COL   <- "OS_MONTHS"      # tempo em meses (já em meses no cBioPortal)
 OS_STATUS_COL <- "OS_STATUS"      # "0:LIVING" / "1:DECEASED"
 
 # DSS (Disease-Specific Survival)
-# cBioPortal METABRIC disponibiliza VITAL_STATUS com causa de morte
+# cBioPortal METABRIC provides VITAL_STATUS with cause of death
 DSS_CAUSE_COL <- "VITAL_STATUS"   # "Died of Disease" / "Died of Other Causes" / "Living"
 
-# Covariáveis
+# Covariates
 AGE_COL    <- "AGE_AT_DIAGNOSIS"
-ER_COL     <- "ER_IHC"            # ou "ER_STATUS" dependendo da versão
+ER_COL     <- "ER_IHC"            # or "ER_STATUS" depending on version
 STAGE_COL  <- "TUMOR_STAGE"
 SAMPLE_COL <- "SAMPLE_ID"
 PAT_COL    <- "PATIENT_ID"
 
 # =============================================================================
-# 4) HARMONIZAÇÃO
+# 4) HARMONIZATION
 # =============================================================================
 n_raw <- nrow(clin_full)
 
@@ -88,10 +88,10 @@ out <- tibble(
   patient_id = normalize_id(clin_full[[PAT_COL]])
 )
 
-# OS: tempo já em meses no cBioPortal METABRIC
+# OS: time already in months in cBioPortal METABRIC
 out$os_time_months <- suppressWarnings(as.numeric(clin_full[[OS_TIME_COL]]))
 
-# OS event: 1 = óbito qualquer causa
+# OS event: 1 = death any cause
 raw_os <- tolower(trimws(clin_full[[OS_STATUS_COL]]))
 out$os_event <- dplyr::case_when(
   grepl("^1|deceased|dead|died", raw_os) ~ 1L,
@@ -99,17 +99,17 @@ out$os_event <- dplyr::case_when(
   TRUE ~ NA_integer_
 )
 
-# DSS: dss_time == os_time; dss_event=1 apenas causa câncer
+# DSS: dss_time == os_time; dss_event=1 only cancer cause
 out$dss_time_months <- out$os_time_months   # mesmo tempo
 raw_cause <- tolower(trimws(clin_full[[DSS_CAUSE_COL]]))
 out$dss_event <- dplyr::case_when(
-  grepl("died of disease|disease", raw_cause)       ~ 1L,  # óbito por câncer
+  grepl("died of disease|disease", raw_cause)       ~ 1L,  # cancer death
   grepl("died of other|other cause|living|alive",
-        raw_cause)                                  ~ 0L,  # censura (competing)
+        raw_cause)                                  ~ 0L,  # censored (competing)
   TRUE ~ NA_integer_
 )
 
-# Covariáveis CORE-A
+# CORE-A covariates
 out$age       <- suppressWarnings(as.numeric(clin_full[[AGE_COL]]))
 out$er_status <- dplyr::case_when(
   tolower(trimws(clin_full[[ER_COL]])) %in%
@@ -120,13 +120,12 @@ out$er_status <- dplyr::case_when(
 )
 out$stage <- trimws(clin_full[[STAGE_COL]])
 
-# DROP: os_time <= 0
 n_le0 <- sum(out$os_time_months <= 0, na.rm = TRUE)
 n_na  <- sum(is.na(out$os_time_months))
 out   <- out |> filter(os_time_months > 0, !is.na(os_time_months))
 
 message(sprintf(
-  "[02_METABRIC] N raw=%d | Removidos time<=0: %d | NA time: %d | N final=%d",
+  "[02_METABRIC] N raw=%d | Removed time<=0: %d | NA time: %d | N final=%d",
   n_raw, n_le0, n_na, nrow(out)
 ))
 message(sprintf(
@@ -142,7 +141,7 @@ message(sprintf(
 ))
 
 # =============================================================================
-# 5) SALVAR PARQUET FINAL (fonte primária — Plano B para RDS corrompido)
+# 5) SAVE FINAL PARQUET (primary source — Plan B for corrupted RDS)
 # =============================================================================
 dest_dir  <- proc_cohort("METABRIC")
 dir.create(dest_dir, showWarnings = FALSE, recursive = TRUE)
@@ -153,7 +152,7 @@ h    <- sha256_file(out_path)
 size <- file.info(out_path)$size / 1024^2
 registry_append("METABRIC", "Clinical_FINAL", out_path, h,
                 "INTEGRO", SCRIPT_NAME, size)
-message(sprintf("[02_METABRIC] Salvo: %s | %d amostras | %.2f MB | SHA256: %s",
+message(sprintf("[02_METABRIC] Saved: %s | %d samples | %.2f MB | SHA256: %s",
                 out_path, nrow(out), size, h))
 
 # =============================================================================
@@ -182,5 +181,5 @@ ep_path <- file.path(PATHS$docs, "endpoint_mapping_templates",
 write_csv(ep_map, ep_path)
 message("[02_METABRIC] Endpoint map: ", ep_path)
 
-message("\n[02_METABRIC] Concluido: ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
-message("Proximo passo: scripts/03_expression_preprocess_METABRIC.R")
+message("\n[02_METABRIC] Completed: ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
+message("Next step: scripts/03_expression_preprocess_METABRIC.R")

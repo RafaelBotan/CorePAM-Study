@@ -1,14 +1,14 @@
 # =============================================================================
-# UTILITÁRIO: 03_utils_gene_mapping.R
-# PURPOSE: Funções compartilhadas de mapeamento gênico (HGNC) e colapso de
-#          probes para todos os scripts 03_expression_preprocess_<COHORT>.R
+# UTILITY: 03_utils_gene_mapping.R
+# PURPOSE: Shared gene mapping (HGNC) and probe collapse functions for all
+#          03_expression_preprocess_<COHORT>.R scripts.
 # PROJETO: Core-PAM (Memorial v6.1 §4.4)
 #
-# REGRAS:
+# RULES:
 #   - IDs (Symbol/Entrez/RefSeq/Ensembl) → HGNC official symbol.
-#   - Múltiplas probes → gene: selecionar probe de maior variância intra-coorte.
-#   - Salvar gene_mapping_audit_<COHORT>.csv por coorte.
-#   - NÃO fazer Z-score aqui — output é pre-Z (logCPM ou log2 intensity).
+#   - Multiple probes → gene: select probe with highest intra-cohort variance.
+#   - Save gene_mapping_audit_<COHORT>.csv per cohort.
+#   - Do NOT Z-score here — output is pre-Z (logCPM or log2 intensity).
 # =============================================================================
 
 suppressPackageStartupMessages({
@@ -18,27 +18,27 @@ suppressPackageStartupMessages({
 
 # --------------------------------------------------------------------------
 # build_hgnc_map_ensembl
-#   Converte Ensembl IDs para HGNC official symbols via biomaRt.
-#   Cache: salva em registry para evitar re-download.
+#   Converts Ensembl IDs to HGNC official symbols via biomaRt.
+#   Cache: saves in registry to avoid re-download.
 # --------------------------------------------------------------------------
 build_hgnc_map_ensembl <- function(ensembl_ids,
                                    cache_path = file.path(
                                      PATHS$registry_docs,
                                      "hgnc_ensembl_map_cache.rds")) {
   if (file.exists(cache_path)) {
-    message("  [gene_map] Usando cache HGNC Ensembl: ", cache_path)
+    message("  [gene_map] Using HGNC Ensembl cache: ", cache_path)
     old_warn <- getOption("warn"); options(warn = 0)
     map <- readRDS(cache_path)
     options(warn = old_warn)
   } else {
-    message("  [gene_map] Baixando mapa Ensembl→HGNC via biomaRt...")
+    message("  [gene_map] Downloading Ensembl→HGNC map via biomaRt...")
     old_warn <- getOption("warn"); options(warn = 0)
     mart <- tryCatch(
       biomaRt::useMart("ensembl", dataset = "hsapiens_gene_ensembl"),
       error = function(e) {
         options(warn = old_warn)
-        stop("biomaRt indisponivel: ", conditionMessage(e),
-             "\nVerifique conexao ou use cache manual.")
+        stop("biomaRt unavailable: ", conditionMessage(e),
+             "\nCheck connection or use manual cache.")
       }
     )
     map <- biomaRt::getBM(
@@ -50,18 +50,18 @@ build_hgnc_map_ensembl <- function(ensembl_ids,
     )
     options(warn = old_warn)
     saveRDS(map, cache_path)
-    message("  [gene_map] Cache salvo: ", cache_path)
+    message("  [gene_map] Cache saved: ", cache_path)
   }
   map
 }
 
 # --------------------------------------------------------------------------
 # build_hgnc_map_symbol
-#   Padroniza gene symbols existentes usando HGNChelper (offline).
-#   Retorna data.frame com original → hgnc_symbol.
+#   Standardizes existing gene symbols using HGNChelper (offline).
+#   Returns data.frame with original → hgnc_symbol.
 # --------------------------------------------------------------------------
 build_hgnc_map_symbol <- function(symbols) {
-  message("  [gene_map] Padronizando symbols via HGNChelper...")
+  message("  [gene_map] Standardizing symbols via HGNChelper...")
   old_warn <- getOption("warn"); options(warn = 0)
   res <- HGNChelper::checkGeneSymbols(
     symbols,
@@ -79,15 +79,15 @@ build_hgnc_map_symbol <- function(symbols) {
 
 # --------------------------------------------------------------------------
 # build_hgnc_map_entrez
-#   Converte Entrez IDs para HGNC symbols via org.Hs.eg.db.
+#   Converts Entrez IDs to HGNC symbols via org.Hs.eg.db.
 # --------------------------------------------------------------------------
 build_hgnc_map_entrez <- function(entrez_ids) {
   if (!requireNamespace("org.Hs.eg.db", quietly = TRUE)) {
-    stop("Pacote org.Hs.eg.db necessario: ",
+    stop("Package org.Hs.eg.db required: ",
          "BiocManager::install('org.Hs.eg.db')")
   }
   suppressPackageStartupMessages(library(org.Hs.eg.db))
-  message("  [gene_map] Mapeando Entrez→HGNC via org.Hs.eg.db...")
+  message("  [gene_map] Mapping Entrez→HGNC via org.Hs.eg.db...")
   old_warn <- getOption("warn"); options(warn = 0)
   map <- AnnotationDbi::select(
     org.Hs.eg.db,
@@ -101,15 +101,15 @@ build_hgnc_map_entrez <- function(entrez_ids) {
 
 # --------------------------------------------------------------------------
 # build_hgnc_map_affymetrix
-#   Converte probe IDs Affymetrix HGU133A/Plus2 para HGNC symbols.
+#   Converts Affymetrix HGU133A/Plus2 probe IDs to HGNC symbols.
 # --------------------------------------------------------------------------
 build_hgnc_map_affymetrix <- function(probe_ids, platform = "hgu133a") {
   pkg <- paste0(platform, ".db")
   if (!requireNamespace(pkg, quietly = TRUE)) {
-    stop(sprintf("Pacote %s necessario: BiocManager::install('%s')", pkg, pkg))
+    stop(sprintf("Package %s required: BiocManager::install('%s')", pkg, pkg))
   }
   suppressPackageStartupMessages(library(pkg, character.only = TRUE))
-  message(sprintf("  [gene_map] Mapeando probes %s→SYMBOL via %s...",
+  message(sprintf("  [gene_map] Mapping probes %s→SYMBOL via %s...",
                   platform, pkg))
   db_obj <- get(pkg)
   old_warn <- getOption("warn"); options(warn = 0)
@@ -125,11 +125,11 @@ build_hgnc_map_affymetrix <- function(probe_ids, platform = "hgu133a") {
 
 # --------------------------------------------------------------------------
 # collapse_probes_by_variance
-#   Para matrizes com múltiplas linhas por gene:
-#   seleciona a linha (probe) com maior variância intra-coorte.
-#   Input:  mat     = matrix/data.frame (linhas=probes, colunas=amostras)
-#           gene_id = vetor de gene symbols (mesmo comprimento que nrow(mat))
-#   Output: matrix com uma linha por gene (probe de maior variância)
+#   For matrices with multiple rows per gene:
+#   selects the row (probe) with highest intra-cohort variance.
+#   Input:  mat     = matrix/data.frame (rows=probes, columns=samples)
+#           gene_id = vector of gene symbols (same length as nrow(mat))
+#   Output: matrix with one row per gene (highest variance probe)
 # --------------------------------------------------------------------------
 collapse_probes_by_variance <- function(mat, gene_id) {
   stopifnot(length(gene_id) == nrow(mat))
@@ -141,10 +141,10 @@ collapse_probes_by_variance <- function(mat, gene_id) {
     stringsAsFactors = FALSE
   )
 
-  # Remover genes NA ou vazios
+  # Remove NA or empty genes
   df <- df[!is.na(df$gene) & nchar(trimws(df$gene)) > 0, ]
 
-  # Selecionar probe de maior variância por gene
+  # Select highest variance probe per gene
   best <- df[order(df$gene, -df$variance), ]
   best <- best[!duplicated(best$gene), ]
 
@@ -155,7 +155,7 @@ collapse_probes_by_variance <- function(mat, gene_id) {
 
 # --------------------------------------------------------------------------
 # save_gene_mapping_audit
-#   Salva gene_mapping_audit_<cohort>.csv e registra hash.
+#   Saves gene_mapping_audit_<cohort>.csv and registers hash.
 # --------------------------------------------------------------------------
 save_gene_mapping_audit <- function(audit_df, cohort, script_name) {
   dest_dir <- file.path(PATHS$results$supp)
@@ -167,8 +167,8 @@ save_gene_mapping_audit <- function(audit_df, cohort, script_name) {
   size <- file.info(out_path)$size / 1024^2
   registry_append(cohort, "Gene_Mapping_Audit", out_path, h,
                   "INTEGRO", script_name, size)
-  message(sprintf("  [gene_map] Audit salvo: %s | %.2f MB", out_path, size))
+  message(sprintf("  [gene_map] Audit saved: %s | %.2f MB", out_path, size))
   invisible(out_path)
 }
 
-message("[03_utils] Utilitarios de mapeamento genico carregados.")
+message("[03_utils] Gene mapping utilities loaded.")

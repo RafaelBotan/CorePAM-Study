@@ -1,9 +1,9 @@
 # =============================================================================
 # SCRIPT: 06_zscore_and_score_SCANB.R
-# PURPOSE: Aplica Core-PAM score na coorte SCAN-B:
-#          Z-score intra-coorte, score re-escalonado (Effective Gene Count),
-#          direcao padronizada (HR>1), gera analysis_ready.parquet
-# COORTE:  SCANB (treino; aplicacao cega dos pesos congelados)
+# PURPOSE: Applies Core-PAM score to SCAN-B cohort:
+#          Intra-cohort Z-score, rescaled score (Effective Gene Count),
+#          standardized direction (HR>1), generates analysis_ready.parquet
+# COHORT:  SCANB (training; blind application of frozen weights)
 # PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
@@ -15,10 +15,10 @@ suppressPackageStartupMessages({
   library(survival)
 })
 
-message(sprintf("[%s] Iniciando score CorePAM para %s", SCRIPT_NAME, COHORT))
+message(sprintf("[%s] Starting CorePAM score for %s", SCRIPT_NAME, COHORT))
 
 # --------------------------------------------------------------------------
-# 1) Carregar pesos congelados do Core-PAM
+# 1) Load frozen Core-PAM weights
 # --------------------------------------------------------------------------
 weights_path <- file.path(PATHS$results$corepam, "CorePAM_weights.csv")
 weights_df   <- strict_csv(weights_path)
@@ -27,23 +27,23 @@ stopifnot(all(c("gene", "weight") %in% names(weights_df)))
 weights_df   <- weights_df[weights_df$weight != 0, ]
 panel_genes  <- weights_df$gene
 panel_weights <- setNames(weights_df$weight, weights_df$gene)
-message(sprintf("[%s] Painel CorePAM: %d genes com peso != 0", SCRIPT_NAME, length(panel_genes)))
+message(sprintf("[%s] CorePAM panel: %d genes with weight != 0", SCRIPT_NAME, length(panel_genes)))
 
 # --------------------------------------------------------------------------
-# 2) Carregar expressao pre-Z
+# 2) Load pre-Z expression
 # --------------------------------------------------------------------------
 expr_path <- file.path(proc_cohort(COHORT), "expression_genelevel_preZ.parquet")
 expr_mat   <- strict_parquet(expr_path)
 
-# Espera-se: primeira coluna = sample_id; restantes = genes
+# Expected: first column = sample_id; remaining = genes
 sample_col <- names(expr_mat)[1]
 sample_ids  <- expr_mat[[sample_col]]
 gene_cols   <- setdiff(names(expr_mat), sample_col)
 
-message(sprintf("[%s] Expressao: %d amostras x %d genes", SCRIPT_NAME, length(sample_ids), length(gene_cols)))
+message(sprintf("[%s] Expression: %d samples x %d genes", SCRIPT_NAME, length(sample_ids), length(gene_cols)))
 
 # --------------------------------------------------------------------------
-# 3) Z-score intra-coorte por gene
+# 3) Intra-cohort Z-score per gene
 # --------------------------------------------------------------------------
 expr_vals <- as.matrix(expr_mat[, gene_cols])
 rownames(expr_vals) <- sample_ids
@@ -53,10 +53,10 @@ gene_means <- colMeans(expr_vals, na.rm = TRUE)
 gene_sds   <- apply(expr_vals, 2, sd, na.rm = TRUE)
 options(warn = old_warn)
 
-# Evitar divisao por zero: genes com SD=0 recebem z=0
+# Avoid division by zero: genes with SD=0 receive z=0
 zero_sd <- gene_sds == 0 | is.na(gene_sds)
 if (any(zero_sd)) {
-  message(sprintf("[%s] AVISO: %d genes com SD=0 (z=0 para esses genes)", SCRIPT_NAME, sum(zero_sd)))
+  message(sprintf("[%s] WARNING: %d genes with SD=0 (z=0 for those genes)", SCRIPT_NAME, sum(zero_sd)))
 }
 gene_sds[zero_sd] <- 1
 
@@ -64,7 +64,7 @@ z_mat <- sweep(sweep(expr_vals, 2, gene_means, "-"), 2, gene_sds, "/")
 z_mat[, zero_sd] <- 0
 
 # --------------------------------------------------------------------------
-# 4) Calcular score = sum(w_i * z_i) / sum(|w_i|)  apenas genes presentes
+# 4) Calculate score = sum(w_i * z_i) / sum(|w_i|)  for present genes only
 # --------------------------------------------------------------------------
 genes_present <- intersect(panel_genes, colnames(z_mat))
 genes_missing <- setdiff(panel_genes, colnames(z_mat))
@@ -73,16 +73,16 @@ n_present <- length(genes_present)
 n_panel   <- length(panel_genes)
 frac_present <- n_present / n_panel
 
-message(sprintf("[%s] Genes presentes: %d / %d (%.1f%%)",
+message(sprintf("[%s] Genes present: %d / %d (%.1f%%)",
                 SCRIPT_NAME, n_present, n_panel, frac_present * 100))
 if (length(genes_missing) > 0) {
-  message(sprintf("[%s] Genes ausentes: %s", SCRIPT_NAME, paste(genes_missing, collapse = ", ")))
+  message(sprintf("[%s] Genes missing: %s", SCRIPT_NAME, paste(genes_missing, collapse = ", ")))
 }
 
-# Verificacao cobertura minima
+# Minimum coverage check
 if (frac_present < FREEZE$min_genes_fraction) {
   stop(sprintf(
-    "[%s] COBERTURA INSUFICIENTE: %.1f%% < %.0f%% minimo exigido",
+    "[%s] INSUFFICIENT COVERAGE: %.1f%% < %.0f%% minimum required",
     SCRIPT_NAME, frac_present * 100, FREEZE$min_genes_fraction * 100
   ))
 }
@@ -94,19 +94,19 @@ z_sub  <- z_mat[, genes_present, drop = FALSE]
 score_raw <- as.vector(z_sub %*% w_present) / denom_sum_absw
 
 # --------------------------------------------------------------------------
-# 5) score_z = scale(score) para HR por 1 SD
+# 5) score_z = scale(score) for HR per 1 SD
 # --------------------------------------------------------------------------
 old_warn <- getOption("warn"); options(warn = 0)
 score_z_raw <- as.vector(scale(score_raw))
 options(warn = old_warn)
 
 # --------------------------------------------------------------------------
-# 6) Carregar clinica para verificar direcao do score (HR > 1 = pior prog)
+# 6) Load clinical data to check score direction (HR > 1 = worse prognosis)
 # --------------------------------------------------------------------------
 clin_path <- file.path(proc_cohort(COHORT), "clinical_harmonized.parquet")
 clin_df   <- strict_parquet(clin_path)
 
-# Montar data.frame de score
+# Build score data.frame
 score_df <- tibble(
   sample_id      = sample_ids,
   score          = score_raw,
@@ -115,27 +115,27 @@ score_df <- tibble(
   denom_sum_absw = denom_sum_absw
 )
 
-# Join com clinica
+# Join with clinical data
 clin_score <- inner_join(clin_df, score_df, by = "sample_id")
 n_join <- nrow(clin_score)
-message(sprintf("[%s] Join clinica x score: %d amostras", SCRIPT_NAME, n_join))
+message(sprintf("[%s] Clinical x score join: %d samples", SCRIPT_NAME, n_join))
 
-if (n_join == 0) stop(sprintf("[%s] Join resultou em 0 linhas. Verificar chaves.", SCRIPT_NAME))
+if (n_join == 0) stop(sprintf("[%s] Join resulted in 0 rows. Check join keys.", SCRIPT_NAME))
 
 # --------------------------------------------------------------------------
-# 7) Determinar direcao do score: HR(score_z) deve ser > 1
+# 7) Determine score direction: HR(score_z) must be > 1
 # --------------------------------------------------------------------------
 endpoint_col  <- "os_time"
 event_col     <- "os_event"
 
 stopifnot(all(c(endpoint_col, event_col) %in% names(clin_score)))
 
-# Remover time <= 0
+# Remove time <= 0
 n_before_drop <- nrow(clin_score)
 clin_score    <- clin_score[!is.na(clin_score[[endpoint_col]]) & clin_score[[endpoint_col]] > 0, ]
 n_dropped     <- n_before_drop - nrow(clin_score)
 if (n_dropped > 0) {
-  message(sprintf("[%s] Amostras com time<=0 removidas: %d", SCRIPT_NAME, n_dropped))
+  message(sprintf("[%s] Samples with time<=0 removed: %d", SCRIPT_NAME, n_dropped))
 }
 
 old_warn <- getOption("warn"); options(warn = 0)
@@ -147,25 +147,25 @@ options(warn = old_warn)
 
 if (!is.null(cox_dir)) {
   hr_dir <- exp(coef(cox_dir)[1])
-  message(sprintf("[%s] HR score_z (raw): %.4f", SCRIPT_NAME, hr_dir))
+  message(sprintf("[%s] HR score_z (raw direction check): %.4f", SCRIPT_NAME, hr_dir))
   if (hr_dir < 1) {
     clin_score$score   <- -clin_score$score
     clin_score$score_z <- -clin_score$score_z
     score_direction    <- "inverted"
-    message(sprintf("[%s] Direcao invertida (HR < 1)", SCRIPT_NAME))
+    message(sprintf("[%s] Direction inverted (HR < 1)", SCRIPT_NAME))
   } else {
     score_direction <- "original"
-    message(sprintf("[%s] Direcao original mantida (HR >= 1)", SCRIPT_NAME))
+    message(sprintf("[%s] Original direction maintained (HR >= 1)", SCRIPT_NAME))
   }
 } else {
   score_direction <- "unknown"
-  message(sprintf("[%s] AVISO: Cox de direcao falhou; direcao = unknown", SCRIPT_NAME))
+  message(sprintf("[%s] WARNING: Direction Cox failed; direction = unknown", SCRIPT_NAME))
 }
 
 clin_score$score_direction <- score_direction
 
 # --------------------------------------------------------------------------
-# 8) Salvar analysis_ready.parquet
+# 8) Save analysis_ready.parquet
 # --------------------------------------------------------------------------
 out_dir <- proc_cohort(COHORT)
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
@@ -174,7 +174,7 @@ out_path <- file.path(out_dir, "analysis_ready.parquet")
 arrow::write_parquet(clin_score, out_path)
 h <- sha256_file(out_path)
 sz <- file.info(out_path)$size / 1e6
-message(sprintf("[%s] Salvo: %s (%.2f MB | SHA256: %s)", SCRIPT_NAME, out_path, sz, h))
+message(sprintf("[%s] Saved: %s (%.2f MB | SHA256: %s)", SCRIPT_NAME, out_path, sz, h))
 
 registry_append(
   cohort    = COHORT,
@@ -188,7 +188,7 @@ registry_append(
 )
 
 # --------------------------------------------------------------------------
-# 9) Resumo suplementar
+# 9) Supplementary summary
 # --------------------------------------------------------------------------
 supp_dir <- PATHS$results$supp
 dir.create(supp_dir, showWarnings = FALSE, recursive = TRUE)
@@ -220,4 +220,4 @@ registry_append(
   size_mb   = file.info(supp_path)$size / 1e6
 )
 
-message(sprintf("[%s] CONCLUIDO para %s", SCRIPT_NAME, COHORT))
+message(sprintf("[%s] COMPLETED for %s", SCRIPT_NAME, COHORT))
