@@ -3,7 +3,8 @@
 | Script | Descrição sumária (o que faz / entrega) |
 |---|---|
 | `scripts/00_setup.R` | Ambiente reprodutível, paths, seeds, helpers (hash/ID/strict read), carrega `analysis_freeze.csv`. |
-| `scripts/01_ingest_raw_<COHORT>.R` | Ingestão determinística + RAW imutável + hashes no registry. |
+| `scripts/01_download_raw_data.R` | Download de todas as coortes OS/DSS (GSE96058, METABRIC, TCGA-BRCA, GSE20685): skip/force, SHA-256, registry. Script único monolítico. |
+| `scripts/01_download_raw_data_pcr.R` | Download das coortes pCR/NACT (GSE25066, GSE20194, GSE32646, I-SPY1, I-SPY2). **Executar somente após bloco OS selado.** *(a criar)* |
 | `scripts/02_harmonize_clinical_<COHORT>.R` | Harmoniza clínica + endpoints OS/DSS; METABRIC: DSS correto e parquet final primário. |
 | `scripts/03_expression_preprocess_<COHORT>.R` | RNA-seq: counts→TMM/logCPM; microarray: log2; mapeamento HGNC; probes→gene; outputs preZ + audit. |
 | `scripts/04_gene_audit_freeze.R` | Auditoria transversal de genes (PAM50 no treino; Core-PAM nas validações). |

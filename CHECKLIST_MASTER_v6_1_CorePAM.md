@@ -66,8 +66,9 @@ Commit: “Freeze v6.1 governance manifests (Core-PAM)”.
 
 ## 4) Ingestão RAW e hashes
 
-- [ ] Executar ingestão por coorte (`01_ingest_raw_<COHORT>.R`)
+- [ ] Executar `01_download_raw_data.R` (coortes OS: GSE96058, METABRIC, TCGA-BRCA, GSE20685)
 - [ ] Registrar SHA-256 dos RAW no `registry/study_registry.csv`.
+- [ ] **Bloco pCR (após OS selado):** executar `01_download_raw_data_pcr.R` (GSE25066, GSE20194, GSE32646, I-SPY1, I-SPY2)
 
 ---
 
