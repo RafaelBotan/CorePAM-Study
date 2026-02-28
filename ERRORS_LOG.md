@@ -98,4 +98,29 @@ options(warn = old_warn)
 
 ---
 
+## 2026-02-28 | 01_download_raw_data.R | HTTP 403 downloading METABRIC from cBioPortal
+
+**Script:** `01_download_raw_data.R`
+**Error:**
+```
+HTTP 403 downloading: https://cbioportal-datahub.s3.amazonaws.com/brca_metabric.tar.gz
+```
+**Root cause:** cBioPortal migrated their data hosting from `cbioportal-datahub.s3.amazonaws.com`
+to a new CDN at `datahub.assets.cbioportal.org`. The old S3 bucket is no longer publicly
+accessible (returns HTTP 403 Forbidden).
+
+**Solution:** Update `METABRIC_BASE_URL` to use the new domain. Add old URL as commented
+fallback for reference. The file path after the domain remains the same (`brca_metabric.tar.gz`).
+
+```r
+# FIXED:
+METABRIC_BASE_URL <- "https://datahub.assets.cbioportal.org/brca_metabric.tar.gz"
+# Old URL (403 as of 2026-02): "https://cbioportal-datahub.s3.amazonaws.com/brca_metabric.tar.gz"
+```
+
+**Reference:** cBioPortal datasets page (`https://www.cbioportal.org/datasets`) confirms
+`study_download_url: "https://datahub.assets.cbioportal.org/"` as current base URL.
+
+---
+
 <!-- Add new errors below this line, most recent first -->
