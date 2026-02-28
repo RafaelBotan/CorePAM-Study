@@ -199,6 +199,15 @@ Se HR(score) < 1 → inverter sinal; registrar `score_direction = -1`.
 - `01_docs/registry/analysis_freeze.csv` — parâmetros congelados
 - `01_docs/registry/artifact_inventory.md` — inventário de artefatos
 
+## Autonomy rules
+
+- Do not ask for confirmation between scripts in the pipeline
+- When multiple approaches exist, choose the most robust one and proceed
+- Always continue to the next step automatically after completing a task
+- Only stop if a critical error cannot be resolved without user input
+- Commit and push to `dev` automatically after each completed pipeline step
+- Never pause to ask "shall I continue?" — just continue
+
 ## Sealed Step Ritual (Definition of Done para cada script)
 
 1. Rodar em sessão R limpa
