@@ -62,4 +62,40 @@ count_assay <- if ("unstranded" %in% assayNames(se_obj)) "unstranded" else assay
 
 ---
 
+## 2026-02-28 | 01_download_raw_data.R | GEOquery load fails under warn=2
+
+**Script:** `01_download_raw_data.R`
+**Error:**
+```
+Error: package or namespace load failed for 'GEOquery' in (function (n) :
+ (converted from warning) internal error 1 in R_decompress1 with libdeflate
+```
+**Root cause:** Two overlapping issues:
+1. `source("scripts/00_setup.R")` sets `options(warn=2)` (strict mode).
+   `suppressPackageStartupMessages()` suppresses `message()` calls but NOT `warning()` calls.
+   So internal warnings during package loading are converted to hard errors by `warn=2`.
+2. GEOquery has an internal `libdeflate` decompression warning on this R installation,
+   which is normally harmless but fatal under `warn=2`.
+
+**Solution:**
+- Wrap all `library()` calls in `01_download_raw_data.R` with `old_warn / options(warn=0) / restore`
+  pattern — same pattern used in all other scripts for external package operations.
+- Also reinstall GEOquery to clear the libdeflate issue:
+  `BiocManager::install("GEOquery", force = TRUE)`
+
+```r
+# FIXED:
+old_warn <- getOption("warn"); options(warn = 0)
+suppressPackageStartupMessages({
+  library(GEOquery)
+  library(TCGAbiolinks)
+  library(SummarizedExperiment)
+  library(httr)
+  library(curl)
+})
+options(warn = old_warn)
+```
+
+---
+
 <!-- Add new errors below this line, most recent first -->

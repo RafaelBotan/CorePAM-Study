@@ -34,6 +34,11 @@
 
 source("scripts/00_setup.R")
 
+# Load packages with warn=0: suppressPackageStartupMessages() only suppresses
+# message() calls, NOT warning() calls. Under warn=2 (strict mode set by 00_setup.R),
+# internal package-load warnings (e.g. GEOquery libdeflate) become hard errors.
+# Pattern: save warn level, set to 0 for library(), restore immediately after.
+old_warn <- getOption("warn"); options(warn = 0)
 suppressPackageStartupMessages({
   library(GEOquery)
   library(TCGAbiolinks)
@@ -41,6 +46,7 @@ suppressPackageStartupMessages({
   library(httr)
   library(curl)
 })
+options(warn = old_warn)
 
 SCRIPT_NAME <- "01_download_raw_data.R"
 
