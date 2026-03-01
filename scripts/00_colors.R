@@ -1,6 +1,6 @@
 # =============================================================================
 # SCRIPT: 00_colors.R
-# PURPOSE: Standardized color palette for all Core-PAM project figures.
+# PURPOSE: Standardized color palette for all CorePAM project figures.
 #          RULE: All figures must use exclusively these colors.
 #          Palette: ColorBrewer RdBu (divergent) + Set1 qualitative (cohorts).
 #          Colorblind-safe (deuteranopia/protanopia verified).

@@ -1,6 +1,6 @@
 # =============================================================================
 # SCRIPT: 06_zscore_and_score_METABRIC.R
-# PURPOSE: Applies Core-PAM score to METABRIC cohort:
+# PURPOSE: Applies CorePAM score to METABRIC cohort:
 #          Intra-cohort Z-score, rescaled score (Effective Gene Count),
 #          standardized direction (HR>1), generates analysis_ready.parquet
 # COHORT:  METABRIC (microarray validation; primary endpoint = DSS)

@@ -1,6 +1,6 @@
 # =============================================================================
 # SCRIPT: 06_zscore_and_score_GSE20685.R
-# PURPOSE: Applies Core-PAM score to GSE20685 cohort (Taiwan):
+# PURPOSE: Applies CorePAM score to GSE20685 cohort (Taiwan):
 #          Intra-cohort Z-score, rescaled score (Effective Gene Count),
 #          standardized direction (HR>1), generates analysis_ready.parquet
 # COHORT:  GSE20685 (microarray validation; Taiwan)

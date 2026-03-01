@@ -1,6 +1,6 @@
 # =============================================================================
 # SCRIPT: 17_render_manuscript_quarto.R
-# PURPOSE: Render the Core-PAM manuscript Quarto document to PDF and HTML.
+# PURPOSE: Render the CorePAM manuscript Quarto document to PDF and HTML.
 #          Requires all upstream scripts (01-16) to have completed.
 #          Updates the RESULTS_SUMMARY.md after each successful render.
 # PROJETO: Core-PAM (Memorial v6.1 §Manuscript)

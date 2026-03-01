@@ -1,6 +1,6 @@
 # =============================================================================
 # SCRIPT: 06_zscore_and_score_TCGA_BRCA.R
-# PURPOSE: Applies Core-PAM score to TCGA-BRCA cohort:
+# PURPOSE: Applies CorePAM score to TCGA-BRCA cohort:
 #          Intra-cohort Z-score, rescaled score (Effective Gene Count),
 #          standardized direction (HR>1), generates analysis_ready.parquet
 # COHORT:  TCGA_BRCA (external validation RNA-seq)
