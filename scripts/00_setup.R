@@ -25,6 +25,7 @@ PATHS <- list(
   docs           = file.path(ROOT_REPO, "01_docs"),
   registry_docs  = file.path(ROOT_REPO, "01_docs", "registry"),
   scripts        = file.path(ROOT_REPO, "scripts"),
+  config         = file.path(ROOT_REPO, "config"),
   results = list(
     corepam    = file.path(ROOT_REPO, "results", "corepam"),
     corepam_os = file.path(ROOT_REPO, "results", "corepam_os"),
@@ -35,6 +36,7 @@ PATHS <- list(
   figures = list(
     main   = file.path(ROOT_REPO, "figures", "main"),
     supp   = file.path(ROOT_REPO, "figures", "supp"),
+    pcr    = file.path(ROOT_REPO, "figures", "pcr"),
     artigo = file.path(ROOT_REPO, "06_plots", "artigo"),
     tese   = file.path(ROOT_REPO, "06_plots", "tese")
   ),
@@ -157,7 +159,8 @@ registry_append <- function(cohort, file_type, file_path, sha256,
   PATHS$docs, PATHS$registry_docs,
   PATHS$scripts,
   PATHS$results$corepam, PATHS$results$corepam_os,
-  PATHS$results$main,    PATHS$results$supp,  PATHS$results$pcr,
+  PATHS$results$main,    PATHS$results$supp,    PATHS$results$pcr,
+  PATHS$figures$pcr,     PATHS$config,
   PATHS$figures$main,    PATHS$figures$supp,
   PATHS$figures$artigo,  PATHS$figures$tese,
   dirname(PATHS$run_registry)

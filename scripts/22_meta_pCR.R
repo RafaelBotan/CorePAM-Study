@@ -17,10 +17,11 @@ suppressPackageStartupMessages({
 
 FORCE <- as.logical(Sys.getenv("FORCE_RERUN", "FALSE"))
 
-out_meta   <- file.path(PATHS$results$pcr, "meta_pCR_results.csv")
-out_cohort <- file.path(PATHS$results$pcr, "meta_pCR_cohort_weights.csv")
+out_meta    <- file.path(PATHS$results$pcr, "meta_pCR_results.csv")
+out_cohort  <- file.path(PATHS$results$pcr, "meta_pCR_cohort_weights.csv")
+out_meta_or <- file.path(PATHS$results$pcr, "pcr_meta_OR.csv")   # canonical name per §11.9
 
-if (!FORCE && file.exists(out_meta) && file.exists(out_cohort)) {
+if (!FORCE && file.exists(out_meta) && file.exists(out_cohort) && file.exists(out_meta_or)) {
   message(sprintf("[%s] Outputs exist — skipping. Set FORCE_RERUN=TRUE to rerun.",
                   SCRIPT_NAME))
   quit(save = "no", status = 0)
@@ -145,7 +146,14 @@ h2 <- sha256_file(out_cohort)
 registry_append("META_PCR", "meta_pcr_cohort_weights", out_cohort, h2, "ok", SCRIPT_NAME,
                 file.info(out_cohort)$size / 1e6)
 
+# Save pcr_meta_OR.csv (canonical filename per Memorial §11.9)
+readr::write_csv(meta_df, out_meta_or)
+h3 <- sha256_file(out_meta_or)
+registry_append("META_PCR", "pcr_meta_OR", out_meta_or, h3, "ok", SCRIPT_NAME,
+                file.info(out_meta_or)$size / 1e6)
+
 message(sprintf("[%s] Saved meta results: %s", SCRIPT_NAME, out_meta))
+message(sprintf("[%s] Saved pcr_meta_OR: %s", SCRIPT_NAME, out_meta_or))
 message(sprintf("[%s] Saved cohort weights: %s", SCRIPT_NAME, out_cohort))
 message(sprintf("[%s] COMPLETED | RE OR=%.3f (%.3f-%.3f) I²=%.1f%% τ²=%.4f",
                 SCRIPT_NAME,

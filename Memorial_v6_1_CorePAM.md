@@ -239,10 +239,259 @@ score=rac{\sum_{i \in G_{present}} w_i \cdot z_i}{\sum_{i \in G_{present}} |w_i
 - `figures/supp/` (FigS1–FigS8, bilingual)
 
 ### Bloco pCR (NACT — secundário)
-- `results/pcr/pCR_results_by_cohort.csv`
-- `results/pcr/meta_pCR_results.csv`
-- `results/pcr/meta_pCR_cohort_weights.csv`
+- `results/pcr/audit_gene_coverage_<COHORT>.csv` (cobertura CorePAM por coorte)
+- `results/pcr/audit_pcr_definition.csv` (mapeamento pCR por coorte — ver §11.4)
+- `results/pcr/pcr_validation_table.csv` (OR, AUC, n, events, cobertura — tabela consolidada)
+- `results/pcr/meta_pCR_results.csv` / `pcr_meta_OR.csv` (pooled OR + heterogeneidade)
+- `results/pcr/artifact_hash_manifest.csv` (SHA-256 de todos os outputs pCR)
 - `figures/main/Fig6_Forest_pCR_OR_[EN|PT].pdf`
 - `figures/supp/FigS9_ROC_pCR_[EN|PT].pdf`
 - `figures/supp/FigS10_ScoreDist_pCR_[EN|PT].pdf`
 - `01_Base_Pura_CorePAM/PROCESSED/pCR/<COHORT>/analysis_ready.parquet` (local, gitignored)
+
+---
+
+## 11) Bloco pCR — Protocolo Detalhado (Módulo Reprodutível Independente)
+
+> **Nota:** as análises pCR são cientificamente independentes da validação prognóstica (OS) e
+> introduzem pontos sensíveis para revisores (heterogeneidade de endpoint, AUC/OR CI,
+> ajuste por covariáveis). Para não atrasar o paper OS, o bloco pCR é executado como módulo
+> separado com manifesto, QA, scripts, tabelas e figuras próprios.
+
+### 11.1 Coortes pCR (conjunto de decisão atual — congelado)
+
+#### 11.1.1 Coortes primárias (corpo do artigo — congeladas)
+
+| Coorte | GEO | Plataforma | N esperado | NACT |
+|--------|-----|-----------|------------|------|
+| GSE25066 | GSE25066 | HGU133Plus2 (GPL570) | ≈508 | EC ± docetaxel ± capecitabina |
+| GSE32646 | GSE32646 | HGU133Plus2 (GPL570) | ≈154 | paclitaxel + FAC |
+| GSE20194 | GSE20194 | HGU133Plus2 (GPL570) | ≈278 | paclitaxel/FAC |
+| I-SPY1  | GSE22226 | HGU133A (GPL96)      | ≈149 | AC → paclitaxel |
+
+**Regra editorial (imutável):** O módulo pCR primário é composto **exclusivamente** por essas
+4 coortes. Quaisquer coortes adicionais entram **apenas** como análise exploratória ou de
+sensibilidade — **nunca migram para o módulo primário**. Essa regra existe para:
+(a) evitar comparações múltiplas não planejadas;
+(b) manter robustez contra acusação de "picking" por revisores;
+(c) preservar a capacidade de concluir o trabalho sem aguardar harmonização adicional.
+
+#### 11.1.2 Coortes exploratórias / sensibilidade pCR (fora do corpo do artigo)
+
+| Coorte | GEO | Plataforma | Status | Razão |
+|--------|-----|-----------|--------|-------|
+| I-SPY2 | TBD (GSE194040 ou similar) | Agilent 44K/32K | pending_harmonization | plataforma distinta; harmonização não concluída |
+
+**Critérios mínimos para aceitar uma coorte como exploratória:**
+1. endpoint pCR claramente mapeável no dicionário de auditoria;
+2. cobertura gênica ≥ 80% (FREEZE$min_genes_fraction);
+3. N suficiente para estimativas estáveis (≥ 50 amostras, ≥ 10 eventos pCR);
+4. variáveis mínimas disponíveis (ER/HER2 para CORE-NACT incremental value).
+
+**I-SPY2:** Candidata exploratória. Plataforma Agilent com ~990 amostras pré-tratamento.
+Deve ser incorporada **somente** quando:
+- GEO accession e mapeamento de colunas clínicas confirmados;
+- cobertura gênica ≥ 80% verificada;
+- script `20_prepare_pCR_ISPY2.R` testado em sessão limpa.
+Resultado aparecerá apenas em seção de Análise de Sensibilidade (não no Abstract).
+
+### 11.2 Preditor canônico (congelado)
+
+- **Preditor:** CorePAM score (soma ponderada de genes; pesos congelados do treino OS).
+- **Direção:** fixada no treino OS (maior score = maior risco prognóstico).
+- **Regra crítica:** nunca inverter o sinal do score por coorte pCR para "forçar OR > 1".
+  Se OR < 1, reportar e interpretar.
+- **Fórmula:** Z-score intra-coorte por gene → score = Σ(wᵢ·zᵢ)/Σ|wᵢ| → score_z = scale(score).
+
+### 11.3 QA Gates (regras rígidas por coorte)
+
+**11.3.1 Integridade de arquivo**
+- Arquivo de expressão legível (parquet/series_matrix.txt.gz), coluna ID identificada.
+- Arquivo clínico contém: pCR binário mapeado + identificador alinhado à expressão.
+
+**11.3.2 Cobertura de genes**
+- Tabela obrigatória: Gene × present_in_matrix → `results/pcr/audit_gene_coverage_<COHORT>.csv`.
+- Cobertura mínima: **≥ 80%** dos genes CorePAM presentes.
+- Se < 80%: coorte excluída da meta-análise primária; aparece apenas como nota documentada
+  de "cobertura insuficiente" no suplemento.
+
+**11.3.3 Completude do desfecho**
+- pCR mapeável a 0/1 com definição documentada (§11.4).
+- Valores NA quantificados; se extremo (>30%), coorte excluída.
+
+### 11.4 Mapeamento do Endpoint pCR — Auditoria (crítico para revisores)
+
+**Deliverable obrigatório:** `results/pcr/audit_pcr_definition.csv`
+
+Campos por coorte:
+- `cohort`, `geo_accession`, `raw_variable_name`, `raw_label_levels`,
+  `mapped_binary_rule`, `textual_definition` (da publicação/metadata GEO),
+  `insitu_included` (sim/não/desconhecido).
+
+**Heterogeneidade conhecida (deve ser documentada explicitamente):**
+- GSE20194: pCR definido como ypT0 ypN0 (sem in-situ explícito).
+- GSE25066, GSE32646, I-SPY1: frequentemente ypT0/is ypN0 (DCIS residual permitida).
+
+**Análise de sensibilidade (pré-especificada):**
+- Primário: usar definição canônica publicada por coorte.
+- Sensibilidade: definição harmonizada "sem doença invasiva" quando reconstruível.
+
+### 11.5 Endpoints estatísticos primários
+
+**Por coorte:**
+- Logística univariada: `glm(pcr ~ score_z, family = binomial)`
+- OR por 1 DP (score_z) + IC 95% Wald + IC 95% bootstrap (B=1000, seed=42)
+- AUC (ROC) + IC 95% DeLong
+
+**Calibração** (diagnóstica, não filtro de seleção):
+- Calibração logística: intercepto/slope; curva de calibração.
+- Brier score (opcional).
+
+### 11.6 Endpoints secundários — Valor incremental (CORE-NACT)
+
+**Baseline mínimo (CORE-NACT) — apenas variáveis consistentemente disponíveis:**
+- ER status (binário) + HER2 status (binário) + [grade/estágio clínico se presente em ≥2 coortes]
+
+**Análise por coorte:**
+- Modelo A: `pCR ~ ER + HER2 (+ ...)`
+- Modelo B: `pCR ~ ER + HER2 (+ ...) + score_z`
+- ΔAUC (B − A) com IC bootstrap
+- Likelihood ratio test (modelos aninhados)
+
+### 11.7 Pooling (pré-especificado)
+
+- **Primário:** meta-análise de log(OR) por efeitos aleatórios (DerSimonian-Laird).
+- **Sensibilidade:** IVW (efeitos fixos).
+- AUC pooling: opcional; se feito, método declarado explicitamente e tratado como
+  evidência de suporte.
+
+### 11.8 Checklist anti-armadilha de revisores
+
+1. AUC + IC **e** OR + IC reportados para **cada** coorte pCR (não apenas algumas).
+2. Distinguir claramente OR univariado vs. ajustado (ambos podem ser apresentados, mas rotulados).
+3. Documentar explicitamente diferenças na definição pCR (ypT0ypN0 vs. ypT0/isypN0).
+4. Sem "direction hacking": sem inversão de sinal; sem escolha de cutoff post-hoc.
+5. Coortes pCR são **validação only** — sem re-ajuste dos pesos usando desfecho pCR.
+
+### 11.9 Outputs obrigatórios (results/pcr/)
+
+| Arquivo | Gerado por | Conteúdo |
+|---------|-----------|----------|
+| `audit_gene_coverage_<COHORT>.csv` | 20_prepare_pCR_*.R | Gene × presente/ausente |
+| `audit_pcr_definition.csv` | 21_pCR_logistic_analysis.R | Definição pCR por coorte |
+| `pcr_validation_table.csv` | 21_pCR_logistic_analysis.R | OR, AUC, n, events, cobertura |
+| `pCR_results_by_cohort.csv` | 21_pCR_logistic_analysis.R | Tabela completa por coorte |
+| `pcr_meta_OR.csv` | 22_meta_pCR.R | OR poolado + heterogeneidade |
+| `meta_pCR_results.csv` | 22_meta_pCR.R | RE + FE consolidado |
+| `artifact_hash_manifest.csv` | 23_pCR_figures.R | SHA-256 de todos outputs pCR |
+
+### 11.10 Regras Invioláveis (Hard Rules — sem graus de liberdade do pesquisador)
+
+1. **Nunca re-treinar** pesos CorePAM em desfechos pCR.
+2. **Nunca inverter** a direção do score por coorte pCR. Direção congelada no treino OS.
+3. **Nunca escolher** cutpoints otimizando p-valores. Se dicotomização mostrada: mediana
+   (pré-especificada) ou quartis (sensibilidade).
+4. **Para cada coorte:** reportar OR+IC **e** AUC+IC (ou documentar explicitamente por que impossível).
+
+### 11.11 Ordem de Execução (referência de implementação)
+
+- **Step 0** — Manifesto + mapeamento
+  `config/pcr_cohort_manifest.csv` (cohort, expr_path, clin_path, endpoint_var, mapping_rule)
+  `results/pcr/audit_pcr_definition.csv` (criado ou atualizado)
+
+- **Step 1** — QA por coorte (`20_prepare_pCR_<COHORT>.R`)
+  Leitura expressão + clínica → padronização ID → mapeamento pCR → Z-score → score
+  Salva: `audit_gene_coverage_<COHORT>.csv`, linha em `audit_pcr_definition.csv`
+  Gate: coverage ≥80% + pCR mapeável a 0/1
+
+- **Step 2** — Métricas primárias por coorte (`21_pCR_logistic_analysis.R`)
+  Z-score intra-coorte → score_z → logística univariada → OR + IC + AUC DeLong
+  Append à `pcr_validation_table.csv`
+
+- **Step 3** — Valor incremental (`21_pCR_logistic_analysis.R`)
+  Modelo A: `pCR ~ ER + HER2 (+...)` → Modelo B: `+ score_z`
+  ΔAUC bootstrap + LRT → `pcr_incremental_table.csv`
+
+- **Step 4** — Meta-análise (`22_meta_pCR.R`)
+  Pool log(OR) RE+FE → `pcr_meta_OR.csv`
+
+- **Step 5** — Figuras (`23_pCR_figures.R`)
+  Salvar em `figures/pcr/` (resolução journal-compliant ≥300 dpi) + `artifact_hash_manifest.csv`
+
+### 11.12 Campos mínimos de reporte por coorte (linha de tabela)
+
+| Campo | Descrição |
+|-------|-----------|
+| cohort | identificador da coorte |
+| endpoint | "pCR" |
+| n_total | N total analisado |
+| n_pcr1 | N pCR=1 |
+| n_rd | N pCR=0 |
+| genes_total | N genes CorePAM panel |
+| genes_present | N genes presentes na coorte |
+| genes_missing | genes ausentes |
+| coverage_pct | % cobertura |
+| or_per_1SD | OR por 1 DP score_z |
+| or_ci_lo95 | IC 95% inferior |
+| or_ci_hi95 | IC 95% superior |
+| p_value | p-valor logístico |
+| auc | AUC ROC |
+| auc_lo95 | IC 95% AUC inferior |
+| auc_hi95 | IC 95% AUC superior |
+| baseline_covariates | variáveis usadas no modelo ajustado |
+| pcr_definition_note | nota sobre definição pCR |
+
+### 11.13 Condições de parada (stop conditions)
+
+- **pCR não mapeável:** parar coorte, não adivinhar. Aguardar resolução em `audit_pcr_definition.csv`.
+- **Cobertura < 80%:** marcar como "fail coverage", pular inferência.
+- **Logística não-convergente:** logar; usar fallback penalizado (ridge) **somente como sensibilidade**.
+
+### 11.14 Lista de Figuras pCR (v1 — mínimo obrigatório)
+
+**Figuras principais** (bilingual EN+PT; salvar em `figures/pcr/`):
+
+| Fig | Arquivo | Conteúdo |
+|-----|---------|----------|
+| Fig_pCR1 | `Fig_pCR1_Forest_OR_[EN\|PT].pdf/png` | Forest plot OR por 1 DP + pooled RE+FE |
+| Fig_pCR2 | `Fig_pCR2_ROC_AUC_Panel_[EN\|PT].pdf/png` | AUC (com IC) por coorte — small multiples |
+| Fig_pCR3 | `Fig_pCR3_pCR_Rate_by_Quartile_[EN\|PT].pdf/png` | Taxa pCR por quartil de score_z por coorte |
+| Fig_pCR4 | `Fig_pCR4_Calibration_[EN\|PT].pdf/png` | Observado vs previsto pCR — maior coorte |
+
+**Figuras suplementares:**
+
+| Fig | Arquivo | Conteúdo |
+|-----|---------|----------|
+| FigS_pCR1 | `FigS_pCR1_GeneCoverage.pdf/png` | Heatmap/tabela cobertura CorePAM por coorte |
+| FigS_pCR2 | `FigS_pCR2_pCRDefinition.pdf/png` | Tabela definição pCR por coorte (ypT0ypN0 vs ypT0/isypN0) |
+| FigS_pCR3 | `FigS_pCR3_DeltaAUC.pdf/png` | ΔAUC baseline vs baseline+score (bootstrap IC) |
+| FigS_pCR4 | `FigS_pCR4_DCA.pdf/png` | Decision curve (opcional; apenas se pré-especificado) |
+| FigS_pCR5 | `FigS_pCR5_Sensitivity_NoStdDef.pdf/png` | Sensibilidade: excluir coortes c/ definição não-padrão |
+
+**Tabelas:**
+
+| Tabela | Arquivo | Conteúdo |
+|--------|---------|----------|
+| T_pCR_1 | `T_pCR_1_Cohort_Characteristics.csv` | Características das coortes + definição pCR + N pCR/RD |
+| T_pCR_2 | `T_pCR_2_OR_AUC.csv` | OR univariado + AUC por coorte |
+| T_pCR_3 | `T_pCR_3_Incremental_Value.csv` | ΔAUC + IC bootstrap (baseline vs baseline+score) |
+
+### 11.15 Config/Manifesto (pré-requisito da execução)
+
+Arquivo: `config/pcr_cohort_manifest.csv`
+
+Campos: cohort, geo_accession, platform, expr_path, clin_path, pcr_raw_var, pcr_mapping_rule,
+pcr_definition_text, insitu_included, timepoint_notes, n_expected.
+
+**Heterogeneidade pré-documentada:**
+- GSE20194: pCR = ypT0 ypN0 (sem in-situ explícito)
+- GSE25066, GSE32646, I-SPY1: pCR = ypT0/is ypN0 (DCIS residual permitida)
+
+### 11.16 Modos de falha + Plano-B (contingências pré-autorizadas)
+
+| Situação | Ação |
+|----------|------|
+| Arquivo ilegível/corrompido | Congelar SHA-256 + size + path; marcar coorte "unavailable" |
+| Cobertura < 80% | Excluir da meta-análise primária; documentar no suplemento |
+| Modelo logístico não-convergente | Fallback para logística penalizada (ridge, λ fixo) nessa coorte; primário mantido onde convergente |
+| Endpoint ambíguo | Coorte pausada até mapeamento pCR resolvido e documentado em `audit_pcr_definition.csv` |
