@@ -54,7 +54,8 @@
 
 | Label | Title | File (EN) | Script | Status |
 |-------|-------|-----------|--------|--------|
-| **Fig-pCR1** | pCR forest: OR per 1 SD per cohort + meta pooled | `figures/pcr/Fig_pCR1_Forest_OR_EN.pdf` | `23_pCR_figures.R` | ✅ Done |
+| **Fig-pCR1** | pCR forest: OR per 1 SD per cohort + meta pooled (4 primary cohorts) | `figures/pcr/Fig_pCR1_Forest_OR_EN.pdf` | `23_pCR_figures.R` | ✅ Done |
+| **FigS-pCR1b** | Extended pCR forest: 4 primary + I-SPY2 (Exploratory) + 2 pooled rows | `figures/pcr/Fig_pCR1_Extended_OR_EN.pdf` | `23b_pCR_ispy2_figures.R` | ✅ Done |
 | **FigS-pCR2** | pCR ROC curves by cohort (4 panels) | `figures/pcr/Fig_pCR2_ROC_EN.pdf` | `23_pCR_figures.R` | ✅ Done |
 | **FigS-pCR3** | pCR rate by score quartile per cohort | `figures/pcr/Fig_pCR3_QuartileRate_EN.pdf` | `23_pCR_figures.R` | ✅ Done |
 | **FigS-pCR4** | Score distribution by pCR status (violin) | `figures/pcr/Fig_pCR4_ScoreDist_EN.pdf` | `23_pCR_figures.R` | ✅ Done |
@@ -94,6 +95,9 @@
 | **TableS-pCR4** | ER × CorePAM interaction LRT | `results/pcr/pcr_er_interaction.csv` | `21c_pcr_er_interaction.R` | ✅ Done |
 | **TableS-pCR5** | pCR gene coverage audit (22/24 per cohort) | `results/pcr/pcr_gene_coverage_audit.csv` | `logs/check_pcr_gene_coverage.R` | ✅ Done |
 | **TableS-pCR6** | Sensitivity: 21-gene intersection OR | `results/pcr/pcr_sensitivity_intersection.csv` | `21b_sensitivity_intersection.R` | ✅ Done |
+| **TableS-pCR7** | I-SPY2 analysis: univariate + adjusted + control-only | `results/pcr/ispy2_results.csv` | `21_ispy2_analysis.R` | ✅ Done |
+| **TableS-pCR8** | Meta-analysis (k=4 without I-SPY2) | `results/pcr/meta_pCR_without_ispy2.csv` | `22b_meta_pCR_with_ispy2.R` | ✅ Done |
+| **TableS-pCR9** | Meta-analysis (k=5 with I-SPY2) | `results/pcr/meta_pCR_with_ispy2.csv` | `22b_meta_pCR_with_ispy2.R` | ✅ Done |
 
 ---
 
@@ -109,7 +113,11 @@
 | HR per 1 SD (GSE20685 OS) | 1.401 | `results/supp/survival_results_GSE20685.csv` |
 | Meta HR RE (val. only) | 1.346 (1.212–1.494) | `results/main/meta_survival_summary_validation_only.csv` |
 | Meta I² (val. only) | 42.3% | `results/main/meta_survival_summary_validation_only.csv` |
-| pCR meta OR (RE) | ~1.686 | `results/pcr/pcr_meta_OR.csv` |
+| pCR meta OR (RE, k=4) | 1.686 (1.385–2.052) I²=0% | `results/pcr/meta_pCR_without_ispy2.csv` |
+| pCR meta OR (RE, k=5+ISPY2) | 1.685 (1.498–1.896) I²=0% | `results/pcr/meta_pCR_with_ispy2.csv` |
+| I-SPY2 OR univariate | 1.685 (1.454–1.953) p<0.001 AUC=0.648 | `results/pcr/ispy2_results.csv` |
+| I-SPY2 OR adjusted (HR+HER2+arm) | 1.485 (1.244–1.771) p<0.001 | `results/pcr/ispy2_results.csv` |
+| I-SPY2 OR control-only (Paclitaxel n=179) | 1.443 (0.960–2.168) p=0.078 | `results/pcr/ispy2_results.csv` |
 | pCR ER interaction ISPY1 | p=0.0005 | `results/pcr/pcr_er_interaction.csv` |
 | CorePAM vs PAM50full (METABRIC C) | 0.638 vs 0.616 | `results/supp/pam50full_comparison.csv` |
 | Spearman ρ CorePAM vs PAM50full | 0.77–0.90 | `results/supp/pam50full_comparison.csv` |
@@ -123,7 +131,7 @@
 | FigS-pCR1..5 | All generated in `figures/pcr/` ✅ confirmed | — |
 | Table 1 formatting | cohort_summary_table.csv exists; needs journal-ready formatting | Medium |
 | Fig 5 PT version | Only EN generated; PT needed for thesis | Low |
-| I-SPY2 integration | Raw data not downloaded; deferred to future work | Deferred |
+| I-SPY2 integration | ✅ Complete: 986 samples, 24/24 genes, OR=1.685 p<0.001, meta with/without ISPY2 | Done |
 | pCR calibration plot | Not yet implemented (reliability diagram) | Medium |
 
 ---

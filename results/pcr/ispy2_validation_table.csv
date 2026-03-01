@@ -1,0 +1,2 @@
+cohort,endpoint,n_total,n_pcr1,n_rd,genes_total,genes_present,genes_missing,coverage_pct,or_per_1SD,or_ci_lo95,or_ci_hi95,ci_method,p_value,auc,auc_lo95,auc_hi95,baseline_covariates,role
+ISPY2,pCR,986,319,667,24,24,0,100,1.6847528913215306,1.4537060470790946,1.9525214953321466,Wald (95%),4.172404602775891e-12,0.6484965064637492,0.6132840065227441,0.6837090064047544,none (age not available),Exploratory External Cohort

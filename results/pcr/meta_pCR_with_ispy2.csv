@@ -1,0 +1,3 @@
+version,model,estimator,k_cohorts,pooled_logOR,pooled_se_logOR,pooled_OR,pooled_OR_lo95,pooled_OR_hi95,p_pooled,I2_pct,tau2,Q_stat,Q_df,p_heterogeneity
+with_ISPY2,RE,DerSimonian-Laird,5,0.521885,0.060179,1.6852,1.4977,1.8962,4.239e-18,0,0,1.556,4,0.8167
+with_ISPY2,FE,IVW,5,0.521885,0.060179,1.6852,1.4977,1.8962,4.239e-18,NA,NA,1.556,4,0.8167
