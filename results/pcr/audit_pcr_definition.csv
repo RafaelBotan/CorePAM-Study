@@ -1,0 +1,5 @@
+cohort,geo_accession,pcr_definition_text,insitu_included,n_pcr1,n_total,pcr_rate_pct,mapping_note
+GSE25066,GSE25066,ypT0/is ypN0 (pathologic complete response; DCIS residual allowed),yes (DCIS allowed),42,182,23.1,auto_detect: verified against GEO pData on first run
+GSE20194,GSE20194,ypT0 ypN0 (no explicit in-situ mention in primary publication),unknown,56,278,20.1,auto_detect: verified against GEO pData on first run
+GSE32646,GSE32646,ypT0/is ypN0 (Tabchy 2010; Clin Cancer Res),yes (DCIS allowed),27,115,23.5,auto_detect: verified against GEO pData on first run
+ISPY1,GSE22226,pCR as defined by Esserman 2012 (Sci Transl Med); standard NACT definition,unknown,32,122,26.2,auto_detect: verified against GEO pData on first run

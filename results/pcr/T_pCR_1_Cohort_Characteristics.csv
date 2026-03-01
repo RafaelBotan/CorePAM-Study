@@ -1,0 +1,5 @@
+cohort,endpoint,n_total,n_pcr1,n_rd,pcr_rate_pct,genes_present,has_er,has_her2
+GSE25066,pCR,182,42,140,23.1,22,FALSE,FALSE
+GSE20194,pCR,278,56,222,20.1,22,FALSE,FALSE
+GSE32646,pCR,115,27,88,23.5,24,TRUE,FALSE
+ISPY1,pCR,122,32,90,26.2,24,TRUE,FALSE

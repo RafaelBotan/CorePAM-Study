@@ -265,17 +265,16 @@ for (cohort in names(sample_list)) {
                                                     na.rm = TRUE),
                      labels = c("Q1", "Q2", "Q3", "Q4"), include.lowest = TRUE)
   df_q <- df[!is.na(df$quartile), ]
-  qrate <- aggregate(pcr ~ quartile, data = df_q, FUN = function(x) {
-    c(rate = mean(x), n = length(x))
-  })
-  # Expand matrix result
-  qdf <- data.frame(
-    cohort   = cohort,
-    quartile = qrate$quartile,
-    pcr_rate = sapply(qrate$pcr, function(x) x[["rate"]]),
-    n        = sapply(qrate$pcr, function(x) x[["n"]]),
-    stringsAsFactors = FALSE
-  )
+  qdf <- do.call(rbind, lapply(levels(df_q$quartile), function(q) {
+    sub_df <- df_q[df_q$quartile == q, ]
+    data.frame(
+      cohort   = cohort,
+      quartile = q,
+      pcr_rate = mean(sub_df$pcr, na.rm = TRUE),
+      n        = nrow(sub_df),
+      stringsAsFactors = FALSE
+    )
+  }))
   quartile_list[[cohort]] <- qdf
 }
 

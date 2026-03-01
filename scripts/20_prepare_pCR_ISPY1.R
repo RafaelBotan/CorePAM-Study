@@ -20,7 +20,9 @@ source("scripts/03_utils_gene_mapping.R")
 SCRIPT_NAME <- "20_prepare_pCR_ISPY1.R"
 COHORT      <- "ISPY1"
 GEO_ACC     <- "GSE22226"
-PLATFORM    <- "hgu133a"    # GPL96 — limited to ~12970 genes
+# Platform auto-detected: GSE22226 is distributed as Agilent GPL4133 (44K) or GPL1708 (16K).
+# We accept either; gene symbols are extracted from fData (not bioc annotation packages).
+PLATFORM    <- "agilent_auto"
 
 FORCE <- as.logical(Sys.getenv("FORCE_RERUN", "FALSE"))
 
@@ -31,7 +33,7 @@ if (!FORCE && file.exists(out_path)) {
   quit(save = "no", status = 0)
 }
 
-message(sprintf("[%s] Starting pCR prepare for %s (%s) [HGU133A]",
+message(sprintf("[%s] Starting pCR prepare for %s (%s) [Agilent auto-detect]",
                 SCRIPT_NAME, COHORT, GEO_ACC))
 
 old_warn <- getOption("warn"); options(warn = 0)
@@ -99,20 +101,57 @@ message(sprintf("[%s] pCR column: '%s' | pCR+=%d | pCR-=%d | NA=%d",
                 sum(is.na(pdata$pcr))))
 
 pdata$age       <- extract_numeric_covariate(pdata, pattern = "age")
-pdata$er_status <- extract_binary_covariate(pdata, pattern = "er.status|estrogen")
+pdata$er_status <- extract_binary_covariate(pdata, pattern = "^er |er.status|er.0.negative|estrogen")
 
 # --------------------------------------------------------------------------
-# 3) Probe → gene mapping (HGU133A — GPL96)
+# 3) Probe → gene mapping — Agilent fData approach
+#    GSE22226 uses Agilent platforms (GPL4133 44K or GPL1708 16K).
+#    Bioconductor hgu133a.db does NOT apply; use gene symbols from fData.
 # --------------------------------------------------------------------------
-probe_map <- build_hgnc_map_affymetrix(probe_ids, platform = PLATFORM)
-probe_map  <- probe_map[!is.na(probe_map$SYMBOL) & nchar(probe_map$SYMBOL) > 0, ]
+actual_platform <- annotation(gse)
+message(sprintf("[%s] Actual platform annotation: %s", SCRIPT_NAME, actual_platform))
 
-mapped_probes  <- intersect(rownames(expr_mat), probe_map$PROBEID)
+fdata <- Biobase::fData(gse)
+message(sprintf("[%s] fData columns: %s", SCRIPT_NAME, paste(names(fdata), collapse = ", ")))
+
+# Find gene symbol column in fData (Agilent platforms typically provide it)
+gs_col <- NULL
+for (candidate in c("Gene Symbol", "GENE_SYMBOL", "gene_symbol", "GeneName",
+                    "GENE_NAME", "SystematicName", "GB_LIST")) {
+  if (candidate %in% names(fdata)) {
+    gs_col <- candidate
+    break
+  }
+}
+
+if (is.null(gs_col)) {
+  stop(sprintf("[%s] No gene symbol column found in fData. Columns: %s",
+               SCRIPT_NAME, paste(names(fdata), collapse = ", ")))
+}
+
+gene_symbols_raw <- as.character(fdata[[gs_col]])
+message(sprintf("[%s] Gene symbol column: '%s' | Non-empty: %d/%d (%.1f%%)",
+                SCRIPT_NAME, gs_col,
+                sum(nchar(trimws(gene_symbols_raw)) > 0, na.rm = TRUE),
+                length(gene_symbols_raw),
+                100 * mean(nchar(trimws(gene_symbols_raw)) > 0, na.rm = TRUE)))
+
+# Keep only probes with a valid gene symbol
+valid_idx     <- which(nchar(trimws(gene_symbols_raw)) > 0 &
+                       !is.na(gene_symbols_raw) &
+                       gene_symbols_raw != "---" &
+                       gene_symbols_raw != "")
+mapped_probes <- probe_ids[valid_idx]
+gene_labels   <- trimws(gene_symbols_raw[valid_idx])
+
+# Remove duplicated probes (keep first occurrence of each probe ID)
+mapped_probes <- mapped_probes[!duplicated(mapped_probes)]
+gene_labels   <- gene_labels[!duplicated(mapped_probes)]
+
 expr_sub       <- expr_mat[mapped_probes, , drop = FALSE]
-gene_labels    <- probe_map$SYMBOL[match(mapped_probes, probe_map$PROBEID)]
 expr_collapsed <- collapse_probes_by_variance(expr_sub, gene_labels)
 
-message(sprintf("[%s] Genes after collapse: %d (HGU133A has ~12970 genes)",
+message(sprintf("[%s] Genes after Agilent fData collapse: %d",
                 SCRIPT_NAME, nrow(expr_collapsed)))
 save_gene_mapping_audit(
   data.frame(cohort = COHORT, n_probes_mapped = length(mapped_probes),
@@ -145,11 +184,11 @@ frac_present  <- n_present / length(panel_genes)
 message(sprintf("[%s] CorePAM genes present: %d / %d (%.1f%%)",
                 SCRIPT_NAME, n_present, length(panel_genes), frac_present * 100))
 if (length(genes_missing) > 0)
-  message(sprintf("[%s] Missing (HGU133A platform ceiling): %s",
+  message(sprintf("[%s] Missing genes (Agilent platform ceiling): %s",
                   SCRIPT_NAME, paste(genes_missing, collapse = ", ")))
 
 if (frac_present < FREEZE$min_genes_fraction)
-  stop(sprintf("[%s] COVERAGE FAILURE: %.1f%% < %.0f%% minimum — HGU133A insufficient",
+  stop(sprintf("[%s] COVERAGE FAILURE: %.1f%% < %.0f%% minimum — Agilent platform insufficient",
                SCRIPT_NAME, frac_present * 100, FREEZE$min_genes_fraction * 100))
 
 w_present      <- panel_weights[genes_present]

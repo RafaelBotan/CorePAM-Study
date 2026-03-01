@@ -1,0 +1,5 @@
+cohort,nact_baseline,n_complete,auc_baseline,auc_full,delta_auc,delta_auc_lo95,delta_auc_hi95,lrt_p
+GSE25066,none,NA,NA,NA,NA,NA,NA,NA
+GSE20194,none,NA,NA,NA,NA,NA,NA,NA
+GSE32646,er_status,115,0.7098,0.763,0.0532,-0.0025,0.1127,0.1253
+ISPY1,er_status,116,0.6328,0.652,0.0192,-0.0214,0.1049,0.5512
