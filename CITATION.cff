@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this work or code, please cite it using the metadata below."
+type: software
+title: "Core-PAM: Minimum Prognostic Core of the PAM50 Breast Cancer Signature"
+abstract: >
+  Data-driven reduction of the PAM50 gene panel to a minimum non-inferior
+  prognostic core (Core-PAM) using out-of-fold Cox Elastic-Net non-inferiority
+  (delta_C = 0.010). Multi-cohort validation across SCAN-B, TCGA-BRCA,
+  METABRIC and GSE20685. Fully reproducible pipeline with SHA-256 audit trail.
+version: "v6.1-freeze"
+date-released: "2026-03-01"
+license: MIT
+repository-code: "https://github.com/RafaelBotan/Phd-Genomic"
+authors:
+  - family-names: Botan
+    given-names: Rafael
+    email: oncologista@gmail.com
+    orcid: ""
+keywords:
+  - breast cancer
+  - PAM50
+  - gene signature
+  - prognostic score
+  - survival analysis
+  - elastic net
+  - reproducible research
+  - TRIPOD

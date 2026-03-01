@@ -31,10 +31,10 @@ suppressPackageStartupMessages({
 
 FORCE <- as.logical(Sys.getenv("FORCE_RERUN", "FALSE"))
 
-out_dist_en <- file.path(PATHS$figures$supp, "FigS_CorePAM_Score_Distribution_EN.pdf")
-out_dist_pt <- file.path(PATHS$figures$supp, "FigS_CorePAM_Score_Distribution_PT.pdf")
-out_scat_en <- file.path(PATHS$figures$supp, "FigS_CorePAM_vs_PAM50full_EN.pdf")
-out_scat_pt <- file.path(PATHS$figures$supp, "FigS_CorePAM_vs_PAM50full_PT.pdf")
+out_dist_en <- file.path(PATHS$figures$supp_en_pdf, "FigS_CorePAM_Score_Distribution_EN.pdf")
+out_dist_pt <- file.path(PATHS$figures$supp_pt_pdf, "FigS_CorePAM_Score_Distribution_PT.pdf")
+out_scat_en <- file.path(PATHS$figures$supp_en_pdf, "FigS_CorePAM_vs_PAM50full_EN.pdf")
+out_scat_pt <- file.path(PATHS$figures$supp_pt_pdf, "FigS_CorePAM_vs_PAM50full_PT.pdf")
 
 if (!FORCE && all(file.exists(c(out_dist_en, out_dist_pt, out_scat_en, out_scat_pt)))) {
   message(sprintf("[%s] All outputs exist — skipping. Set FORCE_RERUN=TRUE to rerun.",
@@ -242,10 +242,11 @@ make_dist_fig <- function(lang = "EN") {
 
 old_warn <- getOption("warn"); options(warn = 0)
 for (lang in c("EN", "PT")) {
-  pA <- make_dist_fig(lang)
-  pdf_f <- file.path(PATHS$figures$supp,
+  lang_lc <- tolower(lang)
+  pA    <- make_dist_fig(lang)
+  pdf_f <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_pdf")]],
                      sprintf("FigS_CorePAM_Score_Distribution_%s.pdf", lang))
-  png_f <- file.path(PATHS$figures$supp,
+  png_f <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_png")]],
                      sprintf("FigS_CorePAM_Score_Distribution_%s.png", lang))
   cairo_pdf(pdf_f, width = 8, height = 5); print(pA); dev.off()
   png(png_f, width = 8, height = 5, units = "in", res = 600); print(pA); dev.off()
@@ -306,10 +307,11 @@ make_scatter_fig <- function(lang = "EN") {
 old_warn <- getOption("warn"); options(warn = 0)
 if (nrow(scatter_data) > 0) {
   for (lang in c("EN", "PT")) {
-    pB <- make_scatter_fig(lang)
-    pdf_f <- file.path(PATHS$figures$supp,
+    lang_lc <- tolower(lang)
+    pB    <- make_scatter_fig(lang)
+    pdf_f <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_pdf")]],
                        sprintf("FigS_CorePAM_vs_PAM50full_%s.pdf", lang))
-    png_f <- file.path(PATHS$figures$supp,
+    png_f <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_png")]],
                        sprintf("FigS_CorePAM_vs_PAM50full_%s.png", lang))
     cairo_pdf(pdf_f, width = 9, height = 8); print(pB); dev.off()
     png(png_f, width = 9, height = 8, units = "in", res = 600); print(pB); dev.off()
@@ -326,4 +328,4 @@ if (nrow(scatter_data) > 0) {
 gc(); options(warn = old_warn)
 
 message(sprintf("[%s] COMPLETED — extra OS supplementary figures saved to %s",
-                SCRIPT_NAME, PATHS$figures$supp))
+                SCRIPT_NAME, PATHS$figures$supp_en_pdf))

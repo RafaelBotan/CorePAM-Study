@@ -33,11 +33,14 @@ suppressPackageStartupMessages({
 
 FORCE <- as.logical(Sys.getenv("FORCE_RERUN", "FALSE"))
 
-fig_pcr <- PATHS$figures$pcr
-dir.create(fig_pcr, showWarnings = FALSE, recursive = TRUE)
+# pcr_fig_path() — routes figure to figures/pcr/{lang}/{ext}/
+pcr_fig_path <- function(name, lang, ext) {
+  dir <- PATHS$figures[[paste0("pcr_", tolower(lang), "_", ext)]]
+  file.path(dir, name)
+}
 
-out_en <- file.path(fig_pcr, "Fig_pCR1_Extended_OR_EN.pdf")
-out_pt <- file.path(fig_pcr, "Fig_pCR1_Extended_OR_PT.pdf")
+out_en <- pcr_fig_path("Fig_pCR1_Extended_OR_EN.pdf", "EN", "pdf")
+out_pt <- pcr_fig_path("Fig_pCR1_Extended_OR_PT.pdf", "PT", "pdf")
 
 if (!FORCE && file.exists(out_en) && file.exists(out_pt)) {
   message(sprintf("[%s] Outputs exist — skipping. Set FORCE_RERUN=TRUE to rerun.",
@@ -224,8 +227,8 @@ make_forest_extended <- function(lang = "EN") {
 old_warn <- getOption("warn"); options(warn = 0)
 for (lang in c("EN", "PT")) {
   p_ext  <- make_forest_extended(lang)
-  pdf_f  <- file.path(fig_pcr, sprintf("Fig_pCR1_Extended_OR_%s.pdf", lang))
-  png_f  <- file.path(fig_pcr, sprintf("Fig_pCR1_Extended_OR_%s.png", lang))
+  pdf_f  <- pcr_fig_path(sprintf("Fig_pCR1_Extended_OR_%s.pdf", lang), lang, "pdf")
+  png_f  <- pcr_fig_path(sprintf("Fig_pCR1_Extended_OR_%s.png", lang), lang, "png")
   cairo_pdf(pdf_f, width = 10, height = 5.5); print(p_ext); dev.off()
   png(png_f, width = 10, height = 5.5, units = "in", res = 600); print(p_ext); dev.off()
   h  <- sha256_file(pdf_f)

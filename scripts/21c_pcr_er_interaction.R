@@ -34,15 +34,15 @@ if (!FORCE && file.exists(out_csv)) {
 
 message(sprintf("[%s] Formal ER × score interaction test for pCR", SCRIPT_NAME))
 
-dir.create("results/pcr",    showWarnings = FALSE, recursive = TRUE)
-dir.create(PATHS$figures$supp, showWarnings = FALSE, recursive = TRUE)
+dir.create("results/pcr", showWarnings = FALSE, recursive = TRUE)
+# figure dirs created by 00_setup.R
 
 # --------------------------------------------------------------------------
-# Helper: save PDF + PNG
+# Helper: save PDF + PNG — bilingual (lang: "en" or "pt")
 # --------------------------------------------------------------------------
-save_fig <- function(p, name, w = 9, h = 6, dir = PATHS$figures$supp, dpi = 300) {
-  pdf_path <- file.path(dir, paste0(name, ".pdf"))
-  png_path <- file.path(dir, paste0(name, ".png"))
+save_fig <- function(p, name, w = 9, h = 6, lang = "en", dpi = 300) {
+  pdf_path <- file.path(PATHS$figures[[paste0("supp_", lang, "_pdf")]], paste0(name, ".pdf"))
+  png_path <- file.path(PATHS$figures[[paste0("supp_", lang, "_png")]], paste0(name, ".png"))
   old_warn <- getOption("warn"); options(warn = 0)
   tryCatch({
     cairo_pdf(pdf_path, width = w, height = h); print(p); dev.off()
@@ -231,8 +231,8 @@ make_forest_er <- function(lang = "EN") {
 p_en <- make_forest_er("EN")
 p_pt <- make_forest_er("PT")
 
-save_fig(p_en, "FigS_pCR_ER_Interaction_EN", w = 8, h = 5)
-save_fig(p_pt, "FigS_pCR_ER_Interaction_PT", w = 8, h = 5)
+save_fig(p_en, "FigS_pCR_ER_Interaction_EN", w = 8, h = 5, lang = "en")
+save_fig(p_pt, "FigS_pCR_ER_Interaction_PT", w = 8, h = 5, lang = "pt")
 
 # --------------------------------------------------------------------------
 # Append to RESULTS_SUMMARY.md

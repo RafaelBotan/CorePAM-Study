@@ -23,17 +23,26 @@ suppressPackageStartupMessages({
 })
 source("Y:/Phd-Genomic-claude/scripts/00_colors.R")
 
-fig_main <- PATHS$figures$main
-fig_supp <- PATHS$figures$supp
-dir.create(fig_main, showWarnings = FALSE, recursive = TRUE)
-dir.create(fig_supp, showWarnings = FALSE, recursive = TRUE)
+# Default dirs (English; all subdirs created by 00_setup.R)
+fig_main <- PATHS$figures$main_en_pdf   # kept for backward compat in section headers
+fig_supp <- PATHS$figures$supp_en_pdf   # default supp dir (EN PDF)
 
 # --------------------------------------------------------------------------
-# Helper: save PDF + PNG
+# Helper: save PDF + PNG into figures/{section}/{lang}/{ext}/
+# lang: "en" (default) or "pt"
+# section: "main" or "supp"
 # --------------------------------------------------------------------------
-save_fig <- function(p, name, w = 8, h = 6, dir = fig_supp, dpi = 300) {
-  pdf_path <- file.path(dir, paste0(name, ".pdf"))
-  png_path <- file.path(dir, paste0(name, ".png"))
+save_fig <- function(p, name, w = 8, h = 6,
+                     lang = "en", section = "supp", dpi = 300,
+                     dir = NULL) {
+  # If legacy dir= is provided, use it directly (backward compat); else use new structure
+  if (!is.null(dir)) {
+    pdf_path <- file.path(dir, paste0(name, ".pdf"))
+    png_path <- file.path(dir, paste0(name, ".png"))
+  } else {
+    pdf_path <- file.path(PATHS$figures[[paste0(section, "_", lang, "_pdf")]], paste0(name, ".pdf"))
+    png_path <- file.path(PATHS$figures[[paste0(section, "_", lang, "_png")]], paste0(name, ".png"))
+  }
   old_warn <- getOption("warn"); options(warn = 0)
   tryCatch({
     cairo_pdf(pdf_path, width = w, height = h); print(p); dev.off()
@@ -511,68 +520,81 @@ p_lollipop <- ggplot(wt_df, aes(x = gene, y = weight, color = direction)) +
 save_fig(p_lollipop, "FigS_Weights_CorePAM_Lollipop", w = 8, h = 6, dir = fig_supp)
 
 # --------------------------------------------------------------------------
-# 5) SCORE BY ER STATUS — METABRIC only (raw ER_IHC); TCGA/GSE not available
+# 5) SCORE BY ER STATUS — multi-cohort violin (reads from analysis_ready.parquet)
+#    Cohorts tried: SCANB, METABRIC, TCGA_BRCA
+#    GSE20685: er_status all NA (not available in GSE20685 pData) — excluded
+#    Only cohorts with >=80% er_status coverage are included
 # --------------------------------------------------------------------------
 message(sprintf("[%s] === 5) Score by ER status ===", SCRIPT_NAME))
 
-# METABRIC: ER_IHC from raw cBioPortal patient file (YES=ER+, NO=ER-)
-# TCGA-BRCA: ER status not included in GDC standard clinical download
-# GSE20685:  ER status not available in processed pData
-er_plot <- tryCatch({
-  rdy_meta  <- arrow::read_parquet(
-    file.path(PATHS$processed, "METABRIC", "analysis_ready.parquet"),
-    col_select = c("patient_id", "score_z"))
+er_cohort_labels <- c(SCANB = "SCAN-B", METABRIC = "METABRIC", TCGA_BRCA = "TCGA-BRCA")
 
-  # Read ER_IHC from raw patient clinical file (cBioPortal format, skip 4 header comment rows)
-  clin_raw <- readr::read_tsv(
-    "Y:/Phd-Genomic-claude/01_Base_Pura_CorePAM/RAW/METABRIC/brca_metabric/data_clinical_patient.txt",
-    skip = 4, show_col_types = FALSE)
-  er_map <- clin_raw[, c("PATIENT_ID", "ER_IHC")]
-  names(er_map) <- c("patient_id", "er_ihc")
-
-  meta_er <- inner_join(rdy_meta, er_map, by = "patient_id") |>
-    filter(!is.na(er_ihc)) |>
-    mutate(
-      er_label     = case_when(
-        er_ihc == "Positve"  ~ "ER+",   # cBioPortal typo: "Positve" = Positive
-        er_ihc == "Negative" ~ "ER-",
-        TRUE                 ~ NA_character_
-      ),
-      cohort_label = "METABRIC (n=1978)"
-    ) |>
-    filter(!is.na(er_label))
-
-  message(sprintf("[%s] METABRIC ER: %d ER+ | %d ER-",
-                  SCRIPT_NAME, sum(meta_er$er_label == "ER+"), sum(meta_er$er_label == "ER-")))
-  meta_er
-}, error = function(e) {
-  message(sprintf("[%s] ER violin error: %s", SCRIPT_NAME, e$message))
-  NULL
+er_list <- lapply(names(er_cohort_labels), function(coh) {
+  tryCatch({
+    p <- file.path(PATHS$processed, coh, "analysis_ready.parquet")
+    if (!file.exists(p)) return(NULL)
+    df <- arrow::read_parquet(p, col_select = c("patient_id", "score_z", "er_status"))
+    pct_valid <- mean(!is.na(df$er_status))
+    if (pct_valid < 0.8) {
+      message(sprintf("[%s] %s: er_status coverage %.1f%% < 80%% — skipped", SCRIPT_NAME, coh, 100 * pct_valid))
+      return(NULL)
+    }
+    df |>
+      filter(!is.na(er_status)) |>
+      mutate(
+        er_label     = case_when(
+          tolower(er_status) == "positive" ~ "ER+",
+          tolower(er_status) == "negative" ~ "ER-",
+          TRUE ~ NA_character_
+        ),
+        cohort_label = er_cohort_labels[[coh]]
+      ) |>
+      filter(!is.na(er_label))
+  }, error = function(e) {
+    message(sprintf("[%s] %s: er_status load error: %s", SCRIPT_NAME, coh, e$message))
+    NULL
+  })
 })
 
-if (!is.null(er_plot) && nrow(er_plot) > 0) {
-  n_pos <- sum(er_plot$er_label == "ER+")
-  n_neg <- sum(er_plot$er_label == "ER-")
-  p_er <- ggplot(er_plot, aes(x = er_label, y = score_z, fill = er_label)) +
+er_combined <- bind_rows(er_list)
+
+if (!is.null(er_combined) && nrow(er_combined) > 0) {
+  for (coh in unique(er_combined$cohort_label)) {
+    n_pos <- sum(er_combined$cohort_label == coh & er_combined$er_label == "ER+")
+    n_neg <- sum(er_combined$cohort_label == coh & er_combined$er_label == "ER-")
+    message(sprintf("[%s] %s: %d ER+ | %d ER-", SCRIPT_NAME, coh, n_pos, n_neg))
+  }
+
+  # Order cohorts: training first, then validation
+  cohort_order <- intersect(c("SCAN-B", "METABRIC", "TCGA-BRCA"), unique(er_combined$cohort_label))
+  er_combined$cohort_label <- factor(er_combined$cohort_label, levels = cohort_order)
+
+  p_er <- ggplot(er_combined, aes(x = er_label, y = score_z, fill = er_label)) +
     geom_violin(alpha = 0.5, trim = TRUE, linewidth = 0.4) +
     geom_boxplot(width = 0.12, outlier.size = 0.4, linewidth = 0.4, fill = "white") +
     scale_fill_manual(values = c("ER+" = "#2980B9", "ER-" = "#C0392B"), guide = "none") +
+    facet_wrap(~ cohort_label, nrow = 1) +
     labs(
       x        = "ER status (IHC)",
-      y        = "Core-PAM Score (z)",
-      title    = "Core-PAM Score by ER Status — METABRIC",
-      subtitle = sprintf("ER+ n=%d | ER- n=%d | TCGA-BRCA and GSE20685: ER data not available in clinical download",
-                         n_pos, n_neg),
-      caption  = "ER_IHC (YES/NO) from cBioPortal data_clinical_patient.txt"
+      y        = "Core-PAM Score (z, SD units)",
+      title    = "Core-PAM Score by ER Status",
+      subtitle = "Higher scores expected in ER\u2212 / basal-like tumors; er_status from analysis_ready.parquet",
+      caption  = "GSE20685 excluded (ER data unavailable in pData). er_status \u226580% coverage required."
     ) +
     theme_classic(base_size = 11) +
-    theme(plot.title    = element_text(face = "bold"),
-          plot.subtitle = element_text(size = 9),
-          plot.caption  = element_text(size = 8))
+    theme(
+      plot.title       = element_text(face = "bold"),
+      plot.subtitle    = element_text(size = 9),
+      plot.caption     = element_text(size = 8),
+      strip.background = element_rect(fill = "#2C3E50", color = NA),
+      strip.text       = element_text(color = "white", face = "bold", size = 10)
+    )
 
-  save_fig(p_er, "FigS_ScoreByER_ByCohort", w = 7, h = 5, dir = fig_supp)
+  save_fig(p_er, "FigS_ScoreByER_ByCohort", w = 9, h = 5, dir = fig_supp)
+  message(sprintf("[%s] FigS_ScoreByER_ByCohort saved (%d cohorts, %d samples)",
+                  SCRIPT_NAME, length(unique(er_combined$cohort_label)), nrow(er_combined)))
 } else {
-  message(sprintf("[%s] ER violin skipped — no data", SCRIPT_NAME))
+  message(sprintf("[%s] ER violin skipped — no cohort with >=80%% er_status coverage", SCRIPT_NAME))
 }
 
 # --------------------------------------------------------------------------

@@ -34,9 +34,23 @@ PATHS <- list(
     pcr        = file.path(ROOT_REPO, "results", "pcr")
   ),
   figures = list(
+    # Base section dirs (backward-compat; prefer fig_dir() for new code)
     main   = file.path(ROOT_REPO, "figures", "main"),
     supp   = file.path(ROOT_REPO, "figures", "supp"),
     pcr    = file.path(ROOT_REPO, "figures", "pcr"),
+    # Structured subdirs: figures/{section}/{lang}/{ext}/
+    main_en_pdf = file.path(ROOT_REPO, "figures", "main", "en", "pdf"),
+    main_en_png = file.path(ROOT_REPO, "figures", "main", "en", "png"),
+    main_pt_pdf = file.path(ROOT_REPO, "figures", "main", "pt", "pdf"),
+    main_pt_png = file.path(ROOT_REPO, "figures", "main", "pt", "png"),
+    supp_en_pdf = file.path(ROOT_REPO, "figures", "supp", "en", "pdf"),
+    supp_en_png = file.path(ROOT_REPO, "figures", "supp", "en", "png"),
+    supp_pt_pdf = file.path(ROOT_REPO, "figures", "supp", "pt", "pdf"),
+    supp_pt_png = file.path(ROOT_REPO, "figures", "supp", "pt", "png"),
+    pcr_en_pdf  = file.path(ROOT_REPO, "figures", "pcr",  "en", "pdf"),
+    pcr_en_png  = file.path(ROOT_REPO, "figures", "pcr",  "en", "png"),
+    pcr_pt_pdf  = file.path(ROOT_REPO, "figures", "pcr",  "pt", "pdf"),
+    pcr_pt_png  = file.path(ROOT_REPO, "figures", "pcr",  "pt", "png"),
     artigo = file.path(ROOT_REPO, "06_plots", "artigo"),
     tese   = file.path(ROOT_REPO, "06_plots", "tese")
   ),
@@ -50,6 +64,31 @@ proc_cohort   <- function(cohort) file.path(PATHS$processed, cohort)
 # Cohort path helpers — pCR block (separate sub-tree under RAW/pCR/ and PROCESSED/pCR/)
 raw_pcr_cohort  <- function(cohort) file.path(PATHS$raw,       "pCR", cohort)
 proc_pcr_cohort <- function(cohort) file.path(PATHS$processed, "pCR", cohort)
+
+# Figure path helper — returns the figures/{section}/{lang}/{ext} directory
+# section: "main" | "supp" | "pcr"
+# lang:    "en"   | "pt"
+# ext:     "pdf"  | "png"  | NULL (returns lang dir)
+fig_dir <- function(section = "supp", lang = "en", ext = NULL) {
+  base <- file.path(ROOT_REPO, "figures", section, lang)
+  if (!is.null(ext)) base <- file.path(base, ext)
+  dir.create(base, showWarnings = FALSE, recursive = TRUE)
+  base
+}
+
+# Save figure as PDF + PNG into figures/{section}/{lang}/pdf|png/
+# Returns list(pdf=..., png=...)  invisibly
+fig_save <- function(plot, name, lang = "en", section = "supp",
+                     w = 8, h = 6, dpi = 300) {
+  pdf_path <- file.path(fig_dir(section, lang, "pdf"), paste0(name, ".pdf"))
+  png_path <- file.path(fig_dir(section, lang, "png"), paste0(name, ".png"))
+  old_warn <- getOption("warn"); options(warn = 0)
+  pdf(pdf_path, width = w, height = h); print(plot); dev.off()
+  png(png_path, width = round(w * dpi), height = round(h * dpi), res = dpi)
+  print(plot); dev.off()
+  options(warn = old_warn)
+  invisible(list(pdf = pdf_path, png = png_path))
+}
 
 # --------------------------------------------------------------------------
 # 2) STRICT I/O — warning = error (required; Memorial v6.1 §1.4 / §9.1)
@@ -160,10 +199,16 @@ registry_append <- function(cohort, file_type, file_path, sha256,
   PATHS$scripts,
   PATHS$results$corepam, PATHS$results$corepam_os,
   PATHS$results$main,    PATHS$results$supp,    PATHS$results$pcr,
-  PATHS$figures$pcr,     PATHS$config,
-  PATHS$figures$main,    PATHS$figures$supp,
+  PATHS$config,
   PATHS$figures$artigo,  PATHS$figures$tese,
-  dirname(PATHS$run_registry)
+  dirname(PATHS$run_registry),
+  # Structured figure subdirectories: figures/{section}/{lang}/{ext}/
+  PATHS$figures$main_en_pdf, PATHS$figures$main_en_png,
+  PATHS$figures$main_pt_pdf, PATHS$figures$main_pt_png,
+  PATHS$figures$supp_en_pdf, PATHS$figures$supp_en_png,
+  PATHS$figures$supp_pt_pdf, PATHS$figures$supp_pt_png,
+  PATHS$figures$pcr_en_pdf,  PATHS$figures$pcr_en_png,
+  PATHS$figures$pcr_pt_pdf,  PATHS$figures$pcr_pt_png
 )
 for (.d in .required_dirs) dir.create(.d, showWarnings = FALSE, recursive = TRUE)
 rm(.required_dirs, .d)

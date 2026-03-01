@@ -36,8 +36,12 @@ suppressPackageStartupMessages({
 
 FORCE <- as.logical(Sys.getenv("FORCE_RERUN", "FALSE"))
 
-fig_pcr <- PATHS$figures$pcr
-dir.create(fig_pcr, showWarnings = FALSE, recursive = TRUE)
+# pcr_fig_path() — returns the correct path for a pCR figure given language and extension
+# Replaces the flat fig_pcr variable used in earlier versions
+pcr_fig_path <- function(name, lang, ext) {
+  dir <- PATHS$figures[[paste0("pcr_", tolower(lang), "_", ext)]]
+  file.path(dir, name)
+}
 
 # --------------------------------------------------------------------------
 # Load results tables
@@ -168,8 +172,8 @@ make_forest_pcr <- function(lang = "EN") {
 old_warn <- getOption("warn"); options(warn = 0)
 for (lang in c("EN", "PT")) {
   p1 <- make_forest_pcr(lang)
-  pdf_f <- file.path(fig_pcr, sprintf("Fig_pCR1_Forest_OR_%s.pdf", lang))
-  png_f <- file.path(fig_pcr, sprintf("Fig_pCR1_Forest_OR_%s.png", lang))
+  pdf_f <- pcr_fig_path(sprintf("Fig_pCR1_Forest_OR_%s.pdf", lang), lang, "pdf")
+  png_f <- pcr_fig_path(sprintf("Fig_pCR1_Forest_OR_%s.png", lang), lang, "png")
   cairo_pdf(pdf_f, width = 9, height = 5); print(p1); dev.off()
   png(png_f, width = 9, height = 5, units = "in", res = 600); print(p1); dev.off()
   registry_append("META_PCR", sprintf("fig_pcr1_forest_%s", lang), pdf_f,
@@ -243,8 +247,8 @@ if (length(roc_list) > 0) {
   old_warn <- getOption("warn"); options(warn = 0)
   for (lang in c("EN", "PT")) {
     p2 <- make_roc_fig(lang)
-    pdf_f <- file.path(fig_pcr, sprintf("Fig_pCR2_ROC_%s.pdf", lang))
-    png_f <- file.path(fig_pcr, sprintf("Fig_pCR2_ROC_%s.png", lang))
+    pdf_f <- pcr_fig_path(sprintf("Fig_pCR2_ROC_%s.pdf", lang), lang, "pdf")
+    png_f <- pcr_fig_path(sprintf("Fig_pCR2_ROC_%s.png", lang), lang, "png")
     cairo_pdf(pdf_f, width = 8, height = 7); print(p2); dev.off()
     png(png_f, width = 8, height = 7, units = "in", res = 600); print(p2); dev.off()
     registry_append("META_PCR", sprintf("fig_pcr2_roc_%s", lang), pdf_f,
@@ -321,8 +325,8 @@ if (length(quartile_list) > 0) {
   old_warn <- getOption("warn"); options(warn = 0)
   for (lang in c("EN", "PT")) {
     p3 <- make_quartile_fig(lang)
-    pdf_f <- file.path(fig_pcr, sprintf("Fig_pCR3_QuartileRate_%s.pdf", lang))
-    png_f <- file.path(fig_pcr, sprintf("Fig_pCR3_QuartileRate_%s.png", lang))
+    pdf_f <- pcr_fig_path(sprintf("Fig_pCR3_QuartileRate_%s.pdf", lang), lang, "pdf")
+    png_f <- pcr_fig_path(sprintf("Fig_pCR3_QuartileRate_%s.png", lang), lang, "png")
     cairo_pdf(pdf_f, width = 8, height = 5); print(p3); dev.off()
     png(png_f, width = 8, height = 5, units = "in", res = 600); print(p3); dev.off()
     registry_append("META_PCR", sprintf("fig_pcr3_quartile_%s", lang), pdf_f,
@@ -366,8 +370,8 @@ if (length(sample_list) > 0) {
   old_warn <- getOption("warn"); options(warn = 0)
   for (lang in c("EN", "PT")) {
     p4 <- make_dist_fig(lang)
-    pdf_f <- file.path(fig_pcr, sprintf("Fig_pCR4_ScoreDist_%s.pdf", lang))
-    png_f <- file.path(fig_pcr, sprintf("Fig_pCR4_ScoreDist_%s.png", lang))
+    pdf_f <- pcr_fig_path(sprintf("Fig_pCR4_ScoreDist_%s.pdf", lang), lang, "pdf")
+    png_f <- pcr_fig_path(sprintf("Fig_pCR4_ScoreDist_%s.png", lang), lang, "png")
     cairo_pdf(pdf_f, width = 8, height = 6); print(p4); dev.off()
     png(png_f, width = 8, height = 6, units = "in", res = 600); print(p4); dev.off()
     registry_append("META_PCR", sprintf("fig_pcr4_dist_%s", lang), pdf_f,
@@ -452,8 +456,8 @@ if (length(pr_list) > 0) {
   old_warn <- getOption("warn"); options(warn = 0)
   for (lang in c("EN", "PT")) {
     ps1 <- make_pr_fig(lang)
-    pdf_f <- file.path(fig_pcr, sprintf("FigS_pCR_PR_%s.pdf", lang))
-    png_f <- file.path(fig_pcr, sprintf("FigS_pCR_PR_%s.png", lang))
+    pdf_f <- pcr_fig_path(sprintf("FigS_pCR_PR_%s.pdf", lang), lang, "pdf")
+    png_f <- pcr_fig_path(sprintf("FigS_pCR_PR_%s.png", lang), lang, "png")
     cairo_pdf(pdf_f, width = 8, height = 7); print(ps1); dev.off()
     png(png_f, width = 8, height = 7, units = "in", res = 600); print(ps1); dev.off()
     registry_append("META_PCR", sprintf("figS_pcr_pr_%s", lang), pdf_f,

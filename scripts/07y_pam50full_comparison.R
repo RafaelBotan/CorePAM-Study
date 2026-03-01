@@ -28,18 +28,15 @@ message(sprintf("[%s] Starting PAM50full extraction + comparison", SCRIPT_NAME))
 # --------------------------------------------------------------------------
 # 0) Paths
 # --------------------------------------------------------------------------
-fig_supp   <- PATHS$figures$supp
-dir.create(fig_supp, showWarnings = FALSE, recursive = TRUE)
-
 out_weights  <- file.path(PATHS$results$corepam, "PAM50full_weights.csv")
 out_comp_csv <- file.path(PATHS$results$supp,    "pam50full_comparison.csv")
 
 # --------------------------------------------------------------------------
-# Helper: save PDF + PNG
+# Helper: save PDF + PNG — EN only (supp/en/)
 # --------------------------------------------------------------------------
-save_fig <- function(p, name, w = 10, h = 8, dir = fig_supp, dpi = 300) {
-  pdf_path <- file.path(dir, paste0(name, ".pdf"))
-  png_path <- file.path(dir, paste0(name, ".png"))
+save_fig <- function(p, name, w = 10, h = 8, lang = "en", dpi = 300) {
+  pdf_path <- file.path(PATHS$figures[[paste0("supp_", lang, "_pdf")]], paste0(name, ".pdf"))
+  png_path <- file.path(PATHS$figures[[paste0("supp_", lang, "_png")]], paste0(name, ".png"))
   old_warn <- getOption("warn"); options(warn = 0)
   tryCatch({
     cairo_pdf(pdf_path, width = w, height = h); print(p); dev.off()

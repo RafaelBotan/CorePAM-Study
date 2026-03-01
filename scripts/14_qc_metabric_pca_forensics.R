@@ -27,7 +27,7 @@ suppressPackageStartupMessages({
 
 # Skip if output already exists (set FORCE_RERUN=TRUE to rerun)
 FORCE <- as.logical(Sys.getenv("FORCE_RERUN", "FALSE"))
-out_pdf <- file.path(PATHS$figures$supp, sprintf("FigS4_%s_PCA_forensics.pdf", COHORT))
+out_pdf <- file.path(PATHS$figures$supp_en_pdf, sprintf("FigS4_%s_PCA_forensics.pdf", COHORT))
 if (!FORCE && file.exists(out_pdf)) {
   message(sprintf("[14] Output already exists: %s", out_pdf))
   message("[14] Skipping. Set FORCE_RERUN=TRUE to rerun.")

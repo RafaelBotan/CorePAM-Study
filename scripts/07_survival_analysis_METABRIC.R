@@ -157,8 +157,7 @@ message(sprintf("[%s] Median follow-up (Reverse KM): %.1f months", SCRIPT_NAME, 
 # --------------------------------------------------------------------------
 # 5) KM: intra-cohort median (primary, DSS) + quartiles (sensitivity)
 # --------------------------------------------------------------------------
-fig_dir <- PATHS$figures$main
-dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
+# figures/{section}/{lang}/{ext}/ — dirs already created by 00_setup.R
 
 km_cutpoint <- median(df$score_z, na.rm = TRUE)
 df$risk_group_median <- ifelse(df$score_z >= km_cutpoint, "High", "Low")
@@ -175,6 +174,7 @@ message(sprintf("[%s] KM xlim: %.0f months | break: %d months", SCRIPT_NAME, xli
 # Bilingual KM main — EN and PT
 old_warn <- getOption("warn"); options(warn = 0)
 for (lang in c("EN", "PT")) {
+  lang_lc <- tolower(lang)
   xlb <- if (lang == "EN") "Time (months)"                   else "Tempo (meses)"
   ylb <- if (lang == "EN") "Disease-specific survival"       else "Sobrevida específica"
   lbs <- if (lang == "EN") c("High risk", "Low risk")        else c("Alto risco", "Baixo risco")
@@ -203,8 +203,10 @@ for (lang in c("EN", "PT")) {
                       x = xlim_val * 0.02, y = 0.10,
                       label = hr_anno_lbl,
                       hjust = 0, size = 3.0, colour = "grey20")
-  pdf_path <- file.path(fig_dir, sprintf("Fig2_KM_%s_%s_%s.pdf", COHORT, ENDPOINT, lang))
-  png_path <- file.path(fig_dir, sprintf("Fig2_KM_%s_%s_%s.png", COHORT, ENDPOINT, lang))
+  pdf_path <- file.path(PATHS$figures[[paste0("main_", lang_lc, "_pdf")]],
+                        sprintf("Fig2_KM_%s_%s_%s.pdf", COHORT, ENDPOINT, lang))
+  png_path <- file.path(PATHS$figures[[paste0("main_", lang_lc, "_png")]],
+                        sprintf("Fig2_KM_%s_%s_%s.png", COHORT, ENDPOINT, lang))
   cairo_pdf(pdf_path, width = 8, height = 6); print(km_p); dev.off()
   png(png_path, width = 8, height = 6, units = "in", res = 600); print(km_p); dev.off()
   registry_append(COHORT, sprintf("figure_km_main_%s", lang), pdf_path,
@@ -221,9 +223,6 @@ df$risk_group_quartile <- cut(df$score_z,
                                breaks = c(-Inf, quart_cuts[1], quart_cuts[2], quart_cuts[3], Inf),
                                labels = c("Q1", "Q2", "Q3", "Q4"))
 
-supp_fig_dir <- PATHS$figures$supp
-dir.create(supp_fig_dir, showWarnings = FALSE, recursive = TRUE)
-
 old_warn <- getOption("warn"); options(warn = 0)
 km_fit_q <- survfit(
   Surv(df[[time_col]], df[[event_col]]) ~ risk_group_quartile, data = df
@@ -232,6 +231,7 @@ options(warn = old_warn)
 
 old_warn <- getOption("warn"); options(warn = 0)
 for (lang in c("EN", "PT")) {
+  lang_lc <- tolower(lang)
   xlb <- if (lang == "EN") "Time (months)"                  else "Tempo (meses)"
   ylb <- if (lang == "EN") "Disease-specific survival"      else "Sobrevida específica por doença"
   ttl <- if (lang == "EN")
@@ -244,8 +244,10 @@ for (lang in c("EN", "PT")) {
     title = ttl, xlab = xlb, ylab = ylb, legend.labs = lbs,
     ggtheme = theme_classic()
   )
-  km_q_pdf <- file.path(supp_fig_dir, sprintf("FigS_KM_%s_%s_Quartis_CorePAM_%s.pdf", COHORT, ENDPOINT, lang))
-  km_q_png <- file.path(supp_fig_dir, sprintf("FigS_KM_%s_%s_Quartis_CorePAM_%s.png", COHORT, ENDPOINT, lang))
+  km_q_pdf <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_pdf")]],
+                        sprintf("FigS_KM_%s_%s_Quartis_CorePAM_%s.pdf", COHORT, ENDPOINT, lang))
+  km_q_png <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_png")]],
+                        sprintf("FigS_KM_%s_%s_Quartis_CorePAM_%s.png", COHORT, ENDPOINT, lang))
   cairo_pdf(km_q_pdf, width = 8, height = 6); print(km_plot_q); dev.off()
   png(km_q_png, width = 8, height = 6, units = "in", res = 600); print(km_plot_q); dev.off()
   registry_append(COHORT, sprintf("figure_km_quartile_%s", lang), km_q_pdf, sha256_file(km_q_pdf), "ok",
@@ -301,8 +303,11 @@ if (has_dss && all(c("os_time_months", "os_event") %in% names(df))) {
       ttl <- if (lang == "EN") "METABRIC — Sensitivity analysis using OS (primary endpoint: DSS)"
              else "METABRIC — Análise de sensibilidade usando OS (desfecho primário: DSS)"
       lbs <- if (lang == "EN") c("High risk", "Low risk") else c("Alto risco", "Baixo risco")
-      km_os_pdf <- file.path(supp_fig_dir, sprintf("FigS5_METABRIC_Sensitivity_%s.pdf", lang))
-      km_os_png <- file.path(supp_fig_dir, sprintf("FigS5_METABRIC_Sensitivity_%s.png", lang))
+      lang_lc   <- tolower(lang)
+      km_os_pdf <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_pdf")]],
+                             sprintf("FigS5_METABRIC_Sensitivity_%s.pdf", lang))
+      km_os_png <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_png")]],
+                             sprintf("FigS5_METABRIC_Sensitivity_%s.png", lang))
       km_os_p <- ggsurvplot(
         km_fit_os, data = df_os, risk.table = TRUE, pval = TRUE, conf.int = TRUE,
         palette = c(COL$km_high, COL$km_low),

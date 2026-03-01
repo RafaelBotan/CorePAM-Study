@@ -124,10 +124,11 @@ for (rdir in result_dirs) {
 # 6) Figures (PDF + PNG)
 # ---------------------------------------------------------------------------
 message("[18] Staging figures...")
-figure_dirs <- c(PATHS$figures$main, PATHS$figures$supp)
-for (fdir in figure_dirs) {
-  if (!dir.exists(fdir)) next
-  fig_files <- list.files(fdir, pattern = "\\.(pdf|png)$", full.names = TRUE)
+# Search all section/lang/ext subdirs for figures (new structured layout)
+figure_base_dirs <- c(PATHS$figures$main, PATHS$figures$supp, PATHS$figures$pcr)
+for (base in figure_base_dirs) {
+  if (!dir.exists(base)) next
+  fig_files <- list.files(base, pattern = "\\.(pdf|png)$", full.names = TRUE, recursive = TRUE)
   for (f in fig_files) record_file(f, "figures")
 }
 

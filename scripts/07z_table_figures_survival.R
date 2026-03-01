@@ -140,11 +140,9 @@ message("[", SCRIPT_NAME, "] XLSX: ", xlsx_path)
 # --------------------------------------------------------------------------
 # 5) PNG figure of the table (for validation)
 # --------------------------------------------------------------------------
-supp_fig_dir <- PATHS$figures$supp
-dir.create(supp_fig_dir, showWarnings = FALSE, recursive = TRUE)
-
 # Use base R table rendering via png + grid
-tbl_png <- file.path(supp_fig_dir, "FigT_Table3_Survival_Performance.png")
+# Table treated as figure → figures/supp/en/png/ (EN only; no bilingual table)
+tbl_png <- file.path(PATHS$figures$supp_en_png, "FigT_Table3_Survival_Performance.png")
 
 tryCatch({
   library(gridExtra)

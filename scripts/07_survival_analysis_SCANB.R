@@ -129,8 +129,7 @@ message(sprintf("[%s] Median follow-up (Reverse KM): %.1f months", SCRIPT_NAME, 
 # --------------------------------------------------------------------------
 # 5) KM: intra-cohort median (primary) + quartiles (sensitivity)
 # --------------------------------------------------------------------------
-fig_dir <- PATHS$figures$main
-dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
+# figures/{section}/{lang}/{ext}/ — dirs already created by 00_setup.R
 
 km_cutpoint <- median(df$score_z, na.rm = TRUE)
 df$risk_group_median <- ifelse(df$score_z >= km_cutpoint, "High", "Low")
@@ -166,8 +165,8 @@ km_plot_med$plot <- km_plot_med$plot +
                     label = km_hr_lbl,
                     hjust = 0, size = 3.0, colour = "grey20")
 
-km_pdf <- file.path(fig_dir, sprintf("Fig3_KM_%s_%s_CorePAM.pdf", COHORT, ENDPOINT))
-km_png <- file.path(fig_dir, sprintf("Fig3_KM_%s_%s_CorePAM.png", COHORT, ENDPOINT))
+km_pdf <- file.path(PATHS$figures$main_en_pdf, sprintf("Fig3_KM_%s_%s_CorePAM.pdf", COHORT, ENDPOINT))
+km_png <- file.path(PATHS$figures$main_en_png, sprintf("Fig3_KM_%s_%s_CorePAM.png", COHORT, ENDPOINT))
 
 old_warn <- getOption("warn"); options(warn = 0)
 pdf(km_pdf, width = 8, height = 6)
@@ -209,9 +208,7 @@ km_plot_q <- ggsurvplot(
 )
 options(warn = old_warn)
 
-supp_fig_dir <- PATHS$figures$supp
-dir.create(supp_fig_dir, showWarnings = FALSE, recursive = TRUE)
-km_q_pdf <- file.path(supp_fig_dir, sprintf("FigS_KM_%s_%s_Quartis_CorePAM.pdf", COHORT, ENDPOINT))
+km_q_pdf <- file.path(PATHS$figures$supp_en_pdf, sprintf("FigS_KM_%s_%s_Quartis_CorePAM.pdf", COHORT, ENDPOINT))
 
 old_warn <- getOption("warn"); options(warn = 0)
 pdf(km_q_pdf, width = 8, height = 6)

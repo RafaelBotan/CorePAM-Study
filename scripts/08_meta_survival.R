@@ -196,11 +196,8 @@ if (!is.null(loo_df)) {
 # --------------------------------------------------------------------------
 # 6) Forest plot — Fig4
 # --------------------------------------------------------------------------
-fig_dir <- PATHS$figures$main
-dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
-
-fp_pdf <- file.path(fig_dir, "Fig4_Meta_Forest_HR_per1SD_CorePAM.pdf")
-fp_png <- file.path(fig_dir, "Fig4_Meta_Forest_HR_per1SD_CorePAM.png")
+fp_pdf <- file.path(PATHS$figures$main_en_pdf, "Fig4_Meta_Forest_HR_per1SD_CorePAM.pdf")
+fp_png <- file.path(PATHS$figures$main_en_png, "Fig4_Meta_Forest_HR_per1SD_CorePAM.png")
 
 # Prepare data for manual forest plot with ggplot2
 plot_df <- all_res %>%

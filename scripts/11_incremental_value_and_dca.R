@@ -286,8 +286,7 @@ registry_append("ALL", "incremental_value", incr_path, h_incr, "ok", SCRIPT_NAME
 # --------------------------------------------------------------------------
 # 3) Figure Fig5 — Delta C-index per cohort
 # --------------------------------------------------------------------------
-fig_dir <- PATHS$figures$main
-dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
+# figure dirs created by 00_setup.R
 
 df_plot <- incr_df[!is.na(incr_df$delta_cindex), ]
 
@@ -317,8 +316,8 @@ if (nrow(df_plot) > 0) {
       plot.subtitle = element_text(size = 9)
     )
 
-  fig5_pdf <- file.path(fig_dir, "Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.pdf")
-  fig5_png <- file.path(fig_dir, "Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.png")
+  fig5_pdf <- file.path(PATHS$figures$main_en_pdf, "Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.pdf")
+  fig5_png <- file.path(PATHS$figures$main_en_png, "Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.png")
 
   old_warn <- getOption("warn"); options(warn = 0)
   pdf(fig5_pdf, width = 8, height = 5); print(p_delta); dev.off()
@@ -369,8 +368,8 @@ if (length(cal_files) > 0) {
         plot.subtitle   = element_text(size = 9)
       )
 
-    fig5b_pdf <- file.path(fig_dir, "Fig5_Calibration_60m_Panels_CorePAM.pdf")
-    fig5b_png <- file.path(fig_dir, "Fig5_Calibration_60m_Panels_CorePAM.png")
+    fig5b_pdf <- file.path(PATHS$figures$main_en_pdf, "Fig5_Calibration_60m_Panels_CorePAM.pdf")
+    fig5b_png <- file.path(PATHS$figures$main_en_png, "Fig5_Calibration_60m_Panels_CorePAM.png")
 
     old_warn <- getOption("warn"); options(warn = 0)
     pdf(fig5b_pdf, width = 10, height = 6); print(p_cal); dev.off()

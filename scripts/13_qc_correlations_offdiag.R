@@ -130,8 +130,7 @@ if (!requireNamespace("reshape2", quietly = TRUE)) {
   }))
 }
 
-supp_fig_dir <- PATHS$figures$supp
-dir.create(supp_fig_dir, showWarnings = FALSE, recursive = TRUE)
+# figure dirs created by 00_setup.R
 
 p_cor <- ggplot(cor_long, aes(x = Cohort_A, y = Cohort_B, fill = Spearman_rho)) +
   geom_tile(color = "white", linewidth = 0.5) +
@@ -155,8 +154,8 @@ p_cor <- ggplot(cor_long, aes(x = Cohort_A, y = Cohort_B, fill = Spearman_rho)) 
     plot.subtitle = element_text(color = "gray40")
   )
 
-figs3_pdf <- file.path(supp_fig_dir, "FigS3_Correlation_OffDiagonal.pdf")
-figs3_png <- file.path(supp_fig_dir, "FigS3_Correlation_OffDiagonal.png")
+figs3_pdf <- file.path(PATHS$figures$supp_en_pdf, "FigS3_Correlation_OffDiagonal.pdf")
+figs3_png <- file.path(PATHS$figures$supp_en_png, "FigS3_Correlation_OffDiagonal.png")
 
 old_warn <- getOption("warn"); options(warn = 0)
 pdf(figs3_pdf, width = 7, height = 6); print(p_cor); dev.off()

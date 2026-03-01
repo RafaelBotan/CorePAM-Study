@@ -38,17 +38,17 @@ if (!FORCE && file.exists(out_os) && file.exists(out_pcr)) {
   quit(save = "no", status = 0)
 }
 
-dir.create("results/supp",     showWarnings = FALSE, recursive = TRUE)
-dir.create(PATHS$figures$supp, showWarnings = FALSE, recursive = TRUE)
+dir.create("results/supp", showWarnings = FALSE, recursive = TRUE)
+# figure dirs created by 00_setup.R
 
 message(sprintf("[%s] DCA analysis for OS and pCR", SCRIPT_NAME))
 
 # --------------------------------------------------------------------------
-# Helper: save PDF + PNG
+# Helper: save PDF + PNG — bilingual (uses supp_en or supp_pt based on lang)
 # --------------------------------------------------------------------------
-save_fig <- function(p, name, w = 9, h = 6, dir = PATHS$figures$supp, dpi = 300) {
-  pdf_path <- file.path(dir, paste0(name, ".pdf"))
-  png_path <- file.path(dir, paste0(name, ".png"))
+save_fig <- function(p, name, w = 9, h = 6, lang = "en", dpi = 300) {
+  pdf_path <- file.path(PATHS$figures[[paste0("supp_", lang, "_pdf")]], paste0(name, ".pdf"))
+  png_path <- file.path(PATHS$figures[[paste0("supp_", lang, "_png")]], paste0(name, ".png"))
   old_warn <- getOption("warn"); options(warn = 0)
   tryCatch({
     cairo_pdf(pdf_path, width = w, height = h); print(p); dev.off()
@@ -255,8 +255,8 @@ if (length(dca_plots_os) >= 2) {
   p_os_en <- make_os_dca("EN")
   p_os_pt <- make_os_dca("PT")
 
-  save_fig(p_os_en, "FigS_DCA_OS_EN", w = 12, h = 9)
-  save_fig(p_os_pt, "FigS_DCA_OS_PT", w = 12, h = 9)
+  save_fig(p_os_en, "FigS_DCA_OS_EN", w = 12, h = 9, lang = "en")
+  save_fig(p_os_pt, "FigS_DCA_OS_PT", w = 12, h = 9, lang = "pt")
 } else {
   message(sprintf("[%s] Not enough OS cohorts for combined DCA figure (%d)", SCRIPT_NAME,
                   length(dca_plots_os)))
@@ -367,8 +367,8 @@ if (length(dca_plots_pcr) >= 2) {
   p_pcr_en <- make_pcr_dca("EN")
   p_pcr_pt <- make_pcr_dca("PT")
 
-  save_fig(p_pcr_en, "FigS_DCA_pCR_EN", w = 11, h = 8)
-  save_fig(p_pcr_pt, "FigS_DCA_pCR_PT", w = 11, h = 8)
+  save_fig(p_pcr_en, "FigS_DCA_pCR_EN", w = 11, h = 8, lang = "en")
+  save_fig(p_pcr_pt, "FigS_DCA_pCR_PT", w = 11, h = 8, lang = "pt")
 }
 
 # Save pCR DCA summary
