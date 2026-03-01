@@ -263,20 +263,20 @@ if (nrow(os_harm_df) >= 2) {
 main_dir <- PATHS$results$main
 dir.create(main_dir, showWarnings = FALSE, recursive = TRUE)
 
-# Helper: build a single row for meta_summary tibble
+# Helper: build a single row for meta_summary tibble (full precision)
 make_row <- function(analysis_name, rma_obj, k) {
   tibble(
     analysis     = analysis_name,
     n_cohorts    = k,
-    meta_logHR   = round(rma_obj$b[1], 6),
-    meta_HR      = round(exp(rma_obj$b[1]), 4),
-    meta_HR_lo95 = round(exp(rma_obj$ci.lb), 4),
-    meta_HR_hi95 = round(exp(rma_obj$ci.ub), 4),
-    p_value      = signif(rma_obj$pval, 4),
-    I2_pct       = round(rma_obj$I2, 2),
-    tau2         = round(rma_obj$tau2, 6),
-    Q_stat       = round(rma_obj$QE, 4),
-    Q_p          = signif(rma_obj$QEp, 4)
+    meta_logHR   = as.numeric(rma_obj$b[1]),
+    meta_HR      = exp(as.numeric(rma_obj$b[1])),
+    meta_HR_lo95 = exp(rma_obj$ci.lb),
+    meta_HR_hi95 = exp(rma_obj$ci.ub),
+    p_value      = rma_obj$pval,
+    I2_pct       = rma_obj$I2,
+    tau2         = rma_obj$tau2,
+    Q_stat       = rma_obj$QE,
+    Q_p          = rma_obj$QEp
   )
 }
 
@@ -293,6 +293,19 @@ readr::write_csv(meta_summary, meta_path)
 h_meta <- sha256_file(meta_path)
 registry_append("ALL", "meta_survival_summary", meta_path, h_meta, "ok", SCRIPT_NAME,
                 file.info(meta_path)$size / 1e6)
+
+# Save full-precision .rds with metafor objects for exact reproducibility
+meta_rds_path <- file.path(main_dir, "meta_survival_objects.rds")
+saveRDS(list(
+  meta_uni    = meta_uni,
+  meta_uni_hk = meta_uni_hk,
+  meta_multi  = meta_multi,
+  meta_os_harm = meta_os_harm,
+  val_res     = val_res
+), meta_rds_path)
+h_rds <- sha256_file(meta_rds_path)
+registry_append("ALL", "meta_survival_objects_rds", meta_rds_path, h_rds, "ok", SCRIPT_NAME,
+                file.info(meta_rds_path)$size / 1e6)
 
 # LOO output (leave-one-out)
 if (!is.null(loo_df)) {
