@@ -145,6 +145,32 @@ if (file.exists(pareto_path) && requireNamespace("ggplot2", quietly=TRUE)) {
 
 # 5. Validação (OS/DSS)
 
+## 5.0 Resumo dos Resultados Principais
+
+```{r main-results-summary}
+#| label: inline-results
+# Load main results and print inline key numbers
+tab3_path <- "results/main/Table3_Survival_Performance_ByCohort.csv"
+meta_path <- "results/main/meta_survival_summary.csv"
+incr_path <- "results/main/incremental_value_by_cohort.csv"
+
+if (file.exists(tab3_path) && file.exists(meta_path)) {
+  tab3 <- read_csv(tab3_path, show_col_types = FALSE)
+  meta <- read_csv(meta_path, show_col_types = FALSE)
+
+  # Extract RE meta row
+  re  <- meta[meta$analysis == "primary_validation_re", ]
+  if (nrow(re) == 0) re <- meta[1, ]
+
+  cat("### Tabela de Desempenho Prognóstico (Table 3)\n\n")
+  kable(tab3, caption = "Desempenho do CorePAM em coortes de treino e validação.")
+  cat(sprintf("\n**Meta-análise (RE, %d coortes):** HR = %.2f (IC95%% %.2f–%.2f), I² = %.1f%%\n",
+              re$n_cohorts, re$meta_HR, re$meta_HR_lo95, re$meta_HR_hi95, re$I2_pct))
+} else {
+  cat("Aguardando scripts 07z_table_figures_survival.R e 08_meta_survival.R.\n")
+}
+```
+
 ## 5.1 Resultados por Coorte
 
 > **Nota sobre TCGA-BRCA:** Esta coorte é estruturalmente diferente das demais.
@@ -212,7 +238,64 @@ if (file.exists(incr_path)) {
 }
 ```
 
-# 6. Controle de Qualidade
+# 6. Análise pCR — NACT (Bloco Secundário)
+
+> **Status:** análise secundária/exploratória. CorePAM aplicado com pesos congelados
+> (sem re-treino). Coortes: GSE25066 (N≈508), GSE20194 (N≈278), GSE32646 (N≈154),
+> I-SPY1/GSE22226 (N≈149, HGU133A). Meta-análise de log(OR) via efeitos aleatórios.
+
+## 6.1 Resultados por Coorte (pCR)
+
+```{r pcr-results-by-cohort}
+#| label: tbl-pcr-cohort
+#| tbl-cap: "CorePAM — associação com pCR por coorte (scripts 20–21)"
+pcr_res_path <- "results/pcr/pCR_results_by_cohort.csv"
+if (file.exists(pcr_res_path)) {
+  pcr_df <- read_csv(pcr_res_path, show_col_types = FALSE)
+  kable(
+    pcr_df |> select(cohort, n_total, n_pcr1, pcr_rate,
+                     or_uni, or_uni_lo_boot, or_uni_hi_boot, p_uni, auc),
+    digits  = 3,
+    col.names = c("Coorte","N","pCR","Taxa pCR","OR","IC95% inf (boot)",
+                  "IC95% sup (boot)","p","AUC"),
+    caption = "OR por 1 DP score_z. IC 95% bootstrap B=1000 (seed=42). AUC: DeLong."
+  )
+} else {
+  cat("Aguardando scripts 20_prepare_pCR_*.R e 21_pCR_logistic_analysis.R.\n")
+}
+```
+
+## 6.2 Meta-análise pCR (Efeitos Aleatórios)
+
+```{r pcr-meta}
+#| label: tbl-pcr-meta
+#| tbl-cap: "Meta-análise CorePAM → pCR (script 22)"
+meta_pcr_path <- "results/pcr/meta_pCR_results.csv"
+if (file.exists(meta_pcr_path)) {
+  meta_pcr <- read_csv(meta_pcr_path, show_col_types = FALSE)
+  kable(
+    meta_pcr |> select(model, estimator, k_cohorts,
+                       pooled_OR, pooled_OR_lo95, pooled_OR_hi95, p_pooled,
+                       I2_pct, tau2, p_heterogeneity),
+    digits = 3,
+    col.names = c("Modelo","Estimador","K coortes","OR pooled","IC95% inf",
+                  "IC95% sup","p","I² (%)","τ²","p_het")
+  )
+} else {
+  cat("Aguardando script 22_meta_pCR.R.\n")
+}
+```
+
+## 6.3 Figuras pCR
+
+```{r pcr-figs}
+#| eval: false
+# knitr::include_graphics("figures/main/Fig6_Forest_pCR_OR_EN.pdf")
+# knitr::include_graphics("figures/supp/FigS9_ROC_pCR_EN.pdf")
+# knitr::include_graphics("figures/supp/FigS10_ScoreDist_pCR_EN.pdf")
+```
+
+# 7. Controle de Qualidade
 
 ```{r qc-schema}
 qc_schema_path <- "results/supp/qc_schema_range_report.csv"
@@ -253,17 +336,73 @@ if (file.exists(pca_path)) {
 }
 ```
 
-# 7. Figuras e Tabelas (embutidas)
+# 8. Figuras Principais
 
-```{r fig-study-design}
-#| eval: false
-# knitr::include_graphics("figures/main/Fig1_StudyDesign_Freeze.pdf")
+```{r fig-pareto-main}
+#| label: fig-pareto-main
+#| fig-cap: "Fig 1A — Curva Pareto: df (nº genes) × C-index OOF (CorePAM)"
+#| out-width: "90%"
+f1a <- "figures/main/Fig1_Pareto_CorePAM_EN.png"
+if (file.exists(f1a)) knitr::include_graphics(f1a) else cat("Aguardando script 07x_extra_figures.R.\n")
 ```
 
-# 8. Declarações (pronto para periódico)
+```{r fig-lollipop}
+#| label: fig-lollipop
+#| fig-cap: "Fig 1B — Pesos CorePAM (lollipop; genes com peso ≠ 0)"
+#| out-width: "90%"
+f1b <- "figures/main/Fig1_Lollipop_Weights_CorePAM_EN.png"
+if (file.exists(f1b)) knitr::include_graphics(f1b) else cat("Aguardando script 07x_extra_figures.R.\n")
+```
+
+```{r fig-km-val}
+#| label: fig-km-val
+#| fig-cap: "Fig 2 — Curvas KM (validação): TCGA-BRCA OS | METABRIC DSS | GSE20685 OS"
+#| out-width: "100%"
+for (f in c("figures/main/Fig2_KM_TCGA_BRCA_OS_EN.png",
+            "figures/main/Fig2_KM_METABRIC_DSS_EN.png",
+            "figures/main/Fig2_KM_GSE20685_OS_EN.png")) {
+  if (file.exists(f)) knitr::include_graphics(f)
+}
+```
+
+```{r fig-km-scanb}
+#| label: fig-km-scanb
+#| fig-cap: "Fig 3 — KM SCAN-B (treino; ponto de corte mediana intra-coorte pré-especificado)"
+#| out-width: "80%"
+f3 <- "figures/main/Fig3_KM_SCANB_OS_CorePAM.png"
+if (file.exists(f3)) knitr::include_graphics(f3) else cat("Aguardando script 07_survival_analysis_SCANB.R.\n")
+```
+
+```{r fig-forest-meta}
+#| label: fig-forest-meta
+#| fig-cap: "Fig 4 — Forest plot: HR por 1 DP score_z com estimativas pooled RE e FE"
+#| out-width: "100%"
+f4 <- "figures/main/Fig4_Meta_Forest_HR_per1SD_CorePAM.png"
+if (file.exists(f4)) knitr::include_graphics(f4) else cat("Aguardando script 07x_extra_figures.R.\n")
+```
+
+```{r fig-incremental}
+#| label: fig-incremental
+#| fig-cap: "Fig 5 — Valor incremental (ΔC-index) e calibração por coorte"
+#| out-width: "100%"
+for (f in c("figures/main/Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.png",
+            "figures/main/Fig5_Calibration_60m_Panels_CorePAM.png")) {
+  if (file.exists(f)) knitr::include_graphics(f)
+}
+```
+
+```{r fig-pcr-forest}
+#| label: fig-pcr-forest
+#| fig-cap: "Fig 6 — Forest plot OR pCR (NACT): CorePAM score_z por 1 DP (meta-análise)"
+#| out-width: "100%"
+f6 <- "figures/main/Fig6_Forest_pCR_OR_EN.png"
+if (file.exists(f6)) knitr::include_graphics(f6) else cat("Aguardando script 23_pCR_figures.R.\n")
+```
+
+# 9. Declarações (pronto para periódico)
 
 - **Aprovação ética:** dados públicos (GEO, GDC, cBioPortal) — dispensa aprovação ética específica
 - **Disponibilidade de dados:** todos os dados brutos disponíveis publicamente nos repositórios citados
-- **Código:** disponível em repositório GitHub (link a confirmar)
+- **Código:** disponível em <https://github.com/RafaelBotan/Phd-Genomic/tree/main>
 - **Conflito de interesses:** nenhum declarado
-- **Financiamento:** a confirmar
+- **Financiamento:** pelos próprios autores (sem financiamento externo)

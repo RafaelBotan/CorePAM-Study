@@ -38,5 +38,17 @@ Perguntas dos revisoes.docx
 # Estado interno do Claude
 .claude/
 
-# Logs de execução
-logs/*.log
+# Logs de execução e scripts temporários de diagnóstico
+logs/
+
+# Documentos de trabalho interno (não relevantes para revisores)
+# Somente scripts, QMD, figuras finais, resultados CSV, CLAUDE.md e Memorial devem
+# ser versionados. Checklists, notas de sessão e rascunhos ficam apenas locais.
+SESSION_NOTES.md
+METHODS_DRAFT.md
+RESULTS_SUMMARY.md
+ERRORS_LOG.md
+CHECKLIST_MASTER_*.md
+FIGURES_TABLES_PLAN_*.md
+SCRIPTS_PLAN_*.md
+01_docs/REVIEWER_RESPONSE_LETTER.md

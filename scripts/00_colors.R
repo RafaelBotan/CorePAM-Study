@@ -29,12 +29,19 @@ COL <- list(
   km_q3      = "#FC8D59",   # Q3
   km_q4      = "#D73027",   # Q4 (pior)
 
-  # ── Coortes ───────────────────────────────────────────────────────────────
+  # ── Coortes OS ────────────────────────────────────────────────────────────
   scanb      = "#2166AC",   # Azul     — SCAN-B (treino)
   tcga       = "#1A9850",   # Verde    — TCGA-BRCA
   metabric   = "#D73027",   # Vermelho — METABRIC
   gse20685   = "#756BB1",   # Roxo     — GSE20685
   summary    = "#252525",   # Preto    — diamante de meta-análise / resumo
+
+  # ── Coortes pCR (NACT block) ──────────────────────────────────────────────
+  gse25066   = "#E6550D",   # Laranja escuro — GSE25066 (Hatzis 2011, N=508)
+  gse20194   = "#31A354",   # Verde médio    — GSE20194 (Mina, N=278)
+  gse32646   = "#3182BD",   # Azul médio     — GSE32646 (Tabchy, N=154)
+  ispy1      = "#756BB1",   # Roxo           — I-SPY1 / GSE22226 (N=149)
+  ispy2      = "#BCBD22",   # Oliva          — I-SPY2 (conditional)
 
   # ── Subtipos PAM50 ────────────────────────────────────────────────────────
   lumA       = "#2166AC",   # Azul

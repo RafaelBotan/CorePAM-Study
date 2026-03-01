@@ -89,6 +89,13 @@ Y:/Phd-Genomic-claude/          ← ROOT_REPO (working directory)
 16_qc_text_vs_results_assert.R      ← anti hard-code hard-fail
 17_render_manuscript_quarto.R       ← render QMD final
 18_make_submission_bundle.R         ← bundle reexecutável
+
+# pCR block (NACT — análise secundária, separada do bloco OS)
+19_download_pCR_raw_data.R          ← download GEO: GSE25066, GSE20194, GSE32646, GSE22226
+20_prepare_pCR_<COHORT>.R           ← harmonize + preprocess + Z-score + CorePAM score (4 scripts)
+21_pCR_logistic_analysis.R          ← glm(pcr ~ score_z) + AUC + bootstrap OR CI por coorte
+22_meta_pCR.R                       ← meta-análise RE/FE de log(OR)
+23_pCR_figures.R                    ← Fig6 forest + FigS9 ROC + FigS10 distribuição
 ```
 
 ## Helpers disponíveis (carregados via 00_setup.R)
@@ -140,12 +147,12 @@ Se HR(score) < 1 → inverter sinal; registrar `score_direction = -1`.
   ```
 - **Error logging:** Before fixing any script error, append entry to `ERRORS_LOG.md`
   with: date, script, error text, root cause, solution.
-- **Results summary:** After each analysis, append 3-line summary to `RESULTS_SUMMARY.md`:
-  line 1 = date + script, line 2 = key numbers, line 3 = status + next step.
-- **Methods draft:** After finishing each script, append an academic Portuguese paragraph
-  to `METHODS_DRAFT.md` describing the methodology implemented.
-- **Session notes:** At end of each session, create/update `SESSION_NOTES.md` with
-  what was done, what works, and what's pending. Commit and push automatically.
+  (Note: ERRORS_LOG.md, SESSION_NOTES.md, METHODS_DRAFT.md, RESULTS_SUMMARY.md are
+   local-only files — they are in .gitignore and should NOT be committed to git.)
+- **Results summary:** After each analysis, append 3-line summary to `RESULTS_SUMMARY.md`.
+- **Methods draft:** After finishing each script, append academic Portuguese paragraph
+  to `METHODS_DRAFT.md` (kept local only).
+- **Session notes:** At end of session update `SESSION_NOTES.md` (local only; not committed).
 
 ## Support files
 
@@ -180,6 +187,12 @@ Se HR(score) < 1 → inverter sinal; registrar `score_direction = -1`.
 | 16_qc_text_vs_results_assert.R | Complete |
 | 17_render_manuscript_quarto.R | Complete |
 | 18_make_submission_bundle.R | Complete |
+| 19_download_pCR_raw_data.R | Complete (pCR block — requires internet) |
+| 20_prepare_pCR_*.R | Complete (4 cohorts: GSE25066, GSE20194, GSE32646, ISPY1) |
+| 20_utils_pcr_extract.R | Complete (shared pCR helper) |
+| 21_pCR_logistic_analysis.R | Complete |
+| 22_meta_pCR.R | Complete |
+| 23_pCR_figures.R | Complete (Fig6, FigS9, FigS10) |
 
 ## Git
 

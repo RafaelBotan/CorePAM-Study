@@ -29,7 +29,8 @@ PATHS <- list(
     corepam    = file.path(ROOT_REPO, "results", "corepam"),
     corepam_os = file.path(ROOT_REPO, "results", "corepam_os"),
     main       = file.path(ROOT_REPO, "results", "main"),
-    supp       = file.path(ROOT_REPO, "results", "supp")
+    supp       = file.path(ROOT_REPO, "results", "supp"),
+    pcr        = file.path(ROOT_REPO, "results", "pcr")
   ),
   figures = list(
     main   = file.path(ROOT_REPO, "figures", "main"),
@@ -40,9 +41,13 @@ PATHS <- list(
   run_registry = file.path(ROOT_REPO, "registry", "study_registry.csv")
 )
 
-# Cohort path helpers
+# Cohort path helpers — OS block
 raw_cohort    <- function(cohort) file.path(PATHS$raw, cohort)
 proc_cohort   <- function(cohort) file.path(PATHS$processed, cohort)
+
+# Cohort path helpers — pCR block (separate sub-tree under RAW/pCR/ and PROCESSED/pCR/)
+raw_pcr_cohort  <- function(cohort) file.path(PATHS$raw,       "pCR", cohort)
+proc_pcr_cohort <- function(cohort) file.path(PATHS$processed, "pCR", cohort)
 
 # --------------------------------------------------------------------------
 # 2) STRICT I/O — warning = error (required; Memorial v6.1 §1.4 / §9.1)
@@ -152,7 +157,7 @@ registry_append <- function(cohort, file_type, file_path, sha256,
   PATHS$docs, PATHS$registry_docs,
   PATHS$scripts,
   PATHS$results$corepam, PATHS$results$corepam_os,
-  PATHS$results$main,    PATHS$results$supp,
+  PATHS$results$main,    PATHS$results$supp,  PATHS$results$pcr,
   PATHS$figures$main,    PATHS$figures$supp,
   PATHS$figures$artigo,  PATHS$figures$tese,
   dirname(PATHS$run_registry)

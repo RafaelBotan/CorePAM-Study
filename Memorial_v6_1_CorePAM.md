@@ -76,9 +76,22 @@ Validar o **Core-PAM Risk Score** em coortes independentes, demonstrando:
 - Sobreposição entre treino e validação: proibida. A regra leakage-proof aplica-se agora entre SCAN-B e as coortes de validação externas (TCGA-BRCA, METABRIC, GSE20685).
 - Deduplicação determinística: cruzamento por Patient_ID + Sample_Barcode (ou chave equivalente) entre SCAN-B e cada coorte de validação.
 
-### 3.3 Bloco NACT/pCR (secundário)
-- GSE25066, GSE20194, GSE32646, I-SPY1 e I-SPY2 (pendente).  
-- pCR não interfere no bloco prognóstico: scripts, outputs e manuscrito podem ser separados.
+### 3.3 Bloco NACT/pCR (secundário — implementado em scripts 19–23)
+- **Coortes:** GSE25066 (N≈508, HGU133Plus2), GSE20194 (N≈278, HGU133Plus2),
+  GSE32646 (N≈154, HGU133Plus2), I-SPY1/GSE22226 (N≈149, HGU133A).
+- **Scripts:**
+  - `19_download_pCR_raw_data.R` — download GEO series matrices (idempotente)
+  - `20_prepare_pCR_<COHORT>.R` — harmonize clínica + preprocess expressão + Z-score + score por coorte
+  - `21_pCR_logistic_analysis.R` — glm(pcr ~ score_z) + AUC DeLong + bootstrap OR
+  - `22_meta_pCR.R` — meta-análise RE (DerSimonian-Laird) + FE (IVW) de log(OR)
+  - `23_pCR_figures.R` — Fig6 (forest OR), FigS9 (ROC), FigS10 (distribuição por status)
+- **Regras:**
+  - Pesos CorePAM CONGELADOS — sem re-treino nas coortes pCR
+  - Z-score intra-coorte (mesmo protocolo do bloco OS)
+  - Sem pooling de expressão entre coortes
+  - Direção: OR reportado conforme calculado (sem inversão para pCR)
+  - I-SPY1 usa HGU133A (coverage ≥80% obrigatório)
+- pCR não interfere no bloco prognóstico: scripts, outputs e manuscrito separados.
 
 ---
 
@@ -157,14 +170,21 @@ score=rac{\sum_{i \in G_{present}} w_i \cdot z_i}{\sum_{i \in G_{present}} |w_i
 
 ## 7) Endpoints (regras fechadas)
 
-### 7.1 OS
-- event=1 óbito por qualquer causa; 0 censura.  
+### 7.1 OS (Bloco Prognóstico)
+- event=1 óbito por qualquer causa; 0 censura.
 - tempo em meses.
 
-### 7.2 DSS/BCSS (referência METABRIC)
-- `dss_time = OS_time`.  
-- `dss_event=1` somente causa câncer; demais = censura no tempo do óbito.  
-- Sensibilidade: competing risks (Fine–Gray) quando aplicável.
+### 7.2 DSS/BCSS — **METABRIC endpoint PRIMÁRIO** (OS = sensibilidade)
+- **METABRIC:** `dss_event=1` somente para óbitos por câncer de mama; demais = censura.
+- `dss_time = OS_time` (mesmo tempo, só o event code difere).
+- OS como análise de sensibilidade (FigS5).
+- Sensibilidade adicional: competing risks (Fine–Gray) quando aplicável.
+
+### 7.3 pCR — Bloco NACT (secundário)
+- Endpoint binário: pCR = 1 (resposta patológica completa); RD = 0 (doença residual).
+- Obtido de GEO pData por detecção automática de coluna (padrões: "pCR", "pathologic
+  complete response", "RD", "residual disease").
+- Análise: glm(pcr ~ score_z, family=binomial); OR + IC 95% bootstrap B=1000; AUC DeLong.
 
 ---
 
@@ -208,8 +228,21 @@ score=rac{\sum_{i \in G_{present}} w_i \cdot z_i}{\sum_{i \in G_{present}} |w_i
 ---
 
 ## 10) Deliverables finais (prova auditável)
-- `registry/study_registry.csv`  
-- `cohort_manifest.csv`  
-- `analysis_freeze.csv`  
-- `results/corepam/` (pareto + pesos + modelo + training card + hashes)  
-- `results/corepam_os/` (resultados por coorte + meta + figuras principais/suplementares)
+
+### Bloco Prognóstico (OS/DSS)
+- `registry/study_registry.csv`
+- `01_docs/registry/analysis_freeze.csv`
+- `results/corepam/` (pareto + pesos + modelo + training card + hashes)
+- `results/main/` (Table3, meta, incremental value)
+- `results/supp/` (survival per cohort, calibration, QC)
+- `figures/main/` (Fig1–Fig5, bilingual EN+PT)
+- `figures/supp/` (FigS1–FigS8, bilingual)
+
+### Bloco pCR (NACT — secundário)
+- `results/pcr/pCR_results_by_cohort.csv`
+- `results/pcr/meta_pCR_results.csv`
+- `results/pcr/meta_pCR_cohort_weights.csv`
+- `figures/main/Fig6_Forest_pCR_OR_[EN|PT].pdf`
+- `figures/supp/FigS9_ROC_pCR_[EN|PT].pdf`
+- `figures/supp/FigS10_ScoreDist_pCR_[EN|PT].pdf`
+- `01_Base_Pura_CorePAM/PROCESSED/pCR/<COHORT>/analysis_ready.parquet` (local, gitignored)
