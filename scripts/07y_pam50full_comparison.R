@@ -79,7 +79,7 @@ compute_score <- function(z_mat, named_weights) {
 # --------------------------------------------------------------------------
 # Helper: bootstrap C-index (Harrell, adjusted so C >= 0.5)
 # --------------------------------------------------------------------------
-bootstrap_cindex <- function(time, event, score_z, n_boot = 500, seed = 42) {
+bootstrap_cindex <- function(time, event, score_z, n_boot = as.integer(FREEZE$bootstrap_n), seed = 42) {
   set.seed(seed)
   n     <- length(time)
   cvals <- numeric(n_boot)
@@ -377,8 +377,8 @@ for (cohort in names(cohort_config)) {
                   res_pf$hr, res_pf$lo, res_pf$hi, res_pf$p))
 
   # --- C-index ---
-  ci_cp <- bootstrap_cindex(time_vec, event_vec, score_corepam_z,  n_boot = 500)
-  ci_pf <- bootstrap_cindex(time_vec, event_vec, score_pam50full_z, n_boot = 500)
+  ci_cp <- bootstrap_cindex(time_vec, event_vec, score_corepam_z,  n_boot = as.integer(FREEZE$bootstrap_n))
+  ci_pf <- bootstrap_cindex(time_vec, event_vec, score_pam50full_z, n_boot = as.integer(FREEZE$bootstrap_n))
   message(sprintf("[%s] %s CorePAM C-index = %.4f (%.4f–%.4f)",
                   SCRIPT_NAME, cohort, ci_cp$c_index, ci_cp$ci_low, ci_cp$ci_high))
   message(sprintf("[%s] %s PAM50full C-index = %.4f (%.4f–%.4f)",

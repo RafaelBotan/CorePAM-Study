@@ -86,6 +86,29 @@ message(sprintf("[%s] Meta HR uni = %.3f (%.3f-%.3f) | I2=%.1f%% | tau2=%.4f | p
                 meta_uni$tau2,
                 meta_uni$pval))
 
+# Hartung-Knapp (HK) sensitivity — more conservative CIs when I² > 0
+old_warn <- getOption("warn"); options(warn = 0)
+meta_uni_hk <- tryCatch(
+  rma(yi = loghr_uni, sei = se_loghr_uni, data = all_res, method = "REML", test = "knha"),
+  error = function(e) {
+    message(sprintf("[%s] HK REML failed; trying DL: %s", SCRIPT_NAME, e$message))
+    tryCatch(
+      rma(yi = loghr_uni, sei = se_loghr_uni, data = all_res, method = "DL", test = "knha"),
+      error = function(e2) { message(sprintf("[%s] HK failed: %s", SCRIPT_NAME, e2$message)); NULL }
+    )
+  }
+)
+options(warn = old_warn)
+
+if (!is.null(meta_uni_hk)) {
+  message(sprintf("[%s] HK sensitivity HR = %.3f (%.3f-%.3f) | p=%.4g",
+                  SCRIPT_NAME,
+                  exp(meta_uni_hk$b[1]),
+                  exp(meta_uni_hk$ci.lb),
+                  exp(meta_uni_hk$ci.ub),
+                  meta_uni_hk$pval))
+}
+
 # --------------------------------------------------------------------------
 # 3) Random-effects meta-analysis — multivariate CORE-A (when available)
 # --------------------------------------------------------------------------
@@ -155,27 +178,57 @@ if (!is.null(loo_uni)) {
 main_dir <- PATHS$results$main
 dir.create(main_dir, showWarnings = FALSE, recursive = TRUE)
 
+# Build rows: primary RE, HK sensitivity, optional CORE-A multivariate
+hk_rows <- if (!is.null(meta_uni_hk)) {
+  list(
+    analysis     = "primary_validation_re_hk",
+    n_cohorts    = nrow(all_res),
+    meta_logHR   = round(meta_uni_hk$b[1], 6),
+    meta_HR      = round(exp(meta_uni_hk$b[1]), 4),
+    meta_HR_lo95 = round(exp(meta_uni_hk$ci.lb), 4),
+    meta_HR_hi95 = round(exp(meta_uni_hk$ci.ub), 4),
+    p_value      = signif(meta_uni_hk$pval, 4),
+    I2_pct       = round(meta_uni_hk$I2, 2),
+    tau2         = round(meta_uni_hk$tau2, 6),
+    Q_stat       = round(meta_uni_hk$QE, 4),
+    Q_p          = signif(meta_uni_hk$QEp, 4)
+  )
+} else NULL
+
 meta_summary <- tibble(
-  analysis        = c("univariate", if (!is.null(meta_multi)) "CORE-A_multivariate" else character(0)),
-  n_cohorts       = c(nrow(all_res), if (!is.null(meta_multi)) nrow(df_m) else integer(0)),
-  meta_logHR      = c(round(meta_uni$b[1], 6),
-                      if (!is.null(meta_multi)) round(meta_multi$b[1], 6) else numeric(0)),
-  meta_HR         = c(round(exp(meta_uni$b[1]), 4),
-                      if (!is.null(meta_multi)) round(exp(meta_multi$b[1]), 4) else numeric(0)),
-  meta_HR_lo95    = c(round(exp(meta_uni$ci.lb), 4),
-                      if (!is.null(meta_multi)) round(exp(meta_multi$ci.lb), 4) else numeric(0)),
-  meta_HR_hi95    = c(round(exp(meta_uni$ci.ub), 4),
-                      if (!is.null(meta_multi)) round(exp(meta_multi$ci.ub), 4) else numeric(0)),
-  p_value         = c(signif(meta_uni$pval, 4),
-                      if (!is.null(meta_multi)) signif(meta_multi$pval, 4) else numeric(0)),
-  I2_pct          = c(round(meta_uni$I2, 2),
-                      if (!is.null(meta_multi)) round(meta_multi$I2, 2) else numeric(0)),
-  tau2            = c(round(meta_uni$tau2, 6),
-                      if (!is.null(meta_multi)) round(meta_multi$tau2, 6) else numeric(0)),
-  Q_stat          = c(round(meta_uni$QE, 4),
-                      if (!is.null(meta_multi)) round(meta_multi$QE, 4) else numeric(0)),
-  Q_p             = c(signif(meta_uni$QEp, 4),
-                      if (!is.null(meta_multi)) signif(meta_multi$QEp, 4) else numeric(0))
+  analysis     = c("primary_validation_re",
+                   if (!is.null(hk_rows))    "primary_validation_re_hk"   else character(0),
+                   if (!is.null(meta_multi)) "CORE-A_multivariate"        else character(0)),
+  n_cohorts    = c(nrow(all_res),
+                   if (!is.null(hk_rows))    nrow(all_res)                else integer(0),
+                   if (!is.null(meta_multi)) nrow(df_m)                   else integer(0)),
+  meta_logHR   = c(round(meta_uni$b[1], 6),
+                   if (!is.null(hk_rows))    hk_rows$meta_logHR           else numeric(0),
+                   if (!is.null(meta_multi)) round(meta_multi$b[1], 6)    else numeric(0)),
+  meta_HR      = c(round(exp(meta_uni$b[1]), 4),
+                   if (!is.null(hk_rows))    hk_rows$meta_HR              else numeric(0),
+                   if (!is.null(meta_multi)) round(exp(meta_multi$b[1]), 4) else numeric(0)),
+  meta_HR_lo95 = c(round(exp(meta_uni$ci.lb), 4),
+                   if (!is.null(hk_rows))    hk_rows$meta_HR_lo95         else numeric(0),
+                   if (!is.null(meta_multi)) round(exp(meta_multi$ci.lb), 4) else numeric(0)),
+  meta_HR_hi95 = c(round(exp(meta_uni$ci.ub), 4),
+                   if (!is.null(hk_rows))    hk_rows$meta_HR_hi95         else numeric(0),
+                   if (!is.null(meta_multi)) round(exp(meta_multi$ci.ub), 4) else numeric(0)),
+  p_value      = c(signif(meta_uni$pval, 4),
+                   if (!is.null(hk_rows))    hk_rows$p_value              else numeric(0),
+                   if (!is.null(meta_multi)) signif(meta_multi$pval, 4)   else numeric(0)),
+  I2_pct       = c(round(meta_uni$I2, 2),
+                   if (!is.null(hk_rows))    hk_rows$I2_pct               else numeric(0),
+                   if (!is.null(meta_multi)) round(meta_multi$I2, 2)      else numeric(0)),
+  tau2         = c(round(meta_uni$tau2, 6),
+                   if (!is.null(hk_rows))    hk_rows$tau2                 else numeric(0),
+                   if (!is.null(meta_multi)) round(meta_multi$tau2, 6)    else numeric(0)),
+  Q_stat       = c(round(meta_uni$QE, 4),
+                   if (!is.null(hk_rows))    hk_rows$Q_stat               else numeric(0),
+                   if (!is.null(meta_multi)) round(meta_multi$QE, 4)      else numeric(0)),
+  Q_p          = c(signif(meta_uni$QEp, 4),
+                   if (!is.null(hk_rows))    hk_rows$Q_p                  else numeric(0),
+                   if (!is.null(meta_multi)) signif(meta_multi$QEp, 4)    else numeric(0))
 )
 
 meta_path <- file.path(main_dir, "meta_survival_summary.csv")
