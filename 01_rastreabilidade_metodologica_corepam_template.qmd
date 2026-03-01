@@ -210,12 +210,17 @@ if (length(surv_files_exist) > 0) {
 meta_path <- "results/main/meta_survival_summary.csv"
 if (file.exists(meta_path)) {
   meta <- read_csv(meta_path, show_col_types = FALSE)
+  re_row <- meta[meta$analysis == "primary_validation_re", ]
+  i2_label <- if (nrow(re_row) > 0) sprintf("%.1f%%", re_row$I2_pct[1]) else "ver tabela"
   kable(meta |> select(analysis, n_cohorts, meta_HR, meta_HR_lo95, meta_HR_hi95,
                         p_value, I2_pct, tau2),
         digits = 3,
         col.names = c("Análise","N coortes","Meta HR","IC95% inf","IC95% sup",
                       "p","I² (%)","τ²"),
-        caption = "Método REML; fallback para DL em caso de não-convergência. I²=90.6% esperado em estudo multi-plataforma (RNA-seq + 2 microarray).")
+        caption = sprintf(
+          "Método REML; fallback para DL em caso de não-convergência. I²=%s (RE primário) — heterogeneidade esperada em estudo multi-plataforma (RNA-seq + 2 microarray).",
+          i2_label
+        ))
 } else {
   cat("Aguardando script 08_meta_survival.R.\n")
 }
@@ -290,9 +295,9 @@ if (file.exists(meta_pcr_path)) {
 
 ```{r pcr-figs}
 #| eval: false
-# knitr::include_graphics("figures/main/Fig6_Forest_pCR_OR_EN.pdf")
-# knitr::include_graphics("figures/supp/FigS9_ROC_pCR_EN.pdf")
-# knitr::include_graphics("figures/supp/FigS10_ScoreDist_pCR_EN.pdf")
+# knitr::include_graphics("figures/pcr/en/pdf/Fig_pCR1_Forest_OR_EN.pdf")
+# knitr::include_graphics("figures/pcr/en/pdf/Fig_pCR2_ROC_EN.pdf")
+# knitr::include_graphics("figures/pcr/en/pdf/Fig_pCR4_ScoreDist_EN.pdf")
 ```
 
 # 7. Controle de Qualidade
@@ -340,17 +345,17 @@ if (file.exists(pca_path)) {
 
 ```{r fig-pareto-main}
 #| label: fig-pareto-main
-#| fig-cap: "Fig 1A — Curva Pareto: df (nº genes) × C-index OOF (CorePAM)"
+#| fig-cap: "Fig S1 — Curva Pareto: df (nº genes) × C-index OOF (CorePAM)"
 #| out-width: "90%"
-f1a <- "figures/main/Fig1_Pareto_CorePAM_EN.png"
+f1a <- "figures/supp/en/png/FigS_Pareto_CorePAM_EN.png"
 if (file.exists(f1a)) knitr::include_graphics(f1a) else cat("Aguardando script 07x_extra_figures.R.\n")
 ```
 
 ```{r fig-lollipop}
 #| label: fig-lollipop
-#| fig-cap: "Fig 1B — Pesos CorePAM (lollipop; genes com peso ≠ 0)"
+#| fig-cap: "Fig S2 — Pesos CorePAM (lollipop; genes com peso ≠ 0)"
 #| out-width: "90%"
-f1b <- "figures/main/Fig1_Lollipop_Weights_CorePAM_EN.png"
+f1b <- "figures/supp/en/png/FigS_Weights_CorePAM_Lollipop.png"
 if (file.exists(f1b)) knitr::include_graphics(f1b) else cat("Aguardando script 07x_extra_figures.R.\n")
 ```
 
@@ -358,9 +363,9 @@ if (file.exists(f1b)) knitr::include_graphics(f1b) else cat("Aguardando script 0
 #| label: fig-km-val
 #| fig-cap: "Fig 2 — Curvas KM (validação): TCGA-BRCA OS | METABRIC DSS | GSE20685 OS"
 #| out-width: "100%"
-for (f in c("figures/main/Fig2_KM_TCGA_BRCA_OS_EN.png",
-            "figures/main/Fig2_KM_METABRIC_DSS_EN.png",
-            "figures/main/Fig2_KM_GSE20685_OS_EN.png")) {
+for (f in c("figures/main/en/png/Fig2_KM_TCGA_BRCA_OS_EN.png",
+            "figures/main/en/png/Fig2_KM_METABRIC_DSS_EN.png",
+            "figures/main/en/png/Fig2_KM_GSE20685_OS_EN.png")) {
   if (file.exists(f)) knitr::include_graphics(f)
 }
 ```
@@ -369,7 +374,7 @@ for (f in c("figures/main/Fig2_KM_TCGA_BRCA_OS_EN.png",
 #| label: fig-km-scanb
 #| fig-cap: "Fig 3 — KM SCAN-B (treino; ponto de corte mediana intra-coorte pré-especificado)"
 #| out-width: "80%"
-f3 <- "figures/main/Fig3_KM_SCANB_OS_CorePAM.png"
+f3 <- "figures/main/en/png/Fig3_KM_SCANB_OS_CorePAM.png"
 if (file.exists(f3)) knitr::include_graphics(f3) else cat("Aguardando script 07_survival_analysis_SCANB.R.\n")
 ```
 
@@ -377,16 +382,16 @@ if (file.exists(f3)) knitr::include_graphics(f3) else cat("Aguardando script 07_
 #| label: fig-forest-meta
 #| fig-cap: "Fig 4 — Forest plot: HR por 1 DP score_z com estimativas pooled RE e FE"
 #| out-width: "100%"
-f4 <- "figures/main/Fig4_Meta_Forest_HR_per1SD_CorePAM.png"
-if (file.exists(f4)) knitr::include_graphics(f4) else cat("Aguardando script 07x_extra_figures.R.\n")
+f4 <- "figures/main/en/png/Fig4_Meta_Forest_HR_per1SD_CorePAM.png"
+if (file.exists(f4)) knitr::include_graphics(f4) else cat("Aguardando script 08_meta_survival.R.\n")
 ```
 
 ```{r fig-incremental}
 #| label: fig-incremental
 #| fig-cap: "Fig 5 — Valor incremental (ΔC-index) e calibração por coorte"
 #| out-width: "100%"
-for (f in c("figures/main/Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.png",
-            "figures/main/Fig5_Calibration_60m_Panels_CorePAM.png")) {
+for (f in c("figures/main/en/png/Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.png",
+            "figures/main/en/png/Fig5_Calibration_60m_Panels_CorePAM.png")) {
   if (file.exists(f)) knitr::include_graphics(f)
 }
 ```
@@ -395,7 +400,7 @@ for (f in c("figures/main/Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.png",
 #| label: fig-pcr-forest
 #| fig-cap: "Fig 6 — Forest plot OR pCR (NACT): CorePAM score_z por 1 DP (meta-análise)"
 #| out-width: "100%"
-f6 <- "figures/main/Fig6_Forest_pCR_OR_EN.png"
+f6 <- "figures/pcr/en/png/Fig_pCR1_Forest_OR_EN.png"
 if (file.exists(f6)) knitr::include_graphics(f6) else cat("Aguardando script 23_pCR_figures.R.\n")
 ```
 
