@@ -346,3 +346,65 @@ Inline `-e` mode may also be more sensitive to this on Windows.
 ---
 
 <!-- Add new errors below this line, most recent first -->
+
+## 2026-02-28 | 07_survival_analysis_SCANB.R | C-index wrong + wrong time column
+
+**Script:** `07_survival_analysis_SCANB.R`
+**Errors:**
+1. `Error: all(c(time_col, event_col, "score_z") %in% names(df)) is not TRUE`
+   — time_col was "os_time" but actual column is "os_time_months"
+2. C-index reported as 0.3022 (< 0.5 = score inverted) instead of Cadj = 0.6978
+   — bootstrap_cindex did NOT apply `max(c_raw, 1 - c_raw)` (sign-invariant Cadj)
+   — All other 07_survival_analysis scripts use Cadj; SCANB was inconsistent
+**Root cause:** Script was created from template without matching column name and without
+   the Cadj correction applied in TCGA/METABRIC/GSE20685 scripts.
+**Solution:** 
+1. Changed `time_col <- "os_time"` → `time_col <- "os_time_months"`
+2. Updated bootstrap_cindex() in SCANB script to use `max(c_raw, 1 - c_raw)` and
+   `max(cx_raw, 1 - cx_raw)` in bootstrap loop (matching other scripts)
+
+## 2026-02-28 | 08_meta_survival.R | geom_errorbarh deprecated in ggplot2 4.0.0
+
+**Script:** `08_meta_survival.R`
+**Error:**
+```
+Error: (converted from warning) `geom_errorbarh()` was deprecated in ggplot2 4.0.0.
+ℹ Please use the `orientation` argument of `geom_errorbar()` instead.
+```
+**Root cause:** ggplot2 4.0.0 deprecated `geom_errorbarh()`. With `warn=2`, this becomes fatal.
+**Solution:** Replace `geom_errorbarh(aes(xmin=..., xmax=...))` with
+  `geom_errorbar(aes(xmin=..., xmax=...), orientation="y")`
+
+## 2026-02-28 | 11_incremental_value_and_dca.R | wrong time column names
+
+**Script:** `11_incremental_value_and_dca.R`
+**Error:** All cohorts skipped with "essential columns missing"
+**Root cause:** ENDPOINT_MAP uses `os_time`/`dss_time` but actual parquet columns are
+  `os_time_months`/`dss_time_months`. Fallback also uses `os_time`.
+**Solution:** Fix ENDPOINT_MAP and fallback to use `_months` suffix.
+  Also fix `geom_errorbarh()` → `geom_errorbar(orientation="y")` (ggplot2 4.0.0 deprecation).
+
+## 2026-02-28 | 11_incremental_value_and_dca.R | concordance(~matrix) returns vector
+
+**Script:** `11_incremental_value_and_dca.R`
+**Error:**
+```
+Error in c_full - c_base : longer object length is not a multiple of shorter object length
+```
+**Root cause:** `concordance(Surv ~ matrix)$concordance` returns a VECTOR (one per column),
+  not a scalar. When corea_mat has 2 columns (age + er_status), c_base is length 2.
+  Subtraction c_full - c_base fails with recycling warning → error.
+**Solution:** Replace matrix-based concordance with coxph-fitted model concordance:
+  fit coxph(Surv ~ corea) and coxph(Surv ~ corea + score_z), then use
+  concordance(cox_fit)$concordance for the joint C-index.
+
+## 2026-02-28 | 15_qc_schema_range_checks.R | wrong column names
+
+**Script:** `15_qc_schema_range_checks.R`
+**Errors:**
+1. ENDPOINT_MAP uses `os_time`/`dss_time` instead of `os_time_months`/`dss_time_months`
+2. `df$sample_id` on tibble without that column: tibble warning → promoted to error by warn=2
+   (TCGA_BRCA has `patient_id` not `sample_id`)
+**Solution:**
+1. Fix ENDPOINT_MAP to use `_months` suffix
+2. Add fallback: use `patient_id` when `sample_id` is absent for duplicate check

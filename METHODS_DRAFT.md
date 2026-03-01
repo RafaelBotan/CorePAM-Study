@@ -200,3 +200,17 @@ pelo pipeline.
 ---
 
 <!-- Novos parágrafos são adicionados abaixo conforme os scripts são concluídos -->
+
+---
+
+## Script 07_survival_analysis_SCANB.R — Análise de Sobrevida (Coorte de Treinamento SCAN-B)
+
+A performance prognóstica do escore CorePAM foi avaliada na coorte de treinamento SCAN-B (N=3.069; eventos de óbito geral: 322; seguimento mediano: 55,7 meses) utilizando análise de Cox univariada e multivariada. O escore contínuo por desvio-padrão (score_z) apresentou razão de risco univariada HR=1,923 (IC 95%: 1,736–2,129; p=3,6×10⁻³⁶), com índice de concordância ajustado C=0,698 (IC 95% bootstrap 1.000 iterações: 0,668–0,729). Na análise multivariada ajustada por idade e status ER (modelo CORE-A), o HR foi de 1,860 (1,635–2,115; p=3,4×10⁻²¹). O índice de concordância foi computado como Cadj = max(C, 1−C), invariante ao sinal do escore, utilizando reamostragem bootstrap com 1.000 iterações.
+
+## Script 08_meta_survival.R — Meta-análise de Efeitos Aleatórios
+
+A consistência da associação prognóstica do escore CorePAM foi avaliada por meta-análise de efeitos aleatórios (método REML), combinando as estimativas de log(HR) univariadas das quatro coortes (SCAN-B, TCGA-BRCA, METABRIC, GSE20685). O HR poolado univariado foi de 1,472 (IC 95%: 1,205–1,798; p=1,5×10⁻⁴), com heterogeneidade I²=90,6% e τ²=0,036, indicando variabilidade substancial entre plataformas (RNA-seq vs. microarray), esperada em estudos multi-plataforma. Na análise multivariada CORE-A (modelo conjunto), o HR poolado foi de 1,478 (IC 95%: 1,253–1,744; p=3,7×10⁻⁶) com I²=83,6%, mantendo a associação prognóstica independente de covariáveis clínicas. A análise leave-one-out confirmou robustez do efeito, com todos os quatro sub-análises mantendo HR > 1 na mesma direção.
+
+## Script 11_incremental_value_and_dca.R — Valor Incremental do CorePAM
+
+O valor incremental do escore CorePAM além das covariáveis clínicas (modelo CORE-A: idade e/ou status ER) foi quantificado pelo delta-C-index bootstrap (1.000 iterações). Em todas as quatro coortes, a adição do escore CorePAM ao modelo CORE-A resultou em incremento positivo e estatisticamente suportado: SCAN-B ΔC=+0,030 (IC 95%: 0,014–0,049), TCGA-BRCA ΔC=+0,038 (0,011–0,086), METABRIC ΔC=+0,142 (0,097–0,163) e GSE20685 ΔC=+0,093 (0,021–0,175). O maior incremento em METABRIC reflete a limitação da coorte de validação para a covariável ER (status ER ausente nesta coorte), tornando o escore molecular a principal contribuição incremental. A calibração a 60 meses foi viável em todas as quatro coortes (seguimento máximo ≥ 60 meses em todas), com resultados armazenados nos arquivos `calibration_60m_<cohort>.csv`.

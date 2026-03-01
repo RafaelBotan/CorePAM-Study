@@ -1,0 +1,3 @@
+analysis,n_cohorts,meta_logHR,meta_HR,meta_HR_lo95,meta_HR_hi95,p_value,I2_pct,tau2,Q_stat,Q_p
+univariate,4,0.386548,1.4719,1.2051,1.7978,1.521e-4,90.65,0.036279,33.6177,2.386e-7
+CORE-A_multivariate,4,0.390529,1.4778,1.2525,1.7435,3.692e-6,83.59,0.022785,17.443,5.729e-4

@@ -23,10 +23,10 @@ COHORTS <- c("SCANB", "TCGA_BRCA", "METABRIC", "GSE20685")
 
 # Endpoint per cohort (from freeze)
 ENDPOINT_MAP <- list(
-  SCANB     = list(time = "os_time",  event = "os_event"),
-  TCGA_BRCA = list(time = "os_time",  event = "os_event"),
-  METABRIC  = list(time = "dss_time", event = "dss_event"),
-  GSE20685  = list(time = "os_time",  event = "os_event")
+  SCANB     = list(time = "os_time_months",  event = "os_event"),
+  TCGA_BRCA = list(time = "os_time_months",  event = "os_event"),
+  METABRIC  = list(time = "dss_time_months", event = "dss_event"),
+  GSE20685  = list(time = "os_time_months",  event = "os_event")
 )
 
 # --------------------------------------------------------------------------
@@ -35,41 +35,54 @@ ENDPOINT_MAP <- list(
 bootstrap_delta_cindex <- function(time, event, score_z, corea_mat,
                                    n_boot = 1000, seed = 42) {
   set.seed(seed)
-  n <- length(time)
+  n         <- length(time)
+  coa_names <- colnames(corea_mat)
 
-  # Base C-index (CORE-A) and CORE-A+score
+  # Helper: joint concordance via coxph (handles multivariate correctly)
+  joint_cindex <- function(t, e, z, m) {
+    df_tmp <- as.data.frame(m)
+    df_tmp$score_z_  <- z
+    df_tmp$t_        <- t
+    df_tmp$e_        <- e
+    # Base model (CORE-A only)
+    fm_b <- as.formula(paste("Surv(t_, e_) ~", paste(coa_names, collapse = "+")))
+    cox_b <- tryCatch(coxph(fm_b, data = df_tmp), error = function(e) NULL)
+    # Full model (CORE-A + score)
+    fm_f <- as.formula(paste("Surv(t_, e_) ~", paste(c(coa_names, "score_z_"), collapse = "+")))
+    cox_f <- tryCatch(coxph(fm_f, data = df_tmp), error = function(e) NULL)
+    cb <- if (!is.null(cox_b)) concordance(cox_b)$concordance else NA_real_
+    cf <- if (!is.null(cox_f)) concordance(cox_f)$concordance else NA_real_
+    list(c_base = cb, c_full = cf)
+  }
+
+  # Observed delta
   old_warn <- getOption("warn"); options(warn = 0)
-  c_base <- tryCatch(
-    concordance(Surv(time, event) ~ corea_mat)$concordance,
-    error = function(e) NA_real_
-  )
-  combined_mat <- cbind(corea_mat, score_z)
-  c_full <- tryCatch(
-    concordance(Surv(time, event) ~ combined_mat)$concordance,
-    error = function(e) NA_real_
-  )
+  obs_res  <- joint_cindex(time, event, score_z, corea_mat)
   options(warn = old_warn)
+  c_base    <- obs_res$c_base
+  c_full    <- obs_res$c_full
+  delta_obs <- if (!is.na(c_base) && !is.na(c_full)) c_full - c_base else NA_real_
 
-  delta_obs <- c_full - c_base
-  deltas    <- numeric(n_boot)
-
+  # Bootstrap CI
+  deltas <- numeric(n_boot)
   old_warn <- getOption("warn"); options(warn = 0)
   for (i in seq_len(n_boot)) {
-    idx <- sample(n, n, replace = TRUE)
-    t_b <- time[idx]; e_b <- event[idx]; z_b <- score_z[idx]
-    m_b <- corea_mat[idx, , drop = FALSE]
-    cb  <- tryCatch(concordance(Surv(t_b, e_b) ~ m_b)$concordance, error = function(e) NA_real_)
-    cf  <- tryCatch(concordance(Surv(t_b, e_b) ~ cbind(m_b, z_b))$concordance, error = function(e) NA_real_)
-    deltas[i] <- cf - cb
+    idx  <- sample(n, n, replace = TRUE)
+    res_b <- tryCatch(
+      joint_cindex(time[idx], event[idx], score_z[idx], corea_mat[idx, , drop = FALSE]),
+      error = function(e) list(c_base = NA_real_, c_full = NA_real_)
+    )
+    deltas[i] <- if (!is.na(res_b$c_base) && !is.na(res_b$c_full))
+      res_b$c_full - res_b$c_base else NA_real_
   }
   options(warn = old_warn)
 
   list(
-    c_base    = c_base,
-    c_full    = c_full,
-    delta     = delta_obs,
-    ci_low    = quantile(deltas, 0.025, na.rm = TRUE),
-    ci_high   = quantile(deltas, 0.975, na.rm = TRUE)
+    c_base = c_base,
+    c_full = c_full,
+    delta  = delta_obs,
+    ci_low  = quantile(deltas, 0.025, na.rm = TRUE),
+    ci_high = quantile(deltas, 0.975, na.rm = TRUE)
   )
 }
 
@@ -145,7 +158,7 @@ for (coh in COHORTS) {
 
   # Fallback to OS if DSS not available
   if (!time_col %in% names(df)) {
-    time_col  <- "os_time"
+    time_col  <- "os_time_months"
     event_col <- "os_event"
     message(sprintf("[%s] %s: primary endpoint unavailable; using OS", SCRIPT_NAME, coh))
   }
@@ -158,12 +171,14 @@ for (coh in COHORTS) {
   df <- df[!is.na(df[[time_col]]) & df[[time_col]] > 0 &
              !is.na(df[[event_col]]) & !is.na(df$score_z), ]
 
-  # CORE-A: age and/or ER
+  # CORE-A: age and/or ER (only include if ≥80% non-NA)
   corea_vars  <- c("age", "er_status")
   corea_avail <- intersect(corea_vars, names(df))
+  corea_avail <- corea_avail[sapply(corea_avail,
+                                    function(v) mean(!is.na(df[[v]])) >= 0.8)]
 
   c_base <- c_full <- delta <- ci_lo <- ci_hi <- NA_real_
-  corea_used <- paste(corea_avail, collapse = "+")
+  corea_used <- if (length(corea_avail) > 0) paste(corea_avail, collapse = "+") else "none"
 
   if (length(corea_avail) > 0) {
     df_m <- df[complete.cases(df[, c(corea_avail, "score_z", time_col, event_col)]), ]
@@ -266,8 +281,8 @@ df_plot <- incr_df[!is.na(incr_df$delta_cindex), ]
 if (nrow(df_plot) > 0) {
   p_delta <- ggplot(df_plot, aes(x = delta_cindex, y = reorder(cohort, delta_cindex))) +
     geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
-    geom_errorbarh(aes(xmin = delta_ci_lo95, xmax = delta_ci_hi95),
-                   height = 0.3, linewidth = 0.8, color = "#2980B9") +
+    geom_errorbar(aes(xmin = delta_ci_lo95, xmax = delta_ci_hi95),
+                  orientation = "y", width = 0.3, linewidth = 0.8, color = "#2980B9") +
     geom_point(size = 4, color = "#2980B9") +
     labs(
       title = "CorePAM Incremental Value: Delta C-index (CORE-A vs CORE-A + CorePAM)",

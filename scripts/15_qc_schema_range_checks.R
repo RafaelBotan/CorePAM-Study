@@ -30,10 +30,10 @@ COHORTS <- c("SCANB", "TCGA_BRCA", "METABRIC", "GSE20685")
 
 # Endpoint mapping per cohort
 ENDPOINT_MAP <- list(
-  SCANB     = list(time = "os_time",  event = "os_event"),
-  TCGA_BRCA = list(time = "os_time",  event = "os_event"),
-  METABRIC  = list(time = "dss_time", event = "dss_event"),
-  GSE20685  = list(time = "os_time",  event = "os_event")
+  SCANB     = list(time = "os_time_months",  event = "os_event"),
+  TCGA_BRCA = list(time = "os_time_months",  event = "os_event"),
+  METABRIC  = list(time = "dss_time_months", event = "dss_event"),
+  GSE20685  = list(time = "os_time_months",  event = "os_event")
 )
 
 # Accumulate all issues
@@ -120,8 +120,9 @@ for (cohort in COHORTS) {
   record_check(cohort, "file_loads", "PASS",
                sprintf("%d rows x %d cols", nrow(df), ncol(df)))
 
-  # Required columns
-  req_cols <- c("sample_id", "score", "score_z", "score_direction",
+  # Required columns (sample_id or patient_id must be present)
+  id_col   <- if ("sample_id" %in% names(df)) "sample_id" else "patient_id"
+  req_cols <- c(id_col, "score", "score_z", "score_direction",
                 time_col, event_col)
   missing_cols <- setdiff(req_cols, names(df))
   if (length(missing_cols) > 0) {
@@ -131,8 +132,9 @@ for (cohort in COHORTS) {
     record_check(cohort, "required_columns", "PASS")
   }
 
-  # No duplicate sample_ids
-  n_dup <- sum(duplicated(df$sample_id))
+  # No duplicate patient/sample IDs
+  id_vals <- if (id_col %in% names(df)) df[[id_col]] else character(0)
+  n_dup   <- sum(duplicated(id_vals))
   if (n_dup > 0) {
     record_check(cohort, "no_duplicate_samples", "FAIL",
                  sprintf("%d duplicate sample_ids", n_dup))
@@ -187,7 +189,7 @@ for (cohort in COHORTS) {
 
   # METABRIC must have dss columns (not os_* as primary)
   if (cohort == "METABRIC") {
-    has_dss <- all(c("dss_time", "dss_event") %in% names(df))
+    has_dss <- all(c("dss_time_months", "dss_event") %in% names(df))
     if (!has_dss) {
       record_check(cohort, "metabric_dss_present", "FAIL",
                    "METABRIC must have dss_time and dss_event (primary endpoint)")

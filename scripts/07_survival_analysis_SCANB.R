@@ -30,16 +30,17 @@ bootstrap_cindex <- function(time, event, score_z, n_boot = 1000, seed = 42) {
   cvals <- numeric(n_boot)
   old_warn <- getOption("warn"); options(warn = 0)
   for (i in seq_len(n_boot)) {
-    idx <- sample(n, n, replace = TRUE)
-    cx  <- tryCatch(
+    idx    <- sample(n, n, replace = TRUE)
+    cx_raw <- tryCatch(
       concordance(Surv(time[idx], event[idx]) ~ score_z[idx])$concordance,
       error = function(e) NA_real_
     )
-    cvals[i] <- cx
+    cvals[i] <- max(cx_raw, 1 - cx_raw, na.rm = TRUE)  # Cadj: sign-invariant
   }
   options(warn = old_warn)
+  c_raw <- concordance(Surv(time, event) ~ score_z)$concordance
   list(
-    c_index = concordance(Surv(time, event) ~ score_z)$concordance,
+    c_index = max(c_raw, 1 - c_raw),
     ci_low  = quantile(cvals, 0.025, na.rm = TRUE),
     ci_high = quantile(cvals, 0.975, na.rm = TRUE)
   )
@@ -59,7 +60,7 @@ reverse_km_median <- function(time, event) {
 ready_path <- file.path(proc_cohort(COHORT), "analysis_ready.parquet")
 df         <- strict_parquet(ready_path)
 
-time_col  <- "os_time"
+time_col  <- "os_time_months"
 event_col <- "os_event"
 stopifnot(all(c(time_col, event_col, "score_z") %in% names(df)))
 

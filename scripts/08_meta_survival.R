@@ -232,8 +232,8 @@ fp_data <- bind_rows(plot_df, meta_row)
 
 fp <- ggplot(fp_data, aes(x = hr_uni, y = cohort_f)) +
   geom_vline(xintercept = 1, linetype = "dashed", color = "gray50") +
-  geom_errorbarh(aes(xmin = hr_uni_lo95, xmax = hr_uni_hi95),
-                 height = 0.2, linewidth = 0.8) +
+  geom_errorbar(aes(xmin = hr_uni_lo95, xmax = hr_uni_hi95),
+                orientation = "y", width = 0.2, linewidth = 0.8) +
   geom_point(aes(shape = ifelse(cohort == "Meta (RE)", 18L, 15L),
                  size  = ifelse(cohort == "Meta (RE)", 5, 3),
                  color = ifelse(cohort == "Meta (RE)", "Meta (RE)", "Cohort"))) +
