@@ -9,9 +9,10 @@
 # Output:
 #   results/supp/dca_os_summary.csv
 #   results/supp/dca_pcr_summary.csv
-#   figures/supp/FigS_DCA_OS_EN.pdf/.png  — OS survival DCA
-#   figures/supp/FigS_DCA_pCR_EN.pdf/.png — pCR binary DCA
-#   PT versions of each
+#   figures/supp/en/pdf/FigS_DCA_OS_EN.pdf + figures/supp/en/png/FigS_DCA_OS_EN.png
+#   figures/supp/pt/pdf/FigS_DCA_OS_PT.pdf + figures/supp/pt/png/FigS_DCA_OS_PT.png  — OS survival DCA
+#   figures/supp/en/pdf/FigS_DCA_pCR_EN.pdf + figures/supp/en/png/FigS_DCA_pCR_EN.png
+#   figures/supp/pt/pdf/FigS_DCA_pCR_PT.pdf + figures/supp/pt/png/FigS_DCA_pCR_PT.png — pCR binary DCA
 #
 # PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================

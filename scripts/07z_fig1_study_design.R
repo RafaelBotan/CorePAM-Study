@@ -4,7 +4,11 @@
 #          Shows: PAM50 → CorePAM derivation pipeline, cohort roles, N/events,
 #          frozen parameters (ΔC=0.010, α=0.5, K=10, SHA-256 folds)
 #
-# Output: figures/main/Fig1_StudyDesign_EN.pdf/png + PT.pdf/png
+# OUTPUTS:
+#   figures/main/en/pdf/Fig1_StudyDesign_EN.pdf
+#   figures/main/en/png/Fig1_StudyDesign_EN.png
+#   figures/main/pt/pdf/Fig1_StudyDesign_PT.pdf
+#   figures/main/pt/png/Fig1_StudyDesign_PT.png
 # PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 

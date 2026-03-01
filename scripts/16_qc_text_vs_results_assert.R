@@ -4,7 +4,7 @@
 #          Verifies that key numerical results reported in the manuscript QMD
 #          match values from CSV/JSON result files. Hard-fails if any
 #          discrepancy found (tolerance: ±0.001 for numeric values).
-# PROJECT: Core-PAM (Memorial v6.1 §QC)
+# PROJETO: Core-PAM (Memorial v6.1 §QC)
 #
 # INPUTS:
 #   results/corepam/CorePAM_training_card.json

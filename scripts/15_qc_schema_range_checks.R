@@ -3,7 +3,7 @@
 # PURPOSE: Structural QC — hard-fail checks on schema and value ranges for
 #          all analysis_ready.parquet files and CorePAM artifacts.
 #          Any failure stops the pipeline (stop()).
-# PROJECT: Core-PAM (Memorial v6.1 §QC)
+# PROJETO: Core-PAM (Memorial v6.1 §QC)
 #
 # OUTPUTS:
 #   results/supp/qc_schema_range_report.csv

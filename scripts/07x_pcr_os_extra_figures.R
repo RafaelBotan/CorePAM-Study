@@ -10,11 +10,15 @@
 #   01_Base_Pura_CorePAM/PROCESSED/{COHORT}/expression_genelevel_preZ.parquet
 #     (genes as rows, first col = "gene", remaining cols = sample IDs)
 #
-# OUTPUTS (all in figures/supp/):
-#   FigS_CorePAM_Score_Distribution_EN.pdf/.png
-#   FigS_CorePAM_Score_Distribution_PT.pdf/.png
-#   FigS_CorePAM_vs_PAM50full_EN.pdf/.png
-#   FigS_CorePAM_vs_PAM50full_PT.pdf/.png
+# OUTPUTS:
+#   figures/supp/en/pdf/FigS_CorePAM_RawScore_Distribution_EN.pdf
+#   figures/supp/en/png/FigS_CorePAM_RawScore_Distribution_EN.png
+#   figures/supp/pt/pdf/FigS_CorePAM_RawScore_Distribution_PT.pdf
+#   figures/supp/pt/png/FigS_CorePAM_RawScore_Distribution_PT.png
+#   figures/supp/en/pdf/FigS_CorePAM_vs_PAM50full_EN.pdf
+#   figures/supp/en/png/FigS_CorePAM_vs_PAM50full_EN.png
+#   figures/supp/pt/pdf/FigS_CorePAM_vs_PAM50full_PT.pdf
+#   figures/supp/pt/png/FigS_CorePAM_vs_PAM50full_PT.png
 #
 # PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM — OS block extra figs)
 # =============================================================================

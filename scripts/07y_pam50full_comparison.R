@@ -6,8 +6,14 @@
 # OUTPUT:
 #   results/corepam/PAM50full_weights.csv
 #   results/supp/pam50full_comparison.csv
-#   figures/supp/FigS_CorePAM_vs_PAM50full_EN.pdf/.png  (scatter, overwrite)
-#   figures/supp/FigS_CorePAM_vs_PAM50full_HR_EN.pdf/.png (forest, new)
+#   figures/supp/en/pdf/FigS_CorePAM_vs_PAM50full_EN.pdf
+#   figures/supp/en/png/FigS_CorePAM_vs_PAM50full_EN.png (scatter, overwrite)
+#   figures/supp/pt/pdf/FigS_CorePAM_vs_PAM50full_PT.pdf
+#   figures/supp/pt/png/FigS_CorePAM_vs_PAM50full_PT.png
+#   figures/supp/en/pdf/FigS_CorePAM_vs_PAM50full_HR_EN.pdf
+#   figures/supp/en/png/FigS_CorePAM_vs_PAM50full_HR_EN.png (forest, new)
+#   figures/supp/pt/pdf/FigS_CorePAM_vs_PAM50full_HR_PT.pdf
+#   figures/supp/pt/png/FigS_CorePAM_vs_PAM50full_HR_PT.png
 # PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 

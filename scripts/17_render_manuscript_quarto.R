@@ -3,7 +3,7 @@
 # PURPOSE: Render the Core-PAM manuscript Quarto document to PDF and HTML.
 #          Requires all upstream scripts (01-16) to have completed.
 #          Updates the RESULTS_SUMMARY.md after each successful render.
-# PROJECT: Core-PAM (Memorial v6.1 §Manuscript)
+# PROJETO: Core-PAM (Memorial v6.1 §Manuscript)
 #
 # INPUTS:
 #   manuscript/CorePAM_manuscript.qmd  (or any .qmd at ROOT_REPO level)

@@ -1,14 +1,16 @@
 # =============================================================================
-# 00_colors.R — Paleta de cores padronizada do projeto Core-PAM
+# SCRIPT: 00_colors.R
+# PURPOSE: Standardized color palette for all Core-PAM project figures.
+#          RULE: All figures must use exclusively these colors.
+#          Palette: ColorBrewer RdBu (divergent) + Set1 qualitative (cohorts).
+#          Colorblind-safe (deuteranopia/protanopia verified).
+#          Works in grayscale (B&W printing).
 #
-# REGRA: Todas as figuras do projeto devem usar EXCLUSIVAMENTE estas cores.
-# Paleta base: ColorBrewer RdBu (divergente) + Set1 qualitativo (coortes).
-# Colorblind-safe (deuteranopia/protanopia verificado).
-# Funciona em escala de cinza (impressão P&B).
-#
-# Como usar:
+# Usage:
 #   source("scripts/00_colors.R")
 #   geom_line(colour = COL$primary)
+#
+# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
 COL <- list(
