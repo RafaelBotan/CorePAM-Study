@@ -19,6 +19,7 @@ suppressPackageStartupMessages({
   library(readr)
   library(arrow)
   library(patchwork)
+  library(ggrepel)
 })
 source("Y:/Phd-Genomic-claude/scripts/00_colors.R")
 
@@ -63,15 +64,32 @@ tab_surv <- bind_rows(lapply(surv_files, read_csv, show_col_types = FALSE)) |>
   select(cohort, endpoint, n_samples, n_events, hr_uni, hr_uni_lo95, hr_uni_hi95,
          p_uni, loghr_uni, se_loghr_uni, c_index, c_index_lo95, c_index_hi95)
 
-# Pooled (inverse-variance random-effects, simplified: weighted mean)
-# Use logHR and SE for proper pooling
-wi      <- 1 / tab_surv$se_loghr_uni^2
-pooled_loghr <- sum(wi * tab_surv$loghr_uni) / sum(wi)
-pooled_se    <- sqrt(1 / sum(wi))
+# Random-effects pooling (DerSimonian-Laird) + I² heterogeneity
+# Endpoints are mixed (OS: TCGA+GSE20685; DSS: METABRIC) — note in caption
+k    <- nrow(tab_surv)
+yi   <- tab_surv$loghr_uni
+vi   <- tab_surv$se_loghr_uni^2
+wi_f <- 1 / vi                          # fixed weights
+
+# Step 1: Q statistic
+q_stat   <- sum(wi_f * (yi - sum(wi_f * yi) / sum(wi_f))^2)
+df_q     <- k - 1
+# Step 2: DL tau² estimate
+c_const  <- sum(wi_f) - sum(wi_f^2) / sum(wi_f)
+tau2_dl  <- max(0, (q_stat - df_q) / c_const)
+# Step 3: RE weights and pooled
+wi_re    <- 1 / (vi + tau2_dl)
+pooled_loghr <- sum(wi_re * yi) / sum(wi_re)
+pooled_se    <- sqrt(1 / sum(wi_re))
 pooled_hr    <- exp(pooled_loghr)
 pooled_lo    <- exp(pooled_loghr - 1.96 * pooled_se)
 pooled_hi    <- exp(pooled_loghr + 1.96 * pooled_se)
 pooled_p     <- 2 * pnorm(-abs(pooled_loghr / pooled_se))
+
+# I² and tau²
+i2_pct   <- max(0, 100 * (q_stat - df_q) / q_stat)
+message(sprintf("[%s] RE pool: HR=%.3f (%.3f-%.3f) | Q=%.2f df=%d | I²=%.1f%% | τ²=%.4f",
+                SCRIPT_NAME, pooled_hr, pooled_lo, pooled_hi, q_stat, df_q, i2_pct, tau2_dl))
 
 # Build data for forest plot
 forest_df <- tab_surv |>
@@ -99,13 +117,13 @@ pooled_row <- tibble(
   loghr_uni = pooled_loghr,
   se_loghr_uni = pooled_se,
   c_index   = NA_real_, c_index_lo95 = NA_real_, c_index_hi95 = NA_real_,
-  label     = sprintf("Pooled IVW (fixed)\nN=%d, Events=%d",
-                      sum(tab_surv$n_samples), sum(tab_surv$n_events)),
+  label     = sprintf("Pooled RE (DL)\nN=%d, Events=%d | I²=%.0f%%",
+                      sum(tab_surv$n_samples), sum(tab_surv$n_events), i2_pct),
   p_label   = formatC(pooled_p, format = "e", digits = 1),
   c_label   = NA_character_,
-  right_label = sprintf("HR=%.2f (%.2f–%.2f) | p=%s",
+  right_label = sprintf("HR=%.2f (%.2f–%.2f) | p=%s | I²=%.0f%%",
                         pooled_hr, pooled_lo, pooled_hi,
-                        formatC(pooled_p, format = "e", digits = 1)),
+                        formatC(pooled_p, format = "e", digits = 1), i2_pct),
   y_pos     = 0
 )
 
@@ -162,7 +180,9 @@ p_forest <- ggplot(forest_all,
            fill = "#ECF0F1", alpha = 0.5) +
   labs(
     title    = "Core-PAM Score — Hazard Ratios Across Validation Cohorts",
-    subtitle = "Primary endpoint per cohort | Cox univariate | per 1 SD score",
+    subtitle = "HR per 1 SD of score_z (intra-cohort Z-score) | Primary endpoint: TCGA-BRCA/GSE20685=OS, METABRIC=DSS | Cox univariate",
+    caption  = sprintf("Pooled estimate: DerSimonian-Laird random-effects | I²=%.0f%%, τ²=%.4f | Note: mixed endpoints (OS+DSS)",
+                       i2_pct, tau2_dl),
     color    = NULL
   ) +
   theme_classic(base_size = 11) +
@@ -366,11 +386,11 @@ make_heatmap <- function(hdata, title_str, fig_name) {
 
 cohort_configs <- list(
   list(name = "TCGA_BRCA", endpoint = "os_time_months", event = "os_event",
-       title = "Core-PAM Gene Expression Heatmap — TCGA-BRCA (OS, n=200 random)"),
+       title = "Core-PAM Gene Expression Heatmap — TCGA-BRCA (OS, n=200 random, seed=42)"),
   list(name = "METABRIC",  endpoint = "dss_time_months", event = "dss_event",
-       title = "Core-PAM Gene Expression Heatmap — METABRIC (DSS, n=200 random)"),
+       title = "Core-PAM Gene Expression Heatmap — METABRIC (DSS, n=200 random, seed=42)"),
   list(name = "GSE20685",  endpoint = "os_time_months",  event = "os_event",
-       title = "Core-PAM Gene Expression Heatmap — GSE20685 (OS, all samples)")
+       title = "Core-PAM Gene Expression Heatmap — GSE20685 (OS, n=327 all samples)")
 )
 
 for (cfg in cohort_configs) {
@@ -416,9 +436,15 @@ p_lollipop <- ggplot(wt_df, aes(x = gene, y = weight, color = direction)) +
   geom_segment(aes(x = gene, xend = gene, y = 0, yend = weight),
                linewidth = 0.8) +
   geom_point(aes(size = abs(weight)), shape = 16) +
-  geom_text(aes(label = gene, hjust = ifelse(weight > 0, -0.15, 1.15),
-                y = weight),
-            size = 3, color = "black") +
+  ggrepel::geom_text_repel(
+    aes(label = gene),
+    size = 2.8, color = "black",
+    direction = "y", nudge_x = 0.3,
+    segment.size = 0.2, segment.color = "grey60",
+    box.padding = 0.2, point.padding = 0.3,
+    min.segment.length = 0.1,
+    max.overlaps = 30
+  ) +
   scale_color_manual(values = pal_dir, name = "Effect direction") +
   scale_size_continuous(range = c(2, 6), guide = "none") +
   coord_flip() +
@@ -426,7 +452,7 @@ p_lollipop <- ggplot(wt_df, aes(x = gene, y = weight, color = direction)) +
     x        = NULL,
     y        = "Elastic-net coefficient (weight)",
     title    = "Core-PAM Panel — Gene Weights",
-    subtitle = sprintf("%d genes selected by OOF non-inferiority (ΔC=0.010) | SCAN-B training",
+    subtitle = sprintf("%d genes | OOF non-inferiority (ΔC=0.010) | SCAN-B training | Weights from refit on full training set",
                        nrow(wt_df))
   ) +
   theme_classic(base_size = 11) +
@@ -440,55 +466,68 @@ p_lollipop <- ggplot(wt_df, aes(x = gene, y = weight, color = direction)) +
 save_fig(p_lollipop, "FigS_Weights_CorePAM_Lollipop", w = 8, h = 6, dir = fig_supp)
 
 # --------------------------------------------------------------------------
-# 5) SCORE BY ER STATUS — box/violin per cohort
+# 5) SCORE BY ER STATUS — METABRIC only (raw ER_IHC); TCGA/GSE not available
 # --------------------------------------------------------------------------
 message(sprintf("[%s] === 5) Score by ER status ===", SCRIPT_NAME))
 
-load_er_score <- function(cohort_name) {
-  p <- file.path(PATHS$processed, cohort_name, "analysis_ready.parquet")
-  df <- arrow::read_parquet(p)
-  cols_keep <- intersect(c("patient_id","score_z","er_status","pam50_subtype"), names(df))
-  df <- df[, cols_keep]
-  df$cohort <- cohort_name
-  df
-}
+# METABRIC: ER_IHC from raw cBioPortal patient file (YES=ER+, NO=ER-)
+# TCGA-BRCA: ER status not included in GDC standard clinical download
+# GSE20685:  ER status not available in processed pData
+er_plot <- tryCatch({
+  rdy_meta  <- arrow::read_parquet(
+    file.path(PATHS$processed, "METABRIC", "analysis_ready.parquet"),
+    col_select = c("patient_id", "score_z"))
 
-er_data <- bind_rows(lapply(c("TCGA_BRCA","METABRIC","GSE20685"), load_er_score))
+  # Read ER_IHC from raw patient clinical file (cBioPortal format, skip 4 header comment rows)
+  clin_raw <- readr::read_tsv(
+    "Y:/Phd-Genomic-claude/01_Base_Pura_CorePAM/RAW/METABRIC/brca_metabric/data_clinical_patient.txt",
+    skip = 4, show_col_types = FALSE)
+  er_map <- clin_raw[, c("PATIENT_ID", "ER_IHC")]
+  names(er_map) <- c("patient_id", "er_ihc")
 
-if ("er_status" %in% names(er_data)) {
-  er_plot <- er_data |>
-    filter(!is.na(er_status)) |>
+  meta_er <- inner_join(rdy_meta, er_map, by = "patient_id") |>
+    filter(!is.na(er_ihc)) |>
     mutate(
-      er_label   = ifelse(as.character(er_status) %in% c("1","Positive","positive","ER+"),
-                          "ER+", "ER-"),
-      cohort_label = case_when(
-        cohort == "TCGA_BRCA" ~ "TCGA-BRCA",
-        cohort == "METABRIC"  ~ "METABRIC",
-        cohort == "GSE20685"  ~ "GSE20685"
-      )
-    )
+      er_label     = case_when(
+        er_ihc == "Positve"  ~ "ER+",   # cBioPortal typo: "Positve" = Positive
+        er_ihc == "Negative" ~ "ER-",
+        TRUE                 ~ NA_character_
+      ),
+      cohort_label = "METABRIC (n=1978)"
+    ) |>
+    filter(!is.na(er_label))
 
+  message(sprintf("[%s] METABRIC ER: %d ER+ | %d ER-",
+                  SCRIPT_NAME, sum(meta_er$er_label == "ER+"), sum(meta_er$er_label == "ER-")))
+  meta_er
+}, error = function(e) {
+  message(sprintf("[%s] ER violin error: %s", SCRIPT_NAME, e$message))
+  NULL
+})
+
+if (!is.null(er_plot) && nrow(er_plot) > 0) {
+  n_pos <- sum(er_plot$er_label == "ER+")
+  n_neg <- sum(er_plot$er_label == "ER-")
   p_er <- ggplot(er_plot, aes(x = er_label, y = score_z, fill = er_label)) +
     geom_violin(alpha = 0.5, trim = TRUE, linewidth = 0.4) +
     geom_boxplot(width = 0.12, outlier.size = 0.4, linewidth = 0.4, fill = "white") +
     scale_fill_manual(values = c("ER+" = "#2980B9", "ER-" = "#C0392B"), guide = "none") +
-    facet_wrap(~ cohort_label, scales = "free_y") +
     labs(
-      x        = "ER status",
+      x        = "ER status (IHC)",
       y        = "Core-PAM Score (z)",
-      title    = "Core-PAM Score by ER Status",
-      subtitle = "Validation cohorts | Higher score = higher predicted risk"
+      title    = "Core-PAM Score by ER Status — METABRIC",
+      subtitle = sprintf("ER+ n=%d | ER- n=%d | TCGA-BRCA and GSE20685: ER data not available in clinical download",
+                         n_pos, n_neg),
+      caption  = "ER_IHC (YES/NO) from cBioPortal data_clinical_patient.txt"
     ) +
     theme_classic(base_size = 11) +
-    theme(
-      strip.background = element_rect(fill = "#2C3E50"),
-      strip.text       = element_text(color = "white", face = "bold"),
-      plot.title       = element_text(face = "bold")
-    )
+    theme(plot.title    = element_text(face = "bold"),
+          plot.subtitle = element_text(size = 9),
+          plot.caption  = element_text(size = 8))
 
-  save_fig(p_er, "FigS_ScoreByER_ByCohort", w = 9, h = 5, dir = fig_supp)
+  save_fig(p_er, "FigS_ScoreByER_ByCohort", w = 7, h = 5, dir = fig_supp)
 } else {
-  message(sprintf("[%s] er_status column not found — skipping ER violin", SCRIPT_NAME))
+  message(sprintf("[%s] ER violin skipped — no data", SCRIPT_NAME))
 }
 
 # --------------------------------------------------------------------------
@@ -577,9 +616,13 @@ if (file.exists(pareto_path)) {
                  aes(x = df, y = c_adj),
                  shape = 17, size = 5, color = "#C0392B") +
       annotate("text",
-               x = n_sel + 1, y = selected_row$c_adj + 0.003,
-               label = sprintf("Selected\ndf=%d", n_sel),
-               hjust = 0, size = 3, color = "#C0392B") +
+               x = n_sel + 2, y = selected_row$c_adj - 0.006,
+               label = sprintf("df=%d\n(selected)", n_sel),
+               hjust = 0, size = 2.8, color = "#C0392B", lineheight = 0.9) +
+      annotate("text",
+               x = 45, y = c_max + 0.002,
+               label = sprintf("C_max=%.4f", c_max),
+               hjust = 1, size = 2.5, color = "grey40") +
       scale_x_continuous(breaks = seq(0, 50, 5)) +
       labs(x = x_lbl, y = y_lbl,
            title    = if (lang == "EN") "Core-PAM Derivation: Pareto Curve (df vs C-index OOF)"

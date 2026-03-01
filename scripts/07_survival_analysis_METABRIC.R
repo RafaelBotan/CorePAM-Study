@@ -114,12 +114,15 @@ message(sprintf("[%s] Cox uni (%s) HR=%.3f (%.3f-%.3f) p=%.4g",
 # --------------------------------------------------------------------------
 corea_vars  <- c("age", "er_status")
 corea_avail <- intersect(corea_vars, names(df))
-corea_used  <- paste(corea_avail, collapse = "+")
+# Only include covariates with ≥80% non-NA (METABRIC er_status only ~22% populated)
+corea_avail <- corea_avail[sapply(corea_avail, function(v) mean(!is.na(df[[v]])) >= 0.8)]
+corea_used  <- if (length(corea_avail) > 0) paste(corea_avail, collapse = "+") else "none"
 
 hr_multi <- lo_multi <- hi_multi <- p_multi <- NA_real_
 
-if (length(corea_avail) > 0) {
+if (length(corea_avail) > 0 && corea_used != "none") {
   df_m <- df[complete.cases(df[, c(corea_avail, "score_z", time_col, event_col)]), ]
+  message(sprintf("[%s] CORE-A vars: %s | n complete: %d", SCRIPT_NAME, corea_used, nrow(df_m)))
   fml  <- as.formula(paste0("Surv(", time_col, ",", event_col, ") ~ score_z + ",
                              paste(corea_avail, collapse = " + ")))
   old_warn <- getOption("warn"); options(warn = 0)
@@ -267,11 +270,16 @@ if (has_dss && all(c("os_time_months", "os_event") %in% names(df))) {
   old_warn <- getOption("warn"); options(warn = 0)
   km_fit_os <- survfit(Surv(os_time_months, os_event) ~ risk_group_median, data = df_os)
   options(warn = old_warn)
+  xlim_os_val  <- x_cutoff(km_fit_os, min_nrisk = 10)
+  break_os_val <- max(24L, as.integer(round(xlim_os_val / 5 / 24) * 24))
+  message(sprintf("[%s] FigS5 OS xlim: %.0f mo | break: %d mo", SCRIPT_NAME, xlim_os_val, break_os_val))
   old_warn <- getOption("warn"); options(warn = 0)
   tryCatch({
     for (lang in c("EN", "PT")) {
-      xlb <- if (lang == "EN") "Time (months)"           else "Tempo (meses)"
-      ylb <- if (lang == "EN") "Overall survival"        else "Sobrevida global"
+      xlb <- if (lang == "EN") "Time (months)"              else "Tempo (meses)"
+      ylb <- if (lang == "EN") "Overall survival (OS)"      else "Sobrevida global (OS)"
+      ttl <- if (lang == "EN") "METABRIC — Sensitivity analysis using OS (primary endpoint: DSS)"
+             else "METABRIC — Análise de sensibilidade usando OS (desfecho primário: DSS)"
       lbs <- if (lang == "EN") c("High risk", "Low risk") else c("Alto risco", "Baixo risco")
       km_os_pdf <- file.path(supp_fig_dir, sprintf("FigS5_METABRIC_Sensitivity_%s.pdf", lang))
       km_os_png <- file.path(supp_fig_dir, sprintf("FigS5_METABRIC_Sensitivity_%s.png", lang))
@@ -279,6 +287,9 @@ if (has_dss && all(c("os_time_months", "os_event") %in% names(df))) {
         km_fit_os, data = df_os, risk.table = TRUE, pval = TRUE, conf.int = TRUE,
         palette = c(COL$km_high, COL$km_low),
         xlab = xlb, ylab = ylb, legend.labs = lbs, legend.title = NULL,
+        xlim = c(0, xlim_os_val), break.time.by = break_os_val,
+        pval.coord = c(xlim_os_val * 0.5, 0.15),
+        title = ttl,
         ggtheme = theme_classic()
       )
       cairo_pdf(km_os_pdf, width = 8, height = 6); print(km_os_p); dev.off()

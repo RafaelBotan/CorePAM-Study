@@ -408,3 +408,15 @@ Error in c_full - c_base : longer object length is not a multiple of shorter obj
 **Solution:**
 1. Fix ENDPOINT_MAP to use `_months` suffix
 2. Add fallback: use `patient_id` when `sample_id` is absent for duplicate check
+
+## 2026-02-28 — scripts/07x_extra_figures.R + 14_qc_metabric_pca_forensics.R
+
+**Error:** ER violin (FigS_ScoreByER) shows only ER- (no ER+); PCA forensics (FigS4) shows only Negative/NA, Positive missing.
+
+**Root cause:** cBioPortal METABRIC `data_clinical_patient.txt` has a typo in ER_IHC column: values are `"Positve"` (missing 'i') and `"Negative"`, NOT `"YES"/"NO"` as assumed by 07x, and NOT `"Positive"` as assumed by harmonize_clinical (which produced clinical_FINAL.parquet with er_status = "Negative" for 439 samples and NA for 1541 that should be "Positive").
+
+**Solution:**
+- 07x: fix case_when to use `er_ihc == "Positve"` → "ER+" and `er_ihc == "Negative"` → "ER-"
+- 14: after merging with clinical_FINAL, also read raw ER_IHC from cBioPortal file and add er_label_raw column for coloring (avoids re-running harmonize_clinical)
+
+**Note:** clinical_FINAL.parquet er_status column remains as-is (not used in survival analysis — filtered out by CORE-A NA filter since 78% are NA). The fix is applied only to figure scripts.

@@ -100,12 +100,15 @@ message(sprintf("[%s] Cox uni HR=%.3f (%.3f-%.3f) p=%.4g", SCRIPT_NAME, hr_uni, 
 # --------------------------------------------------------------------------
 corea_vars  <- c("age", "er_status")
 corea_avail <- intersect(corea_vars, names(df))
-corea_used  <- paste(corea_avail, collapse = "+")
+# Only include covariates with ≥80% non-NA (er_status not available in TCGA GDC clinical)
+corea_avail <- corea_avail[sapply(corea_avail, function(v) mean(!is.na(df[[v]])) >= 0.8)]
+corea_used  <- if (length(corea_avail) > 0) paste(corea_avail, collapse = "+") else "none"
 
 hr_multi <- lo_multi <- hi_multi <- p_multi <- NA_real_
 
-if (length(corea_avail) > 0) {
+if (length(corea_avail) > 0 && corea_used != "none") {
   df_m <- df[complete.cases(df[, c(corea_avail, "score_z", time_col, event_col)]), ]
+  message(sprintf("[%s] CORE-A vars: %s | n complete: %d", SCRIPT_NAME, corea_used, nrow(df_m)))
   fml  <- as.formula(paste0("Surv(", time_col, ",", event_col, ") ~ score_z + ",
                              paste(corea_avail, collapse = " + ")))
   old_warn <- getOption("warn"); options(warn = 0)
@@ -255,11 +258,17 @@ for (lang in c("EN", "PT")) {
   xlb <- if (lang == "EN") "Time (months)"           else "Tempo (meses)"
   ylb <- if (lang == "EN") "Overall survival"        else "Sobrevida global"
   lbs <- if (lang == "EN") c("High risk", "Low risk") else c("Alto risco", "Baixo risco")
+  ttl_h <- if (lang == "EN")
+    sprintf("TCGA-BRCA — %dm sensitivity (administrative censoring at %dm)", HORIZON_SENS, HORIZON_SENS)
+  else
+    sprintf("TCGA-BRCA — Sensibilidade %dm (censura administrativa aos %dm)", HORIZON_SENS, HORIZON_SENS)
   km_h_p <- ggsurvplot(
     km_fit_h, data = df_h, risk.table = TRUE, pval = TRUE, conf.int = TRUE,
-    xlim = c(0, HORIZON_SENS),
+    xlim = c(0, HORIZON_SENS), break.time.by = 6L,
     palette = c(COL$km_high, COL$km_low),
     xlab = xlb, ylab = ylb, legend.labs = lbs, legend.title = NULL,
+    pval.coord = c(10, 0.15),
+    title = ttl_h,
     ggtheme = theme_classic()
   )
   km_h_pdf <- file.path(supp_fig_dir, sprintf("FigS6_TCGA_%dm_Sensitivity_%s.pdf", HORIZON_SENS, lang))

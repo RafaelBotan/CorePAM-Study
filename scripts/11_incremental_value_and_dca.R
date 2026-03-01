@@ -211,23 +211,29 @@ for (coh in COHORTS) {
     message(sprintf("[%s] %s: CORE-A unavailable (no age/er_status)", SCRIPT_NAME, coh))
   }
 
-  # 60m calibration
-  cal_df    <- NULL
-  cal_note  <- NA_character_
-  has_cal60 <- max(df[[time_col]], na.rm = TRUE) >= 60
+  # Calibration with cohort-specific horizon:
+  # TCGA-BRCA uses 24m (median FU=32m makes 60m calibration unreliable)
+  # All other cohorts use 60m
+  cal_horizon <- if (coh == "TCGA_BRCA") 24L else 60L
+  cal_df      <- NULL
+  cal_note    <- NA_character_
+  has_cal     <- max(df[[time_col]], na.rm = TRUE) >= cal_horizon
 
-  if (has_cal60) {
-    cal_df <- calibrate_60m(df[[time_col]], df[[event_col]], df$score_z, horizon = 60)
+  if (has_cal) {
+    cal_df <- calibrate_60m(df[[time_col]], df[[event_col]], df$score_z, horizon = cal_horizon)
     if (!is.null(cal_df)) {
-      cal_df$cohort <- coh
-      cal_note <- "calibration_60m_ok"
-      message(sprintf("[%s] %s: 60m calibration computed (%d deciles)", SCRIPT_NAME, coh, nrow(cal_df)))
+      cal_df$cohort  <- coh
+      cal_df$horizon <- cal_horizon
+      cal_note <- sprintf("calibration_%dm_ok", cal_horizon)
+      message(sprintf("[%s] %s: %dm calibration computed (%d deciles)",
+                      SCRIPT_NAME, coh, cal_horizon, nrow(cal_df)))
     } else {
-      cal_note <- "calibration_60m_failed"
+      cal_note <- sprintf("calibration_%dm_failed", cal_horizon)
     }
   } else {
-    cal_note <- "follow_up_less_than_60m"
-    message(sprintf("[%s] %s: maximum follow-up < 60m; calibration omitted", SCRIPT_NAME, coh))
+    cal_note <- sprintf("follow_up_less_than_%dm", cal_horizon)
+    message(sprintf("[%s] %s: maximum follow-up < %dm; calibration omitted",
+                    SCRIPT_NAME, coh, cal_horizon))
   }
 
   results_list[[coh]] <- tibble(
@@ -242,13 +248,20 @@ for (coh in COHORTS) {
     cal60_note      = cal_note
   )
 
-  # Save calibration per cohort
+  # Save calibration per cohort (filename encodes horizon)
   if (!is.null(cal_df)) {
-    cal_path <- file.path(PATHS$results$supp, sprintf("calibration_60m_%s.csv", coh))
+    cal_path <- file.path(PATHS$results$supp,
+                          sprintf("calibration_%dm_%s.csv", cal_horizon, coh))
+    # Remove old calibration files for this cohort (different horizons)
+    old_cals <- list.files(PATHS$results$supp,
+                           pattern = sprintf("^calibration_\\d+m_%s\\.csv$", coh),
+                           full.names = TRUE)
+    old_cals <- old_cals[old_cals != cal_path]
+    if (length(old_cals) > 0) file.remove(old_cals)
     readr::write_csv(cal_df, cal_path)
     h_cal <- sha256_file(cal_path)
-    registry_append(coh, "calibration_60m", cal_path, h_cal, "ok", SCRIPT_NAME,
-                    file.info(cal_path)$size / 1e6)
+    registry_append(coh, sprintf("calibration_%dm", cal_horizon), cal_path, h_cal, "ok",
+                    SCRIPT_NAME, file.info(cal_path)$size / 1e6)
   }
 }
 
@@ -279,18 +292,30 @@ dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
 df_plot <- incr_df[!is.na(incr_df$delta_cindex), ]
 
 if (nrow(df_plot) > 0) {
-  p_delta <- ggplot(df_plot, aes(x = delta_cindex, y = reorder(cohort, delta_cindex))) +
+  # Add per-cohort covariate label for subtitle/annotation
+  df_plot$corea_label <- dplyr::case_when(
+    df_plot$corea_vars_used == "age+er_status" ~ "CORE-A: age+ER",
+    df_plot$corea_vars_used == "age"           ~ "CORE-A: age only",
+    TRUE                                       ~ paste0("CORE-A: ", df_plot$corea_vars_used)
+  )
+  df_plot$y_label <- sprintf("%s\n(%s)", df_plot$cohort, df_plot$corea_label)
+
+  p_delta <- ggplot(df_plot, aes(x = delta_cindex, y = reorder(y_label, delta_cindex))) +
     geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
     geom_errorbar(aes(xmin = delta_ci_lo95, xmax = delta_ci_hi95),
                   orientation = "y", width = 0.3, linewidth = 0.8, color = "#2980B9") +
     geom_point(size = 4, color = "#2980B9") +
     labs(
-      title = "CorePAM Incremental Value: Delta C-index (CORE-A vs CORE-A + CorePAM)",
-      x     = "Delta C-index (95% CI bootstrap)",
-      y     = NULL
+      title    = "CorePAM Incremental Value: Delta C-index",
+      subtitle = "CORE-A + CorePAM vs CORE-A alone | Bootstrap 1,000 iterations | SCANB=age+ER; others=age only",
+      x        = "Delta C-index (95% CI)",
+      y        = NULL
     ) +
     theme_classic(base_size = 12) +
-    theme(plot.title = element_text(face = "bold", size = 12))
+    theme(
+      plot.title    = element_text(face = "bold", size = 12),
+      plot.subtitle = element_text(size = 9)
+    )
 
   fig5_pdf <- file.path(fig_dir, "Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.pdf")
   fig5_png <- file.path(fig_dir, "Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.png")
@@ -309,7 +334,7 @@ if (nrow(df_plot) > 0) {
 # --------------------------------------------------------------------------
 # 4) Figure Fig5 — 60m calibration (panel, sensitivity)
 # --------------------------------------------------------------------------
-cal_files <- list.files(PATHS$results$supp, pattern = "^calibration_60m_.+\\.csv$",
+cal_files <- list.files(PATHS$results$supp, pattern = "^calibration_\\d+m_.+\\.csv$",
                          full.names = TRUE)
 
 if (length(cal_files) > 0) {
@@ -322,19 +347,27 @@ if (length(cal_files) > 0) {
   if (!is.null(cal_all) && nrow(cal_all) > 0 &&
       all(c("pred_mean", "obs_surv", "cohort") %in% names(cal_all))) {
 
+    # Add horizon label per cohort for annotation
+    if (!"horizon" %in% names(cal_all)) cal_all$horizon <- 60L
+    cal_all$facet_label <- sprintf("%s (%dm)", cal_all$cohort, cal_all$horizon)
+
     p_cal <- ggplot(cal_all, aes(x = pred_mean, y = obs_surv)) +
       geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray50") +
       geom_point(aes(color = cohort), size = 2) +
       geom_smooth(method = "loess", se = FALSE, color = "black", linewidth = 0.7,
                   formula = y ~ x) +
-      facet_wrap(~cohort) +
+      facet_wrap(~facet_label) +
       labs(
-        title = "CorePAM 60m Calibration (sensitivity)",
-        x     = "Predicted survival at 60m",
-        y     = "Observed survival at 60m (KM)"
+        title    = "CorePAM Calibration — Predicted vs Observed Survival",
+        subtitle = "Calibration horizon per cohort: TCGA-BRCA=24m; SCANB/METABRIC/GSE20685=60m",
+        x        = "Predicted survival probability at horizon",
+        y        = "Observed survival at horizon (Kaplan-Meier)"
       ) +
       theme_classic(base_size = 11) +
-      theme(legend.position = "none")
+      theme(
+        legend.position = "none",
+        plot.subtitle   = element_text(size = 9)
+      )
 
     fig5b_pdf <- file.path(fig_dir, "Fig5_Calibration_60m_Panels_CorePAM.pdf")
     fig5b_png <- file.path(fig_dir, "Fig5_Calibration_60m_Panels_CorePAM.png")

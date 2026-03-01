@@ -38,26 +38,26 @@ tab3 <- tab_all |>
                            formatC(p_uni, format = "e", digits = 2),
                            sprintf("%.4f", p_uni)),
     c_index_fmt   = sprintf("%.3f (%.3f–%.3f)", c_index, c_index_lo95, c_index_hi95),
-    hr_multi_fmt  = ifelse(!is.na(hr_multi),
+    hr_age_fmt    = ifelse(!is.na(hr_multi),
                            sprintf("%.2f (%.2f–%.2f)", hr_multi, hr_multi_lo95, hr_multi_hi95),
                            "—"),
-    p_multi_fmt   = ifelse(!is.na(p_multi),
+    p_age_fmt     = ifelse(!is.na(p_multi),
                            ifelse(p_multi < 0.001,
                                   formatC(p_multi, format = "e", digits = 2),
                                   sprintf("%.4f", p_multi)),
                            "—")
   ) |>
   select(
-    Cohort          = cohort,
-    Endpoint        = endpoint,
-    N               = n_samples,
-    Events          = n_events,
-    `FU med (mo)`   = fu_median_months,
-    `HR uni (95%CI)`  = hr_uni_fmt,
-    `p (uni)`       = p_uni_fmt,
-    `C_adj (95%CI)` = c_index_fmt,
-    `HR multi (CORE-A)` = hr_multi_fmt,
-    `p (multi)`     = p_multi_fmt
+    Cohort           = cohort,
+    Endpoint         = endpoint,
+    N                = n_samples,
+    Events           = n_events,
+    `FU med (mo)`    = fu_median_months,
+    `HR uni (95%CI)` = hr_uni_fmt,
+    `p (uni)`        = p_uni_fmt,
+    `C_adj (95%CI)`  = c_index_fmt,
+    `HR age-adj`     = hr_age_fmt,
+    `p (age-adj)`    = p_age_fmt
   )
 
 message("[", SCRIPT_NAME, "] Table 3 — ", nrow(tab3), " rows")
@@ -100,6 +100,20 @@ for (r in seq_len(nrow(tab3))) {
   addStyle(wb, "Table3", sty, rows = r + 1, cols = 1:ncol(tab3), gridExpand = TRUE)
 }
 setColWidths(wb, "Table3", cols = 1:ncol(tab3), widths = "auto")
+
+# Footnote row: clarify CORE-A covariates per cohort
+note_row   <- nrow(tab3) + 3
+note_style <- createStyle(fontSize = 9, fontColour = "#5D6D7E",
+                          textDecoration = "italic")
+note_text  <- paste0(
+  "* HR age-adj: Cox model adjusted for age (CORE-A model). ",
+  "Validation cohorts (TCGA-BRCA, METABRIC, GSE20685): age only. ",
+  "Training cohort (SCANB): age + ER status. ",
+  "ER status not available in processed clinical files for validation cohorts."
+)
+writeData(wb, "Table3", note_text, startRow = note_row, startCol = 1)
+addStyle(wb, "Table3", note_style, rows = note_row, cols = 1, gridExpand = FALSE)
+
 saveWorkbook(wb, xlsx_path, overwrite = TRUE)
 registry_append("ALL", "Table3_SurvivalPerformance_xlsx", xlsx_path,
                 sha256_file(xlsx_path), "ok", SCRIPT_NAME, file.info(xlsx_path)$size / 1e6)

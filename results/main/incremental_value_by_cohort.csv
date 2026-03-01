@@ -1,5 +1,5 @@
 cohort,corea_vars_used,n,c_corea,c_corea_score,delta_cindex,delta_ci_lo95,delta_ci_hi95,cal60_note
 SCANB,age+er_status,3069,0.7504,0.78,0.0296,0.014,0.0487,calibration_60m_ok
-TCGA_BRCA,age,1072,0.6379,0.6758,0.0379,0.0106,0.0859,calibration_60m_ok
+TCGA_BRCA,age,1072,0.6379,0.6758,0.0379,0.0106,0.0859,calibration_24m_ok
 METABRIC,age,1978,0.4942,0.636,0.1418,0.0974,0.1632,calibration_60m_ok
 GSE20685,age,327,0.5356,0.6284,0.0928,0.0213,0.1745,calibration_60m_ok

@@ -129,7 +129,32 @@ if (n_outliers > 0) {
 # ---------------------------------------------------------------------------
 # 6) PCA biplot (PC1 vs PC2), colored by ER status
 # ---------------------------------------------------------------------------
-er_col <- if ("er_status" %in% names(annotated)) "er_status" else NULL
+# Note: er_status in clinical_FINAL.parquet has a bug — cBioPortal ER_IHC uses
+# "Positve" (typo) not "Positive", so harmonize_clinical missed ER+ patients.
+# Read ER directly from raw cBioPortal file here for correct coloring.
+raw_clin_path <- "01_Base_Pura_CorePAM/RAW/METABRIC/brca_metabric/data_clinical_patient.txt"
+er_col <- NULL
+if (file.exists(raw_clin_path)) {
+  raw_clin <- tryCatch(
+    readr::read_tsv(raw_clin_path, skip = 4, show_col_types = FALSE),
+    error = function(e) NULL
+  )
+  if (!is.null(raw_clin) && "ER_IHC" %in% names(raw_clin)) {
+    er_map <- raw_clin[, c("PATIENT_ID", "ER_IHC")]
+    names(er_map) <- c("sample_norm", "er_ihc_raw")
+    er_map$sample_norm <- toupper(trimws(er_map$sample_norm))
+    er_map$er_label_raw <- dplyr::case_when(
+      er_map$er_ihc_raw == "Positve"  ~ "ER+",   # cBioPortal typo
+      er_map$er_ihc_raw == "Negative" ~ "ER-",
+      TRUE                            ~ NA_character_
+    )
+    annotated <- dplyr::left_join(annotated, er_map, by = "sample_norm")
+    n_pos <- sum(annotated$er_label_raw == "ER+", na.rm = TRUE)
+    n_neg <- sum(annotated$er_label_raw == "ER-", na.rm = TRUE)
+    message(sprintf("[14] ER from raw cBioPortal: %d ER+ | %d ER-", n_pos, n_neg))
+    er_col <- "er_label_raw"
+  }
+}
 
 p1 <- ggplot(annotated, aes(x = PC1, y = PC2)) +
   {if (!is.null(er_col)) aes(color = as.factor(get(er_col))) else NULL} +
