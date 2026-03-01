@@ -1,0 +1,6 @@
+"step","n","note"
+"GEO GSE96058 raw download",NA,"All 3,869 pData rows"
+"Exclude: time <= 0 months",NA,"time_os <= 0 → drop"
+"Exclude: missing OS endpoint",NA,"Missing vital status → drop"
+"Exclude: PAM50 < 80% coverage",NA,"Coverage check (all pass in SCAN-B RNA-seq)"
+"Final training set",3069,"N=3069, events=322"
