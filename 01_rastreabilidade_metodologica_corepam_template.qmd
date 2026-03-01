@@ -334,8 +334,8 @@ pca_path <- "results/supp/metabric_pca_forensics.csv"
 if (file.exists(pca_path)) {
   pca <- read_csv(pca_path, show_col_types = FALSE)
   n_out <- nrow(pca[pca$is_outlier == TRUE,])
-  cat(sprintf("PCA forense METABRIC (script 14): %d outlier(s) detectado(s) (Mahalanobis p<0.001)\n", n_out))
-  if (n_out > 0) kable(pca[pca$is_outlier == TRUE, c("sample_id","pc1","pc2","mahal_p")], digits=4)
+  cat(sprintf("PCA forense METABRIC (script 14): %d outlier(s) detectado(s) (Mahalanobis)\n", n_out))
+  if (n_out > 0) kable(pca[pca$is_outlier == TRUE, c("sample_id","PC1","PC2","mahal_dist")], digits=4)
 } else {
   cat("Aguardando script 14_qc_metabric_pca_forensics.R.\n")
 }
