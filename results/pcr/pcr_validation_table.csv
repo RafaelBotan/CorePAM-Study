@@ -1,5 +1,5 @@
-cohort,endpoint,n_total,n_pcr1,n_rd,genes_total,genes_present,genes_missing,coverage_pct,or_per_1SD,or_ci_lo95,or_ci_hi95,p_value,auc,auc_lo95,auc_hi95,baseline_covariates
-GSE25066,pCR,182,42,140,24,22,2,91.7,1.435,1.0162,2.0907,0.0601,0.5764,0.4769,0.6758,age
-GSE20194,pCR,278,56,222,24,22,2,91.7,1.7268,1.3325,2.4511,8.576e-4,0.6599,0.586,0.7338,age
-GSE32646,pCR,115,27,88,24,24,0,100,2.1032,1.3606,3.9681,0.00223,0.7159,0.6109,0.8209,age+er_status
-ISPY1,pCR,122,32,90,24,24,0,100,1.662,1.1567,2.6966,0.02974,0.6219,0.5174,0.7264,age+er_status
+cohort,endpoint,n_total,n_pcr1,n_rd,genes_total,genes_present,genes_missing,coverage_pct,or_per_1SD,or_ci_lo95,or_ci_hi95,ci_method,p_value,auc,auc_lo95,auc_hi95,baseline_covariates
+GSE25066,pCR,182,42,140,24,22,2,91.7,1.435,0.9848,2.0911,Wald (95%),0.0601,0.5764,0.4769,0.6758,age
+GSE20194,pCR,278,56,222,24,22,2,91.7,1.7268,1.2524,2.3808,Wald (95%),8.576e-4,0.6599,0.586,0.7338,age
+GSE32646,pCR,115,27,88,24,24,0,100,2.1032,1.3059,3.3873,Wald (95%),0.00223,0.7159,0.6109,0.8209,age+er_status
+ISPY1,pCR,122,32,90,24,24,0,100,1.662,1.0512,2.6277,Wald (95%),0.02974,0.6219,0.5174,0.7264,age+er_status

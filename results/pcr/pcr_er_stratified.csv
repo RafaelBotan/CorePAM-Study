@@ -1,0 +1,5 @@
+cohort,er_strat,n_total,n_pcr1,or_per_1SD,or_lo95,or_hi95,p_wald
+GSE32646,positive,71,8,1.4717,0.6425,3.371,0.3609
+GSE32646,negative,44,19,1.5514,0.7612,3.1623,0.2267
+ISPY1,positive,60,10,4.8076,1.4344,16.1131,0.01094
+ISPY1,negative,56,21,0.4694,0.2034,1.0832,0.07627

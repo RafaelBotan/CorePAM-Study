@@ -267,13 +267,26 @@ for (cohort in names(sample_list)) {
   df_q <- df[!is.na(df$quartile), ]
   qdf <- do.call(rbind, lapply(levels(df_q$quartile), function(q) {
     sub_df <- df_q[df_q$quartile == q, ]
-    data.frame(
-      cohort   = cohort,
-      quartile = q,
-      pcr_rate = mean(sub_df$pcr, na.rm = TRUE),
-      n        = nrow(sub_df),
-      stringsAsFactors = FALSE
-    )
+    {
+      n_q   <- nrow(sub_df)
+      k_q   <- sum(sub_df$pcr == 1L, na.rm = TRUE)
+      # Wilson score interval (asymmetric, better for proportions)
+      z95   <- 1.96
+      denom <- n_q + z95^2
+      p_hat <- k_q / n_q
+      center <- (p_hat + z95^2 / (2 * n_q)) / (1 + z95^2 / n_q)
+      half   <- z95 * sqrt(p_hat * (1 - p_hat) / n_q + z95^2 / (4 * n_q^2)) / (1 + z95^2 / n_q)
+      data.frame(
+        cohort   = cohort,
+        quartile = q,
+        pcr_rate = p_hat,
+        n        = n_q,
+        pcr1     = k_q,
+        ci_lo    = pmax(0, center - half),
+        ci_hi    = pmin(1, center + half),
+        stringsAsFactors = FALSE
+      )
+    }
   }))
   quartile_list[[cohort]] <- qdf
 }
@@ -290,9 +303,12 @@ if (length(quartile_list) > 0) {
     ggplot(quart_df, aes(x = quartile, y = pcr_rate, fill = cohort,
                          group = cohort)) +
       geom_col(position = "dodge", colour = COL$black, linewidth = 0.3, alpha = 0.85) +
-      geom_text(aes(label = sprintf("n=%d", n)),
+      geom_errorbar(aes(ymin = ci_lo, ymax = ci_hi),
+                    position = position_dodge(width = 0.9),
+                    width = 0.25, linewidth = 0.6) +
+      geom_text(aes(label = sprintf("%d/%d", pcr1, n)),
                 position = position_dodge(width = 0.9),
-                vjust = -0.3, size = 2.8) +
+                vjust = -0.5, size = 2.5) +
       scale_fill_manual(values = COL_PCR,
                         name = if (lang == "EN") "Cohort" else "Coorte") +
       scale_y_continuous(labels = scales::percent_format(accuracy = 1),
@@ -358,6 +374,92 @@ if (length(sample_list) > 0) {
                     sha256_file(pdf_f), "ok", SCRIPT_NAME,
                     file.info(pdf_f)$size / 1e6)
     message(sprintf("[%s] [%s] Fig_pCR4 ScoreDist saved: %s", SCRIPT_NAME, lang, pdf_f))
+  }
+  gc(); options(warn = old_warn)
+}
+
+# --------------------------------------------------------------------------
+# FIG_pCR_S1: PR curves (precision-recall) — supplementary, bilingual
+# --------------------------------------------------------------------------
+pr_list <- list()
+for (cohort in PCR_COHORTS) {
+  rp <- file.path(proc_pcr_cohort(cohort), "analysis_ready.parquet")
+  if (!file.exists(rp)) next
+  df_pr <- strict_parquet(rp)
+  df_pr <- df_pr[!is.na(df_pr$pcr) & !is.na(df_pr$score_z), ]
+  old_warn2 <- getOption("warn"); options(warn = 0)
+  fit_pr <- tryCatch(
+    glm(pcr ~ score_z, data = df_pr, family = binomial),
+    error = function(e) NULL,
+    warning = function(w) glm(pcr ~ score_z, data = df_pr, family = binomial)
+  )
+  options(warn = old_warn2)
+  if (is.null(fit_pr)) next
+  probs_pr <- predict(fit_pr, type = "response")
+  n_pos    <- sum(df_pr$pcr == 1L)
+  base_rate <- n_pos / nrow(df_pr)
+  # Precision-Recall curve
+  thresh <- sort(unique(probs_pr), decreasing = TRUE)
+  pr_pts <- lapply(thresh, function(t) {
+    tp <- sum(probs_pr >= t & df_pr$pcr == 1L)
+    pp <- sum(probs_pr >= t)
+    c(prec = if (pp > 0) tp / pp else 1, rec = tp / n_pos)
+  })
+  pr_mat <- do.call(rbind, pr_pts)
+  # Add boundary points
+  pr_mat <- rbind(c(1, 0), pr_mat, c(base_rate, 1))
+  # Trapezoid PR-AUC
+  pr_auc <- sum(diff(pr_mat[, "rec"]) *
+                (pr_mat[-nrow(pr_mat), "prec"] + pr_mat[-1, "prec"]) / 2)
+  pr_list[[cohort]] <- data.frame(
+    cohort    = sprintf("%s\nPR-AUC=%.3f", cohort, pr_auc),
+    cohort_raw = cohort,
+    precision = pr_mat[, "prec"],
+    recall    = pr_mat[, "rec"],
+    pr_auc    = pr_auc,
+    base_rate = base_rate,
+    stringsAsFactors = FALSE
+  )
+}
+
+if (length(pr_list) > 0) {
+  pr_df_all <- bind_rows(pr_list)
+
+  make_pr_fig <- function(lang = "EN") {
+    xl  <- if (lang == "EN") "Recall (Sensitivity)" else "Recall (Sensibilidade)"
+    yl  <- if (lang == "EN") "Precision (PPV)"      else "Precisão (VPP)"
+    tt  <- if (lang == "EN")
+              "CorePAM precision-recall curve (pCR prediction)" else
+              "CorePAM curva precisão-recall (predição de pCR)"
+    ggplot(pr_df_all, aes(x = recall, y = precision,
+                          colour = cohort_raw, group = cohort)) +
+      geom_line(linewidth = 0.9) +
+      geom_hline(aes(yintercept = base_rate, colour = cohort_raw),
+                 linetype = "dashed", linewidth = 0.4, alpha = 0.6) +
+      facet_wrap(~ cohort, ncol = 2) +
+      scale_colour_manual(values = COL_PCR, guide = "none") +
+      coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
+      labs(title = tt, x = xl, y = yl,
+           caption = if (lang == "EN")
+             "Dashed line: prevalence (no-skill baseline)"
+           else
+             "Linha tracejada: prevalência (baseline sem discriminação)") +
+      theme_classic(base_size = 11) +
+      theme(strip.text = element_text(size = 9, face = "bold"),
+            strip.background = element_blank())
+  }
+
+  old_warn <- getOption("warn"); options(warn = 0)
+  for (lang in c("EN", "PT")) {
+    ps1 <- make_pr_fig(lang)
+    pdf_f <- file.path(fig_pcr, sprintf("FigS_pCR_PR_%s.pdf", lang))
+    png_f <- file.path(fig_pcr, sprintf("FigS_pCR_PR_%s.png", lang))
+    cairo_pdf(pdf_f, width = 8, height = 7); print(ps1); dev.off()
+    png(png_f, width = 8, height = 7, units = "in", res = 600); print(ps1); dev.off()
+    registry_append("META_PCR", sprintf("figS_pcr_pr_%s", lang), pdf_f,
+                    sha256_file(pdf_f), "ok", SCRIPT_NAME,
+                    file.info(pdf_f)$size / 1e6)
+    message(sprintf("[%s] [%s] FigS_pCR PR-curve saved: %s", SCRIPT_NAME, lang, pdf_f))
   }
   gc(); options(warn = old_warn)
 }

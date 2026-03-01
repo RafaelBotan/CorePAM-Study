@@ -96,11 +96,12 @@ brier_score <- function(obs, prob) round(mean((obs - prob)^2, na.rm = TRUE), 5)
 # --------------------------------------------------------------------------
 # Main analysis loop
 # --------------------------------------------------------------------------
-results_list  <- list()
-audit_list    <- list()
-incr_list     <- list()
-char_list     <- list()
-val_table_list <- list()
+results_list    <- list()
+audit_list      <- list()
+incr_list       <- list()
+char_list       <- list()
+val_table_list  <- list()
+er_strat_list_all <- list()
 
 for (cohort in PCR_COHORTS) {
   message(sprintf("\n[%s] === %s ===", SCRIPT_NAME, cohort))
@@ -323,6 +324,50 @@ for (cohort in PCR_COHORTS) {
   )
   results_list[[cohort]] <- res_row
 
+  # ------- ER-stratified analysis (if ER available) --------------------------
+  er_strat_rows <- list()
+  if ("er_status" %in% names(df) && mean(!is.na(df$er_status)) >= 0.5) {
+    for (er_val in c("positive", "negative")) {
+      df_er <- df[!is.na(df$er_status) & df$er_status == er_val, ]
+      if (nrow(df_er) < 20 || sum(df_er$pcr == 1L) < 5 || sum(df_er$pcr == 0L) < 5) {
+        message(sprintf("[%s] [%s] ER=%s: N=%d too small for stratified analysis — skipping",
+                        SCRIPT_NAME, cohort, er_val, nrow(df_er)))
+        next
+      }
+      old_warn <- getOption("warn"); options(warn = 0)
+      fit_er <- tryCatch(
+        glm(pcr ~ score_z, data = df_er, family = binomial),
+        error = function(e) NULL,
+        warning = function(w) glm(pcr ~ score_z, data = df_er, family = binomial)
+      )
+      options(warn = old_warn)
+      if (!is.null(fit_er)) {
+        sm_er     <- summary(fit_er)
+        or_er     <- exp(coef(fit_er)[["score_z"]])
+        se_er     <- sm_er$coefficients["score_z", "Std. Error"]
+        or_er_lo  <- exp(coef(fit_er)[["score_z"]] - 1.96 * se_er)
+        or_er_hi  <- exp(coef(fit_er)[["score_z"]] + 1.96 * se_er)
+        p_er      <- sm_er$coefficients["score_z", "Pr(>|z|)"]
+        message(sprintf("[%s] [%s] ER=%s: N=%d pCR=%d OR=%.3f (%.3f-%.3f) p=%.4g",
+                        SCRIPT_NAME, cohort, er_val, nrow(df_er),
+                        sum(df_er$pcr == 1L), or_er, or_er_lo, or_er_hi, p_er))
+        er_strat_rows[[er_val]] <- tibble(
+          cohort    = cohort,
+          er_strat  = er_val,
+          n_total   = nrow(df_er),
+          n_pcr1    = sum(df_er$pcr == 1L),
+          or_per_1SD = round(or_er, 4),
+          or_lo95   = round(or_er_lo, 4),
+          or_hi95   = round(or_er_hi, 4),
+          p_wald    = signif(p_er, 4)
+        )
+      }
+    }
+  }
+  if (length(er_strat_rows) > 0) {
+    er_strat_list_all[[cohort]] <- bind_rows(er_strat_rows)
+  }
+
   # pcr_validation_table row (minimum fields per Memorial §11.12)
   genes_total <- if (file.exists(file.path(PATHS$results$corepam, "CorePAM_weights.csv"))) {
     nrow(readr::read_csv(file.path(PATHS$results$corepam, "CorePAM_weights.csv"),
@@ -339,8 +384,9 @@ for (cohort in PCR_COHORTS) {
     genes_missing       = if (!is.na(n_genes_present) && !is.na(genes_total)) genes_total - n_genes_present else NA,
     coverage_pct        = if (!is.na(n_genes_present) && !is.na(genes_total)) round(100 * n_genes_present / genes_total, 1) else NA,
     or_per_1SD          = round(or_uni, 4),
-    or_ci_lo95          = round(boot_ci$ci_low, 4),
-    or_ci_hi95          = round(boot_ci$ci_high, 4),
+    or_ci_lo95          = round(or_lo_wald, 4),
+    or_ci_hi95          = round(or_hi_wald, 4),
+    ci_method           = "Wald (95%)",
     p_value             = signif(p_uni, 4),
     auc                 = round(auc_val, 4),
     auc_lo95            = round(auc_lo, 4),
@@ -384,6 +430,17 @@ if (length(results_list) == 0) stop(sprintf("[%s] No cohort results generated.",
 
 dir.create(PATHS$results$pcr, showWarnings = FALSE, recursive = TRUE)
 
+# ER-stratified results
+if (length(er_strat_list_all) > 0) {
+  er_strat_df <- bind_rows(er_strat_list_all)
+  out_er_strat <- file.path(PATHS$results$pcr, "pcr_er_stratified.csv")
+  readr::write_csv(er_strat_df, out_er_strat)
+  h_er <- sha256_file(out_er_strat)
+  registry_append("META_PCR", "pcr_er_stratified", out_er_strat, h_er, "ok", SCRIPT_NAME,
+                  file.info(out_er_strat)$size / 1e6)
+  message(sprintf("[%s] ER-stratified table saved: %s rows", SCRIPT_NAME, nrow(er_strat_df)))
+}
+
 # Full results
 res_df <- bind_rows(results_list)
 readr::write_csv(res_df, out_path)
@@ -416,7 +473,7 @@ h5 <- sha256_file(out_char); sz5 <- file.info(out_char)$size / 1e6
 registry_append("META_PCR", "T_pCR_1_cohort_char", out_char, h5, "ok", SCRIPT_NAME, sz5)
 
 message(sprintf("\n[%s] === RESULTS SUMMARY ===", SCRIPT_NAME))
-print(res_df[, c("cohort", "n_total", "n_pcr1", "or_uni", "or_uni_lo_boot",
-                  "or_uni_hi_boot", "p_uni", "auc")])
+print(res_df[, c("cohort", "n_total", "n_pcr1", "or_uni", "or_uni_lo_wald",
+                  "or_uni_hi_wald", "p_uni", "auc")])
 message(sprintf("[%s] COMPLETED — saved 5 output files to %s",
                 SCRIPT_NAME, PATHS$results$pcr))
