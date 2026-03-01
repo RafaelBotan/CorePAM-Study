@@ -53,24 +53,54 @@ if (length(missing_cols) > 0) {
 
 # Remove rows with missing logHR or SE
 all_res <- all_res[!is.na(all_res$loghr_uni) & !is.na(all_res$se_loghr_uni), ]
-message(sprintf("[%s] Cohorts with valid logHR+SE: %d", SCRIPT_NAME, nrow(all_res)))
+message(sprintf("[%s] All cohorts with valid logHR+SE: %d rows", SCRIPT_NAME, nrow(all_res)))
 
-if (nrow(all_res) < 2) {
-  stop(sprintf("[%s] Fewer than 2 cohorts with valid data. Cannot perform meta-analysis.", SCRIPT_NAME))
+# --------------------------------------------------------------------------
+# Subset: EXTERNAL VALIDATION only (exclude SCAN-B training cohort)
+# Primary endpoint: METABRIC DSS (primary); TCGA OS; GSE20685 OS
+# --------------------------------------------------------------------------
+VALIDATION_COHORTS <- c("TCGA_BRCA", "METABRIC", "GSE20685")
+
+# For METABRIC: keep only the DSS row (primary endpoint) for the primary analysis
+val_res <- all_res %>%
+  filter(cohort %in% VALIDATION_COHORTS) %>%
+  filter(!(cohort == "METABRIC" & !is.null(endpoint) & "endpoint" %in% names(.) & endpoint != "DSS"))
+
+# If the survival CSV has an 'endpoint' column (METABRIC has DSS + OS rows),
+# keep only the primary endpoint row per cohort for the primary analysis
+if ("endpoint" %in% names(val_res)) {
+  val_res <- val_res %>%
+    filter(
+      (cohort == "METABRIC"   & endpoint == "DSS") |
+      (cohort == "TCGA_BRCA"  & endpoint == "OS")  |
+      (cohort == "GSE20685"   & endpoint == "OS")  |
+      !(cohort %in% c("METABRIC", "TCGA_BRCA", "GSE20685"))
+    )
+}
+
+# Deduplicate — keep one row per cohort (the first, which is the primary endpoint)
+val_res <- val_res %>% group_by(cohort) %>% slice(1) %>% ungroup()
+
+message(sprintf("[%s] Validation cohorts for primary meta-analysis: %d (K=%d)",
+                SCRIPT_NAME, nrow(val_res), length(unique(val_res$cohort))))
+
+if (nrow(val_res) < 2) {
+  stop(sprintf("[%s] Fewer than 2 validation cohorts with valid data. Cannot perform meta-analysis.", SCRIPT_NAME))
 }
 
 # --------------------------------------------------------------------------
-# 2) Random-effects meta-analysis — univariate (logHR)
+# 2) Random-effects meta-analysis — univariate (logHR), validation only
 # --------------------------------------------------------------------------
-message(sprintf("[%s] Random-effects meta-analysis (uni)...", SCRIPT_NAME))
+message(sprintf("[%s] Random-effects meta-analysis (uni), K=%d validation cohorts...",
+                SCRIPT_NAME, nrow(val_res)))
 
 old_warn <- getOption("warn"); options(warn = 0)
 meta_uni <- tryCatch(
-  rma(yi = loghr_uni, sei = se_loghr_uni, data = all_res, method = "REML"),
+  rma(yi = loghr_uni, sei = se_loghr_uni, data = val_res, method = "REML"),
   error = function(e) {
     message(sprintf("[%s] rma REML failed; trying DL: %s", SCRIPT_NAME, e$message))
     tryCatch(
-      rma(yi = loghr_uni, sei = se_loghr_uni, data = all_res, method = "DL"),
+      rma(yi = loghr_uni, sei = se_loghr_uni, data = val_res, method = "DL"),
       error = function(e2) { stop(sprintf("[%s] Meta-analysis failed: %s", SCRIPT_NAME, e2$message)) }
     )
   }
@@ -89,11 +119,11 @@ message(sprintf("[%s] Meta HR uni = %.3f (%.3f-%.3f) | I2=%.1f%% | tau2=%.4f | p
 # Hartung-Knapp (HK) sensitivity — more conservative CIs when I² > 0
 old_warn <- getOption("warn"); options(warn = 0)
 meta_uni_hk <- tryCatch(
-  rma(yi = loghr_uni, sei = se_loghr_uni, data = all_res, method = "REML", test = "knha"),
+  rma(yi = loghr_uni, sei = se_loghr_uni, data = val_res, method = "REML", test = "knha"),
   error = function(e) {
     message(sprintf("[%s] HK REML failed; trying DL: %s", SCRIPT_NAME, e$message))
     tryCatch(
-      rma(yi = loghr_uni, sei = se_loghr_uni, data = all_res, method = "DL", test = "knha"),
+      rma(yi = loghr_uni, sei = se_loghr_uni, data = val_res, method = "DL", test = "knha"),
       error = function(e2) { message(sprintf("[%s] HK failed: %s", SCRIPT_NAME, e2$message)); NULL }
     )
   }
@@ -112,11 +142,11 @@ if (!is.null(meta_uni_hk)) {
 # --------------------------------------------------------------------------
 # 3) Random-effects meta-analysis — multivariate CORE-A (when available)
 # --------------------------------------------------------------------------
-has_multi <- "loghr_multi" %in% names(all_res) && "se_loghr_multi" %in% names(all_res)
+has_multi <- "loghr_multi" %in% names(val_res) && "se_loghr_multi" %in% names(val_res)
 
 # Compute loghr_multi / se_loghr_multi from hr_multi if not already present
-if (!has_multi && all(c("hr_multi", "hr_multi_lo95", "hr_multi_hi95") %in% names(all_res))) {
-  all_res <- all_res %>%
+if (!has_multi && all(c("hr_multi", "hr_multi_lo95", "hr_multi_hi95") %in% names(val_res))) {
+  val_res <- val_res %>%
     mutate(
       loghr_multi    = ifelse(!is.na(hr_multi), log(hr_multi), NA_real_),
       se_loghr_multi = ifelse(!is.na(hr_multi_lo95) & !is.na(hr_multi_hi95),
@@ -128,7 +158,7 @@ if (!has_multi && all(c("hr_multi", "hr_multi_lo95", "hr_multi_hi95") %in% names
 
 meta_multi <- NULL
 if (has_multi) {
-  df_m <- all_res[!is.na(all_res$loghr_multi) & !is.na(all_res$se_loghr_multi), ]
+  df_m <- val_res[!is.na(val_res$loghr_multi) & !is.na(val_res$se_loghr_multi), ]
   if (nrow(df_m) >= 2) {
     old_warn <- getOption("warn"); options(warn = 0)
     meta_multi <- tryCatch(
@@ -168,8 +198,63 @@ options(warn = old_warn)
 loo_df <- NULL
 if (!is.null(loo_uni)) {
   loo_df <- as.data.frame(loo_uni)
-  loo_df$cohort_left_out <- all_res$cohort
+  loo_df$cohort_left_out <- val_res$cohort
   message(sprintf("[%s] LOO: %d analyses", SCRIPT_NAME, nrow(loo_df)))
+}
+
+# --------------------------------------------------------------------------
+# 4a) OS-harmonised sensitivity meta-analysis
+# Use OS endpoint for all three validation cohorts (replaces METABRIC DSS
+# with METABRIC OS sensitivity results). Removes endpoint heterogeneity.
+# --------------------------------------------------------------------------
+message(sprintf("[%s] OS-harmonised sensitivity meta-analysis...", SCRIPT_NAME))
+
+meta_os_harm <- NULL
+
+# Get METABRIC OS sensitivity row from all_res (has all endpoints)
+if ("endpoint" %in% names(all_res)) {
+  os_harm_df <- all_res %>%
+    filter(cohort %in% VALIDATION_COHORTS) %>%
+    filter(
+      (cohort == "METABRIC"   & endpoint == "OS")  |
+      (cohort == "TCGA_BRCA"  & endpoint == "OS")  |
+      (cohort == "GSE20685"   & endpoint == "OS")
+    ) %>%
+    group_by(cohort) %>% slice(1) %>% ungroup() %>%
+    filter(!is.na(loghr_uni) & !is.na(se_loghr_uni))
+} else {
+  # If no endpoint column, use the same val_res rows (already primary endpoints)
+  os_harm_df <- val_res
+}
+
+if (nrow(os_harm_df) >= 2) {
+  old_warn <- getOption("warn"); options(warn = 0)
+  meta_os_harm <- tryCatch(
+    rma(yi = loghr_uni, sei = se_loghr_uni, data = os_harm_df, method = "REML"),
+    error = function(e) {
+      tryCatch(
+        rma(yi = loghr_uni, sei = se_loghr_uni, data = os_harm_df, method = "DL"),
+        error = function(e2) {
+          message(sprintf("[%s] OS-harm meta failed: %s", SCRIPT_NAME, e2$message))
+          NULL
+        }
+      )
+    }
+  )
+  options(warn = old_warn)
+  if (!is.null(meta_os_harm)) {
+    message(sprintf("[%s] OS-harm HR = %.3f (%.3f-%.3f) K=%d I2=%.1f%% p=%.4g",
+                    SCRIPT_NAME,
+                    exp(meta_os_harm$b[1]),
+                    exp(meta_os_harm$ci.lb),
+                    exp(meta_os_harm$ci.ub),
+                    nrow(os_harm_df),
+                    meta_os_harm$I2,
+                    meta_os_harm$pval))
+  }
+} else {
+  message(sprintf("[%s] OS-harmonised analysis: insufficient data (rows=%d)",
+                  SCRIPT_NAME, nrow(os_harm_df)))
 }
 
 # --------------------------------------------------------------------------
@@ -178,57 +263,29 @@ if (!is.null(loo_uni)) {
 main_dir <- PATHS$results$main
 dir.create(main_dir, showWarnings = FALSE, recursive = TRUE)
 
-# Build rows: primary RE, HK sensitivity, optional CORE-A multivariate
-hk_rows <- if (!is.null(meta_uni_hk)) {
-  list(
-    analysis     = "primary_validation_re_hk",
-    n_cohorts    = nrow(all_res),
-    meta_logHR   = round(meta_uni_hk$b[1], 6),
-    meta_HR      = round(exp(meta_uni_hk$b[1]), 4),
-    meta_HR_lo95 = round(exp(meta_uni_hk$ci.lb), 4),
-    meta_HR_hi95 = round(exp(meta_uni_hk$ci.ub), 4),
-    p_value      = signif(meta_uni_hk$pval, 4),
-    I2_pct       = round(meta_uni_hk$I2, 2),
-    tau2         = round(meta_uni_hk$tau2, 6),
-    Q_stat       = round(meta_uni_hk$QE, 4),
-    Q_p          = signif(meta_uni_hk$QEp, 4)
+# Helper: build a single row for meta_summary tibble
+make_row <- function(analysis_name, rma_obj, k) {
+  tibble(
+    analysis     = analysis_name,
+    n_cohorts    = k,
+    meta_logHR   = round(rma_obj$b[1], 6),
+    meta_HR      = round(exp(rma_obj$b[1]), 4),
+    meta_HR_lo95 = round(exp(rma_obj$ci.lb), 4),
+    meta_HR_hi95 = round(exp(rma_obj$ci.ub), 4),
+    p_value      = signif(rma_obj$pval, 4),
+    I2_pct       = round(rma_obj$I2, 2),
+    tau2         = round(rma_obj$tau2, 6),
+    Q_stat       = round(rma_obj$QE, 4),
+    Q_p          = signif(rma_obj$QEp, 4)
   )
-} else NULL
+}
 
-meta_summary <- tibble(
-  analysis     = c("primary_validation_re",
-                   if (!is.null(hk_rows))    "primary_validation_re_hk"   else character(0),
-                   if (!is.null(meta_multi)) "CORE-A_multivariate"        else character(0)),
-  n_cohorts    = c(nrow(all_res),
-                   if (!is.null(hk_rows))    nrow(all_res)                else integer(0),
-                   if (!is.null(meta_multi)) nrow(df_m)                   else integer(0)),
-  meta_logHR   = c(round(meta_uni$b[1], 6),
-                   if (!is.null(hk_rows))    hk_rows$meta_logHR           else numeric(0),
-                   if (!is.null(meta_multi)) round(meta_multi$b[1], 6)    else numeric(0)),
-  meta_HR      = c(round(exp(meta_uni$b[1]), 4),
-                   if (!is.null(hk_rows))    hk_rows$meta_HR              else numeric(0),
-                   if (!is.null(meta_multi)) round(exp(meta_multi$b[1]), 4) else numeric(0)),
-  meta_HR_lo95 = c(round(exp(meta_uni$ci.lb), 4),
-                   if (!is.null(hk_rows))    hk_rows$meta_HR_lo95         else numeric(0),
-                   if (!is.null(meta_multi)) round(exp(meta_multi$ci.lb), 4) else numeric(0)),
-  meta_HR_hi95 = c(round(exp(meta_uni$ci.ub), 4),
-                   if (!is.null(hk_rows))    hk_rows$meta_HR_hi95         else numeric(0),
-                   if (!is.null(meta_multi)) round(exp(meta_multi$ci.ub), 4) else numeric(0)),
-  p_value      = c(signif(meta_uni$pval, 4),
-                   if (!is.null(hk_rows))    hk_rows$p_value              else numeric(0),
-                   if (!is.null(meta_multi)) signif(meta_multi$pval, 4)   else numeric(0)),
-  I2_pct       = c(round(meta_uni$I2, 2),
-                   if (!is.null(hk_rows))    hk_rows$I2_pct               else numeric(0),
-                   if (!is.null(meta_multi)) round(meta_multi$I2, 2)      else numeric(0)),
-  tau2         = c(round(meta_uni$tau2, 6),
-                   if (!is.null(hk_rows))    hk_rows$tau2                 else numeric(0),
-                   if (!is.null(meta_multi)) round(meta_multi$tau2, 6)    else numeric(0)),
-  Q_stat       = c(round(meta_uni$QE, 4),
-                   if (!is.null(hk_rows))    hk_rows$Q_stat               else numeric(0),
-                   if (!is.null(meta_multi)) round(meta_multi$QE, 4)      else numeric(0)),
-  Q_p          = c(signif(meta_uni$QEp, 4),
-                   if (!is.null(hk_rows))    hk_rows$Q_p                  else numeric(0),
-                   if (!is.null(meta_multi)) signif(meta_multi$QEp, 4)    else numeric(0))
+meta_summary <- bind_rows(
+  make_row("primary_validation_re",    meta_uni,       nrow(val_res)),
+  if (!is.null(meta_uni_hk))
+    make_row("primary_validation_re_hk", meta_uni_hk,  nrow(val_res)) else NULL,
+  if (!is.null(meta_os_harm))
+    make_row("os_harmonized_re",         meta_os_harm, nrow(os_harm_df)) else NULL
 )
 
 meta_path <- file.path(main_dir, "meta_survival_summary.csv")
@@ -252,14 +309,14 @@ if (!is.null(loo_df)) {
 fp_pdf <- file.path(PATHS$figures$main_en_pdf, "Fig4_Meta_Forest_HR_per1SD_CorePAM.pdf")
 fp_png <- file.path(PATHS$figures$main_en_png, "Fig4_Meta_Forest_HR_per1SD_CorePAM.png")
 
-# Prepare data for manual forest plot with ggplot2
-plot_df <- all_res %>%
+# Prepare data for manual forest plot with ggplot2 — validation cohorts only
+plot_df <- val_res %>%
   select(cohort, hr_uni, hr_uni_lo95, hr_uni_hi95, n_samples, n_events) %>%
   mutate(
     label = sprintf("%s (n=%d, ev=%d)", cohort,
-                    ifelse("n_samples" %in% names(all_res), n_samples, NA_integer_),
-                    ifelse("n_events" %in% names(all_res), n_events, NA_integer_)),
-    cohort_f = factor(cohort, levels = rev(COHORTS))
+                    ifelse("n_samples" %in% names(val_res), n_samples, NA_integer_),
+                    ifelse("n_events" %in% names(val_res), n_events, NA_integer_)),
+    cohort_f = factor(cohort, levels = rev(VALIDATION_COHORTS))
   )
 
 # Add meta-analysis summary row
@@ -270,11 +327,12 @@ meta_row <- tibble(
   hr_uni_hi95 = exp(meta_uni$ci.ub),
   n_samples = NA_integer_,
   n_events  = NA_integer_,
-  label     = sprintf("Meta RE (I2=%.0f%%, tau2=%.3f)", meta_uni$I2, meta_uni$tau2),
-  cohort_f  = factor("Meta (RE)", levels = c(rev(COHORTS), "Meta (RE)"))
+  label     = sprintf("Meta RE (K=%d, I2=%.0f%%, tau2=%.3f)",
+                      nrow(val_res), meta_uni$I2, meta_uni$tau2),
+  cohort_f  = factor("Meta (RE)", levels = c(rev(VALIDATION_COHORTS), "Meta (RE)"))
 )
 
-levels_full <- c(rev(COHORTS), "Meta (RE)")
+levels_full <- c(rev(VALIDATION_COHORTS), "Meta (RE)")
 plot_df$cohort_f <- factor(plot_df$cohort, levels = levels_full)
 meta_row$cohort_f <- factor("Meta (RE)", levels = levels_full)
 

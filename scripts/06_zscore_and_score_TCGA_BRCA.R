@@ -131,6 +131,13 @@ if (n_dropped > 0) {
   message(sprintf("[%s] Samples with time<=0 removed: %d", SCRIPT_NAME, n_dropped))
 }
 
+# --------------------------------------------------------------------------
+# Direction confirmation — VALIDATION cohort (TCGA-BRCA)
+# Score direction was established in the SCAN-B training cohort (HR=1.92;
+# direction="original"). This check confirms the same convention holds here.
+# If hr_dir < 1 were observed, it would indicate a methodological problem
+# requiring investigation — NOT a routine per-cohort inversion.
+# --------------------------------------------------------------------------
 old_warn <- getOption("warn"); options(warn = 0)
 cox_dir <- tryCatch(
   coxph(Surv(clin_score[[endpoint_col]], clin_score[[event_col]]) ~ clin_score$score_z),
@@ -140,15 +147,15 @@ options(warn = old_warn)
 
 if (!is.null(cox_dir)) {
   hr_dir <- exp(coef(cox_dir)[1])
-  message(sprintf("[%s] HR score_z (raw direction check): %.4f", SCRIPT_NAME, hr_dir))
+  message(sprintf("[%s] VALIDATION direction confirmation HR score_z: %.4f (expected > 1 per training)", SCRIPT_NAME, hr_dir))
   if (hr_dir < 1) {
     clin_score$score   <- -clin_score$score
     clin_score$score_z <- -clin_score$score_z
     score_direction    <- "inverted"
-    message(sprintf("[%s] Direction inverted (HR < 1)", SCRIPT_NAME))
+    message(sprintf("[%s] WARNING: Direction inverted (HR < 1) — UNEXPECTED; investigate", SCRIPT_NAME))
   } else {
     score_direction <- "original"
-    message(sprintf("[%s] Original direction maintained (HR >= 1)", SCRIPT_NAME))
+    message(sprintf("[%s] Direction confirmed original (HR >= 1) — consistent with training", SCRIPT_NAME))
   }
 } else {
   score_direction <- "unknown"

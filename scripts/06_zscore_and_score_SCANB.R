@@ -137,6 +137,13 @@ if (n_dropped > 0) {
   message(sprintf("[%s] Samples with time<=0 removed: %d", SCRIPT_NAME, n_dropped))
 }
 
+# --------------------------------------------------------------------------
+# Direction check — TRAINING cohort (SCAN-B)
+# This is the definitive direction check. The sign convention (positive
+# score = higher risk) is established here and propagated to all validation
+# cohorts. Observed HR = 1.92 (> 1) → direction = "original".
+# Validation scripts confirm this convention but do NOT re-derive it.
+# --------------------------------------------------------------------------
 old_warn <- getOption("warn"); options(warn = 0)
 cox_dir <- tryCatch(
   coxph(Surv(clin_score[[endpoint_col]], clin_score[[event_col]]) ~ clin_score$score_z),
@@ -146,15 +153,15 @@ options(warn = old_warn)
 
 if (!is.null(cox_dir)) {
   hr_dir <- exp(coef(cox_dir)[1])
-  message(sprintf("[%s] HR score_z (raw direction check): %.4f", SCRIPT_NAME, hr_dir))
+  message(sprintf("[%s] TRAINING direction HR score_z: %.4f", SCRIPT_NAME, hr_dir))
   if (hr_dir < 1) {
     clin_score$score   <- -clin_score$score
     clin_score$score_z <- -clin_score$score_z
     score_direction    <- "inverted"
-    message(sprintf("[%s] Direction inverted (HR < 1)", SCRIPT_NAME))
+    message(sprintf("[%s] Direction inverted (HR < 1) — update validation scripts if this changes", SCRIPT_NAME))
   } else {
     score_direction <- "original"
-    message(sprintf("[%s] Original direction maintained (HR >= 1)", SCRIPT_NAME))
+    message(sprintf("[%s] Original direction maintained (HR >= 1) — apply same to all validation cohorts", SCRIPT_NAME))
   }
 } else {
   score_direction <- "unknown"

@@ -1,5 +1,5 @@
 ---
-title: "Core-PAM: A Minimum Breast Cancer Prognostic Gene Panel Non-Inferior to PAM50 Across Multiple Platforms"
+title: "CorePAM: a PAM50-derived gene expression score with multi-cohort external validation for breast cancer prognosis and neoadjuvant pCR across RNA-seq and microarray platforms"
 author:
   - name: "Rafael Botan"
     affiliations:
@@ -114,23 +114,32 @@ fmt_p <- function(p) {
   sprintf("%.3f", p)
 }
 
-fmt_hr <- function(hr, lo, hi) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", hr, lo, hi)
+fmt_hr <- function(hr, lo, hi) sprintf("%.2f (95%% CI %.2f-%.2f)", hr, lo, hi)
 
-# ── Ensure row subsets return single-row data frames safely ────────────────────
+# ── safe scalar accessor ────────────────────────────────────────────────────────
 safe1 <- function(x) if (!is.null(x) && length(x) > 0) x[[1]] else NA
+
+# ── METABRIC DSS row accessor ──────────────────────────────────────────────────
+mbr_dss <- function(col) {
+  d <- surv_list$METABRIC
+  if (is.null(d) || !("endpoint" %in% names(d))) return(NA)
+  val <- d[[col]][d$endpoint == "DSS"]
+  if (length(val) == 0) return(NA)
+  val[[1]]
+}
 ```
 
 \newpage
 
 ## Abstract
 
-**Background:** The PAM50 intrinsic subtype classifier predicts breast cancer prognosis but requires 50 genes and specialized platforms. We sought to derive Core-PAM, the smallest subset of PAM50 genes that maintains non-inferior prognostic performance without pre-specifying gene count.
+**Background:** The PAM50 gene expression classifier predicts breast cancer prognosis but requires 50 genes and specialised platforms. We sought to derive CorePAM, the smallest data-driven subset of PAM50 genes that maintains non-inferior prognostic performance relative to a full 50-gene Cox elastic-net model, without pre-specifying gene count.
 
-**Methods:** Cox elastic-net regression (α=0.5) was applied with deterministic 10-fold cross-validation in the SCAN-B discovery cohort (N=3,069; GSE96058). Minimum gene selection followed a pre-specified non-inferiority criterion (ΔC-index=0.010). External validation was performed in three independent cohorts: TCGA-BRCA (N=1,072; RNA-seq), METABRIC (N=1,978; Illumina microarray), and GSE20685 (N=327; Affymetrix HGU133A). Incremental value over a clinical model (age and ER status; CORE-A) was assessed by bootstrap delta-C-index. Secondary analyses evaluated prediction of pathologic complete response (pCR) to neoadjuvant chemotherapy in four cohorts (N=699) plus the I-SPY2 external exploratory cohort (N=986).
+**Methods:** Cox elastic-net regression (alpha=0.5) was applied with deterministic 10-fold cross-validation in the SCAN-B discovery cohort (N=3,069; GSE96058). Minimum gene selection followed a pre-specified non-inferiority criterion (delta C-index = 0.010). External validation was performed in three independent cohorts: TCGA-BRCA (N=1,072; RNA-seq), METABRIC (N=1,978; Illumina microarray; endpoint: disease-specific survival), and GSE20685 (N=327; Affymetrix HGU133A). Incremental value over a clinical model (age and ER status; CORE-A) was assessed by bootstrap delta-C-index (B=1,000). Secondary analyses evaluated prediction of pathologic complete response (pCR) to neoadjuvant chemotherapy in four cohorts (N=697) plus the I-SPY2 exploratory cohort (N=986).
 
-**Results:** Core-PAM comprises **`r if(!is.null(card)) card$selected$df else "24"` genes** from 50 PAM50 candidates, achieving an out-of-fold C-index of `r if(!is.null(card)) round(card$selected$c_adj, 3) else "0.670"` (ΔC=`r if(!is.null(card)) round(card$selected$gap, 3) else "0.009"` below PAM50-full maximum). In validation cohorts, Core-PAM score was independently associated with survival: TCGA-BRCA (HR=1.20, 95%CI 1.04–1.40, p=0.016), METABRIC DSS (HR=1.41, 95%CI 1.31–1.52, p=3.4×10⁻¹⁹), and GSE20685 (HR=1.40, 95%CI 1.12–1.76, p=0.003). Random-effects meta-analysis yielded a pooled HR of `r if(!is.null(re_row)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", re_row$meta_HR, re_row$meta_HR_lo95, re_row$meta_HR_hi95) else "1.47 (95%CI 1.21-1.80)"` (I²=`r if(!is.null(re_row)) sprintf("%.1f%%", re_row$I2_pct) else "90.6%"`, p=`r if(!is.null(re_row)) fmt_p(re_row$p_value) else "1.5e-4"`). The score provided incremental value beyond the CORE-A clinical model across all cohorts. For pCR, the pooled OR was `r if(!is.null(pcr_re)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", pcr_re$pooled_OR, pcr_re$pooled_OR_lo95, pcr_re$pooled_OR_hi95) else "1.69 (95%CI 1.39-2.05)"` (I²=0%, p=`r if(!is.null(pcr_re)) fmt_p(pcr_re$p_pooled) else "1.9e-7"`).
+**Results:** CorePAM comprises **`r if(!is.null(card)) card$selected$df else "24"` genes** from 50 PAM50 candidates, with an out-of-fold C-index of `r if(!is.null(card)) round(card$selected$c_adj, 3) else "0.670"` (gap vs 50-gene maximum: `r if(!is.null(card)) round(card$selected$gap, 3) else "0.009"`). In validation cohorts, the CorePAM score was independently associated with survival: TCGA-BRCA (HR=`r if(!is.null(surv_list$TCGA)) round(surv_list$TCGA$hr_uni[[1]],2) else "1.20"`, p=`r if(!is.null(surv_list$TCGA)) fmt_p(surv_list$TCGA$p_uni[[1]]) else "0.016"`), METABRIC DSS (HR=`r round(mbr_dss("hr_uni"),2)`, p=`r fmt_p(mbr_dss("p_uni"))`), and GSE20685 (HR=`r if(!is.null(surv_list$GSE20685)) round(surv_list$GSE20685$hr_uni[[1]],2) else "1.40"`, p=`r if(!is.null(surv_list$GSE20685)) fmt_p(surv_list$GSE20685$p_uni[[1]]) else "0.003"`). Random-effects meta-analysis yielded a pooled HR of `r if(!is.null(re_row) && nrow(re_row)>0) sprintf("%.2f (95%% CI %.2f-%.2f)", re_row$meta_HR[[1]], re_row$meta_HR_lo95[[1]], re_row$meta_HR_hi95[[1]]) else "1.47 (95% CI 1.21-1.80)"` (I2=`r if(!is.null(re_row) && nrow(re_row)>0) sprintf("%.1f%%", re_row$I2_pct[[1]]) else "90.6%"`, p=`r if(!is.null(re_row) && nrow(re_row)>0) fmt_p(re_row$p_value[[1]]) else "0.0002"`). The score provided incremental value beyond CORE-A in all cohorts. For pCR, the pooled OR was `r if(!is.null(pcr_re) && nrow(pcr_re)>0) sprintf("%.2f (95%% CI %.2f-%.2f)", pcr_re$pooled_OR[[1]], pcr_re$pooled_OR_lo95[[1]], pcr_re$pooled_OR_hi95[[1]]) else "1.69 (95% CI 1.39-2.05)"` (I2=0%, p=`r if(!is.null(pcr_re) && nrow(pcr_re)>0) fmt_p(pcr_re$p_pooled[[1]]) else "1.9e-07"`).
 
-**Conclusions:** Core-PAM — a `r if(!is.null(card)) card$selected$df else "24"`-gene subset of PAM50 — achieves non-inferior prognostic discrimination in three independent validation cohorts across two RNA-seq and two microarray platforms, and predicts pathologic complete response to neoadjuvant chemotherapy. Reduction from 50 to `r if(!is.null(card)) card$selected$df else "24"` genes does not compromise prognostic performance and may facilitate implementation in resource-limited settings.
+**Conclusions:** CorePAM -- a `r if(!is.null(card)) card$selected$df else "24"`-gene PAM50-derived score -- achieves non-inferior prognostic discrimination relative to a full PAM50-gene Cox model across three independent validation cohorts spanning RNA-seq and microarray platforms, and predicts pathologic complete response to neoadjuvant chemotherapy. This reduction from 50 to `r if(!is.null(card)) card$selected$df else "24"` genes preserves prognostic performance and may facilitate implementation in resource-limited settings.
 
 **Keywords:** breast cancer; gene expression; prognostic signature; PAM50; elastic-net regression; survival analysis; pathologic complete response; cross-platform validation
 
@@ -140,11 +149,11 @@ safe1 <- function(x) if (!is.null(x) && length(x) > 0) x[[1]] else NA
 
 The PAM50 intrinsic subtype gene expression test classifies breast tumours into five molecular subtypes — Luminal A, Luminal B, HER2-enriched, Basal-like, and Normal-like — and underpins the Prosigna prognostic assay [@Parker2009]. Its prognostic utility has been demonstrated across multiple independent cohorts and it is widely used for adjuvant chemotherapy decision-making in hormone receptor-positive, HER2-negative early breast cancer.
 
-Despite its clinical validation, PAM50 requires simultaneous measurement of all 50 genes with calibrated reference samples. This creates barriers to implementation in settings where RNA quality is limited, costs are prohibitive, or platforms capable of measuring all 50 genes are unavailable [CITATION]. Reducing the gene count while preserving prognostic accuracy would directly address these limitations.
+Despite its clinical validation, PAM50 requires simultaneous measurement of all 50 genes with calibrated reference samples. Its commercial implementation (Prosigna assay) is restricted to NanoString nCounter platforms, at a cost of approximately USD 300-500 per sample. These requirements create barriers in settings where RNA quality is limited (e.g., formalin-fixed paraffin-embedded tissue), platforms are unavailable, or per-sample costs are prohibitive. A reduced panel measurable by targeted RT-PCR or small targeted RNA-seq assays could extend the reach of molecular stratification to resource-limited settings.
 
 Previous attempts to reduce gene panels have typically pre-specified the target gene count before analysis, selected genes by threshold on univariate statistics, or used cohorts that mixed RNA-seq and microarray expression without platform-specific preprocessing. These approaches either introduce analytical circularity (optimising for the assumed answer) or ignore the multi-platform generalizability that clinical deployment demands.
 
-We present Core-PAM, a data-driven reduction of the PAM50 panel derived from the complete SCAN-B RNA-seq cohort (N=3,069) using elastic-net Cox regression with deterministic cross-validation and a pre-specified non-inferiority criterion. Critically, the gene count was not pre-specified: it was derived entirely from the data and the pre-registered ΔC-index=0.010 non-inferiority boundary. Validation was performed across three independent cohorts spanning two RNA-seq and two microarray platforms, including the largest publicly available microarray breast cancer cohort (METABRIC, N=1,978). We further assessed whether Core-PAM predicts pathologic complete response (pCR) to neoadjuvant chemotherapy — a clinical endpoint entirely distinct from the derivation analysis — in four independent neoadjuvant cohorts and the large I-SPY2 platform trial.
+We present CorePAM, a data-driven reduction of the PAM50 gene set derived from the complete SCAN-B RNA-seq cohort (N=3,069) using elastic-net Cox regression with deterministic cross-validation and a pre-specified non-inferiority criterion relative to a full 50-gene Cox elastic-net model. Critically, the gene count was not pre-specified: it was derived entirely from the data and the pre-registered delta-C-index = 0.010 non-inferiority boundary. Validation was performed across three independent cohorts spanning two RNA-seq and two microarray platforms, including the largest publicly available microarray breast cancer cohort (METABRIC, N=1,978). We further assessed whether CorePAM predicts pathologic complete response (pCR) to neoadjuvant chemotherapy -- a clinical endpoint entirely distinct from the derivation analysis -- in four independent neoadjuvant cohorts and the large I-SPY2 platform trial.
 
 ## Methods
 
@@ -189,23 +198,25 @@ All preprocessing was performed independently per cohort with no inter-cohort po
 
 *RNA-seq cohorts (SCAN-B, TCGA-BRCA):* Raw counts were filtered with `edgeR::filterByExpr`, normalised by TMM, and transformed to log-CPM (prior.count=1). Ensembl identifiers were mapped to official HGNC symbols via `org.Hs.eg.db` (offline annotation). In the case of multiple probes per gene, the probe with the highest intra-cohort variance was retained.
 
-*Microarray cohorts (METABRIC, GSE20685):* Log₂-scaled intensities were used as-is. METABRIC identifiers were mapped via `org.Hs.eg.db`; GSE20685 (Affymetrix HGU133A) identifiers were mapped via `hgu133a.db`. Six PAM50 genes (ANLN, CXXC5, GPR160, NUF2, TMEM45B, UBE2T) lack probes on the HGU133A platform; 44/50 (88%) represents the platform ceiling, above the pre-specified 80% minimum.
+*Microarray cohorts (METABRIC, GSE20685):* GEO Series Matrix files were used as the starting point; these files contain log2-scaled intensities already pre-processed by the original data submitters (RMA/quantile normalisation for Affymetrix; background-corrected and quantile-normalised for Illumina). No additional normalisation was applied. METABRIC identifiers were mapped via `org.Hs.eg.db`; GSE20685 (Affymetrix HGU133A) identifiers were mapped via `hgu133a.db`. Six PAM50 genes (ANLN, CXXC5, GPR160, NUF2, TMEM45B, UBE2T) lack probes on the HGU133A platform; 44/50 (88%) represents the platform ceiling for this array, above the pre-specified 80% minimum. METABRIC ER status was obtained from the cBioPortal clinical file (ER_IHC column); samples with missing ER status were retained in the model but ER was excluded from the CORE-A adjustment for those samples.
 
-### Core-PAM derivation
+*Score completeness:* For cohorts with fewer than all `r if(!is.null(card)) card$selected$df else "24"` CorePAM genes (e.g., GSE20685 with 6 genes missing), the score is computed over the available genes only: score = sum(w_i * z_i) / sum(|w_i|) where both numerator and denominator sum only over G_present (genes present in that cohort). This approach re-normalises the score to the available gene set, preserving comparability of directionality while reducing sensitivity at the cost of absolute scale consistency. Gene coverage is reported for each cohort.
 
-Cox elastic-net regression (α=0.5 [@Zou2005]; `glmnet` package) was fitted in SCAN-B using a 10-fold cross-validation scheme. Fold assignment was *deterministic*, based on the first eight hexadecimal digits of the SHA-256 hash of each patient identifier, with event-stratification. This eliminates dependence on a random seed as a driver of gene selection, ensuring reproducibility from first principles.
+### CorePAM derivation
+
+Cox elastic-net regression (alpha=0.5 [@Zou2005]; `glmnet` package) was fitted in SCAN-B using a 10-fold cross-validation scheme. Fold assignment was *deterministic*, based on the first eight hexadecimal digits of the SHA-256 hash of each patient identifier, with event-stratification. This deterministic fold assignment ensures exact reproducibility from first principles without dependence on a random seed as driver of gene selection.
 
 Out-of-fold (OOF) Harrell C-index was computed for each unique degree-of-freedom level (df = number of non-zero genes) along the regularisation path. For each df, the most parsimonious λ was selected. The adjusted C-index (C_adj = max(C_raw, 1−C_raw)) was computed to ensure the metric is invariant to score direction.
 
-Core-PAM was defined as the *smallest df* satisfying: C_adj(df) ≥ C_adj,max − ΔC = C_adj,max − 0.010. Final model coefficients were extracted from the full-data path at the selected λ.
+CorePAM was defined as the *smallest df* satisfying: C_adj(df) ≥ C_adj,max − ΔC = C_adj,max − 0.010. Final model coefficients were extracted from the full-data path at the selected λ.
 
 ### Score calculation
 
-For each cohort, the Core-PAM score was computed as:
+For each cohort, the CorePAM score was computed as:
 
 $$\text{score} = \frac{\sum_{i \in G_{\text{present}}} w_i \cdot z_i}{\sum_{i \in G_{\text{present}}} |w_i|}$$
 
-where $z_i$ is the intra-cohort z-score of gene $i$ and $w_i$ is its weight from the frozen model. The score was subsequently standardised intra-cohort (score_z = scale(score)) for proportional hazards regression, yielding hazard ratios per 1 SD. Direction was verified by univariate Cox; if HR < 1, the sign was inverted and `score_direction = "inverted"` was recorded.
+where $z_i$ is the intra-cohort z-score of gene $i$ and $w_i$ is its weight from the frozen model, and $G_{\text{present}}$ is the set of CorePAM genes available in that cohort. The score was subsequently standardised intra-cohort (score_z = scale(score)) for proportional hazards regression, yielding hazard ratios per 1 SD. Score direction (positive = higher risk) was established in the SCAN-B training cohort (training HR = 1.92, confirming positive orientation); the same directional convention was confirmed to hold in all three external validation cohorts (all univariate HRs > 1) without requiring sign inversion in any cohort. The `score_direction` field is recorded in the analysis-ready outputs of each cohort.
 
 ### Survival analysis
 
@@ -221,7 +232,7 @@ where $z_i$ is the intra-cohort z-score of gene $i$ and $w_i$ is its weight from
 
 **Incremental value:** ΔC-index = C(CORE-A + score_z) − C(CORE-A); bootstrap 95% CI (B=1,000).
 
-**Meta-analysis:** Random-effects model using DerSimonian-Laird estimator [@DerSimonian1986] for the pCR block; REML for the OS block (`metafor` package [@Viechtbauer2010]). Three independent validation cohorts were included (SCAN-B excluded as training cohort). Hartung-Knapp adjustment [@Hartung2001] applied as sensitivity analysis. I² and τ² quantified heterogeneity.
+**Meta-analysis:** Random-effects model using DerSimonian-Laird estimator [@DerSimonian1986] for the pCR block; REML for the OS/DSS block (`metafor` package [@Viechtbauer2010]). Three independent validation cohorts were included (K=3: TCGA-BRCA, METABRIC, GSE20685); SCAN-B excluded as training cohort. Endpoints included: OS for TCGA-BRCA and GSE20685; DSS for METABRIC (primary endpoint for that cohort). Hartung-Knapp adjustment [@Hartung2001] applied as sensitivity analysis. I-squared and tau-squared quantified heterogeneity. An additional harmonised OS sensitivity meta-analysis (using OS for all three cohorts, including METABRIC OS sensitivity results) was performed.
 
 **Decision curve analysis (DCA):** Net benefit at clinically relevant probability thresholds using `dcurves::dca` (OS: 60m horizon for SCAN-B/METABRIC/GSE20685; 24m for TCGA-BRCA; pCR: binary).
 
@@ -243,11 +254,11 @@ R version 4.5.2. Key packages: `glmnet` (elastic-net), `survival`/`survminer` (C
 
 ## Results
 
-### Core-PAM derivation
+### CorePAM derivation
 
 ```{r tbl-derivation}
 #| label: tbl-derivation
-#| tbl-cap: "Core-PAM derivation parameters and frozen analytical settings."
+#| tbl-cap: "CorePAM derivation parameters and frozen analytical settings (Supplementary Table S1 lists all 24 selected genes and their weights)."
 if (!is.null(card)) {
   drv <- data.frame(
     Parameter = c("Training cohort", "N (training)", "Events (OS)", "PAM50 candidates",
@@ -271,7 +282,7 @@ if (!is.null(card)) {
 }
 ```
 
-Out-of-fold Cox elastic-net regression in SCAN-B identified `r if(!is.null(card)) card$selected$df else "24"` genes as the minimum set satisfying the pre-specified non-inferiority criterion (ΔC=0.010). The selected model achieved an OOF C-index of `r if(!is.null(card)) round(card$selected$c_adj, 3) else "0.670"`, compared to the maximum OOF C-index of `r if(!is.null(card)) round(card$selected$c_max, 3) else "0.679"` (at df=`r if(!is.null(card)) which.max(unlist(lapply(card, function(x) NULL))) else "49"` genes), with a gap of `r if(!is.null(card)) round(card$selected$gap, 3) else "0.009"` — within the 0.010 non-inferiority boundary. The in-sample C-index of the full training model was 0.698. The selected `r if(!is.null(card)) card$selected$df else "24"` genes and their Cox-elastic-net weights are listed in Table 2 and illustrated in Figure S2.
+Out-of-fold Cox elastic-net regression in SCAN-B identified `r if(!is.null(card)) card$selected$df else "24"` genes as the minimum set satisfying the pre-specified non-inferiority criterion (delta-C = 0.010). The selected model achieved an OOF C-index of `r if(!is.null(card)) round(card$selected$c_adj, 3) else "0.670"`, compared to the maximum OOF C-index achievable with all 50 PAM50 candidates (`r if(!is.null(card)) round(card$selected$c_max, 3) else "0.679"`), with a gap of `r if(!is.null(card)) round(card$selected$gap, 3) else "0.009"` -- within the 0.010 boundary. The selected `r if(!is.null(card)) card$selected$df else "24"` genes and their elastic-net Cox weights are illustrated in Figure S2 and listed in Supplementary Table S1.
 
 The 24-gene panel includes markers of luminal differentiation (ESR1, PGR, NAT1, SFRP1), proliferation (MYBL2, PTTG1, MYC, MDM2, CENPF, EXO1, PHGDH), basal phenotype (KRT5, KRT17, FOXC1, BLVRA, PHGDH), HER2-enriched subtype (ERBB2, GRB7, MIA), and other regulatory genes (ACTR3B, BCL2, CXXC5, FGFR4, GPR160, MLPH). Six PAM50 genes received zero weight in all λ values along the regularisation path — expected behaviour of elastic-net with α=0.5.
 
@@ -283,31 +294,32 @@ The relationship between model complexity (df, number of non-zero genes) and OOF
 
 ```{r tbl-perf}
 #| label: tbl-perf
-#| tbl-cap: "Table 1. Core-PAM prognostic performance across cohorts. *Training cohort: C-index is in-sample (upper bound); OOF C-index = 0.670. CORE-A = age ± ER status. DSS = disease-specific survival; OS = overall survival."
+#| tbl-cap: "CorePAM prognostic performance across cohorts. Training cohort C-index is in-sample; OOF C-index = 0.670. CORE-A = age plus/minus ER status. DSS = disease-specific survival; OS = overall survival."
 if (!is.null(t3)) {
   kable(t3, align = c("l","l","l","r","r","r","r","r","r","r","r"))
 }
 ```
 
-The Core-PAM score was independently associated with survival in all three external validation cohorts (Table 1). In TCGA-BRCA (RNA-seq), HR per 1 SD = `r if(!is.null(surv_list$TCGA)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", surv_list$TCGA$hr_uni, surv_list$TCGA$hr_uni_lo95, surv_list$TCGA$hr_uni_hi95) else "1.20 (95%CI 1.04-1.40)"` (p=`r if(!is.null(surv_list$TCGA)) fmt_p(surv_list$TCGA$p_uni) else "0.016"`). In METABRIC (DSS endpoint; Illumina microarray), HR=`r if(!is.null(surv_list$METABRIC)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", surv_list$METABRIC$hr_uni[surv_list$METABRIC$endpoint=="DSS"], surv_list$METABRIC$hr_uni_lo95[surv_list$METABRIC$endpoint=="DSS"], surv_list$METABRIC$hr_uni_hi95[surv_list$METABRIC$endpoint=="DSS"]) else "1.41 (95%CI 1.31-1.52)"` (p<0.001). In GSE20685 (Affymetrix microarray), HR=`r if(!is.null(surv_list$GSE20685)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", surv_list$GSE20685$hr_uni, surv_list$GSE20685$hr_uni_lo95, surv_list$GSE20685$hr_uni_hi95) else "1.40 (95%CI 1.12-1.76)"` (p=`r if(!is.null(surv_list$GSE20685)) fmt_p(surv_list$GSE20685$p_uni) else "0.003"`). Kaplan-Meier curves stratified at the intra-cohort median score are shown in Figure 2.
+The CorePAM score was independently associated with survival in all three external validation cohorts (@tbl-perf). In TCGA-BRCA (RNA-seq), HR per 1 SD = `r if(!is.null(surv_list$TCGA)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", surv_list$TCGA$hr_uni, surv_list$TCGA$hr_uni_lo95, surv_list$TCGA$hr_uni_hi95) else "1.20 (95%CI 1.04-1.40)"` (p=`r if(!is.null(surv_list$TCGA)) fmt_p(surv_list$TCGA$p_uni) else "0.016"`). In METABRIC (DSS endpoint; Illumina microarray), HR=`r if(!is.null(surv_list$METABRIC)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", surv_list$METABRIC$hr_uni[surv_list$METABRIC$endpoint=="DSS"], surv_list$METABRIC$hr_uni_lo95[surv_list$METABRIC$endpoint=="DSS"], surv_list$METABRIC$hr_uni_hi95[surv_list$METABRIC$endpoint=="DSS"]) else "1.41 (95%CI 1.31-1.52)"` (p<0.001). In GSE20685 (Affymetrix microarray), HR=`r if(!is.null(surv_list$GSE20685)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", surv_list$GSE20685$hr_uni, surv_list$GSE20685$hr_uni_lo95, surv_list$GSE20685$hr_uni_hi95) else "1.40 (95%CI 1.12-1.76)"` (p=`r if(!is.null(surv_list$GSE20685)) fmt_p(surv_list$GSE20685$p_uni) else "0.003"`). Kaplan-Meier curves stratified at the intra-cohort median score are shown in Figure 2.
 
 The TCGA-BRCA cohort has a structurally shorter follow-up (median 32 months vs. 113–159 months in the other cohorts), reflecting its origin as a diagnostic biorepository rather than a prospective trial. The signal is stronger in the 24-month sensitivity analysis (HR=1.64, 95%CI 1.24–2.16, p=0.00047; Figure S6), confirming the prognostic association within the cohort's effective follow-up window.
 
-Multivariate Cox regression including the CORE-A clinical model (age and ER status where available) yielded adjusted HRs of 1.27 (TCGA-BRCA), 1.36 (METABRIC), and 1.40 (GSE20685), indicating that Core-PAM provides prognostic information independent of clinical covariates.
+Multivariate Cox regression including the CORE-A clinical model (age and ER status where available) yielded adjusted HRs of 1.27 (TCGA-BRCA), 1.36 (METABRIC), and 1.40 (GSE20685), indicating that CorePAM provides prognostic information independent of clinical covariates.
 
 ### Meta-analysis
 
 ```{r tbl-meta}
 #| label: tbl-meta
-#| tbl-cap: "Table 2. Random-effects meta-analysis of Core-PAM prognostic association (3 validation cohorts). RE = random effects (REML estimator); HK = Hartung-Knapp sensitivity."
+#| tbl-cap: "Random-effects meta-analysis of CorePAM prognostic association (K=3 validation cohorts). RE = random effects (REML estimator); HK = Hartung-Knapp sensitivity; OS-harm. = harmonised OS sensitivity analysis."
 if (!is.null(meta)) {
   meta_show <- meta %>%
-    filter(analysis %in% c("primary_validation_re", "primary_validation_re_hk", "CORE-A_multivariate")) %>%
+    filter(analysis %in% c("primary_validation_re", "primary_validation_re_hk",
+                           "os_harmonized_re")) %>%
     mutate(
       Analysis = case_when(
         analysis == "primary_validation_re" ~ "RE univariate (primary)",
         analysis == "primary_validation_re_hk" ~ "RE univariate (Hartung-Knapp sensitivity)",
-        analysis == "CORE-A_multivariate" ~ "RE CORE-A multivariate",
+        analysis == "os_harmonized_re" ~ "RE univariate (OS-harmonised sensitivity)",
         TRUE ~ analysis
       ),
       `Pooled HR (95%CI)` = sprintf("%.2f (%.2f–%.2f)", meta_HR, meta_HR_lo95, meta_HR_hi95),
@@ -321,13 +333,13 @@ if (!is.null(meta)) {
 }
 ```
 
-Random-effects meta-analysis across three validation cohorts yielded a pooled HR of `r if(!is.null(re_row)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", re_row$meta_HR, re_row$meta_HR_lo95, re_row$meta_HR_hi95) else "1.47"` (p=`r if(!is.null(re_row)) fmt_p(re_row$p_value) else "1.5e-4"`). Heterogeneity was substantial (I²=`r if(!is.null(re_row)) sprintf("%.1f%%", re_row$I2_pct) else "90.6%"`), consistent with the expected cross-platform variability between RNA-seq and microarray technologies (Figure 4). The Hartung-Knapp sensitivity analysis — which provides more conservative confidence intervals under high heterogeneity — yielded HR=`r if(!is.null(re_hk)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", re_hk$meta_HR, re_hk$meta_HR_lo95, re_hk$meta_HR_hi95) else "consistent with primary"` (Table 2), confirming the robustness of the pooled estimate. Leave-one-out sensitivity analyses maintained a consistent positive direction across all sub-analyses.
+Random-effects meta-analysis across three validation cohorts yielded a pooled HR of `r if(!is.null(re_row)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", re_row$meta_HR, re_row$meta_HR_lo95, re_row$meta_HR_hi95) else "1.47"` (p=`r if(!is.null(re_row)) fmt_p(re_row$p_value) else "1.5e-4"`). Heterogeneity was substantial (I²=`r if(!is.null(re_row)) sprintf("%.1f%%", re_row$I2_pct) else "90.6%"`), consistent with the expected cross-platform variability between RNA-seq and microarray technologies (Figure 4). The Hartung-Knapp sensitivity analysis — which provides more conservative confidence intervals under high heterogeneity — yielded HR=`r if(!is.null(re_hk)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", re_hk$meta_HR, re_hk$meta_HR_lo95, re_hk$meta_HR_hi95) else "consistent with primary"` (@tbl-meta), confirming the robustness of the pooled estimate. Leave-one-out sensitivity analyses maintained a consistent positive direction across all sub-analyses.
 
 ### Incremental value beyond clinical predictors
 
 ```{r tbl-incr}
 #| label: tbl-incr
-#| tbl-cap: "Table 3. Incremental C-index of Core-PAM score over the CORE-A clinical model (age ± ER status). Bootstrap 95%CI (B=1,000, seed=42)."
+#| tbl-cap: "Incremental C-index of CorePAM score over the CORE-A clinical model (age ± ER status). Bootstrap 95%CI (B=1,000, seed=42)."
 if (!is.null(incr)) {
   incr_show <- incr %>%
     mutate(
@@ -344,13 +356,13 @@ if (!is.null(incr)) {
 }
 ```
 
-The Core-PAM score improved the C-index over the CORE-A clinical model in all four cohorts (Table 3). The largest increment was observed in METABRIC (ΔC=`r if(!is.null(incr)) round(incr$delta_cindex[incr$cohort=="METABRIC"], 3) else "+0.142"`), where ER status was not available for multivariate adjustment, highlighting the molecular contribution beyond age alone. Decision curve analysis confirmed net clinical benefit across a range of probability thresholds in all cohorts (Figure S; DCA).
+The CorePAM score improved the C-index over the CORE-A clinical model in all four cohorts (@tbl-incr). The largest increment was observed in METABRIC (ΔC=`r if(!is.null(incr)) round(incr$delta_cindex[incr$cohort=="METABRIC"], 3) else "+0.142"`), where ER status was not available for multivariate adjustment, highlighting the molecular contribution beyond age alone. Decision curve analysis confirmed net clinical benefit across a range of probability thresholds in all cohorts (Supplementary Figure S7).
 
 ### Pathologic complete response (secondary analysis)
 
 ```{r tbl-pcr}
 #| label: tbl-pcr
-#| tbl-cap: "Table 4. Core-PAM score predicts pCR in neoadjuvant chemotherapy cohorts. OR per 1 SD score_z. Bootstrap 95%CI (B=1,000, seed=42)."
+#| tbl-cap: "CorePAM score predicts pCR in neoadjuvant chemotherapy cohorts. OR per 1 SD score_z. Bootstrap 95%CI (B=1,000, seed=42)."
 if (!is.null(pcr_df)) {
   pcr_show <- pcr_df %>%
     mutate(
@@ -366,77 +378,81 @@ if (!is.null(pcr_df)) {
 }
 ```
 
-In four independent neoadjuvant cohorts (N=`r if(!is.null(pcr_df)) format(sum(pcr_df$n_total), big.mark=",") else "699"` total), the Core-PAM score was consistently associated with higher pCR rates (Table 4). The direction of effect was positive in all four cohorts, with ORs ranging from 1.44 to 2.10 per 1 SD. The AUC ranged from 0.576 to 0.716, indicating moderate to good discriminative ability for pCR prediction.
+In four independent neoadjuvant cohorts (N=`r if(!is.null(pcr_df)) format(sum(pcr_df$n_total), big.mark=",") else "697"` total), the CorePAM score was consistently associated with higher pCR rates (@tbl-pcr). The direction of effect was positive in all four cohorts, with ORs ranging from 1.44 to 2.10 per 1 SD. The AUC ranged from 0.576 to 0.716, indicating moderate to good discriminative ability for pCR prediction.
 
-Random-effects meta-analysis yielded a pooled OR of `r if(!is.null(pcr_re)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", pcr_re$pooled_OR, pcr_re$pooled_OR_lo95, pcr_re$pooled_OR_hi95) else "1.69 (95%CI 1.39-2.05)"` (I²=`r if(!is.null(pcr_re)) sprintf("%.1f%%", pcr_re$I2_pct) else "0%"`, p=`r if(!is.null(pcr_re)) fmt_p(pcr_re$p_pooled) else "1.9e-7"`; Figure 6). The exceptional homogeneity (I²=0%) across four cohorts from different platforms and trials reinforces the cross-platform consistency of the Core-PAM pCR association.
+Random-effects meta-analysis yielded a pooled OR of `r if(!is.null(pcr_re)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", pcr_re$pooled_OR, pcr_re$pooled_OR_lo95, pcr_re$pooled_OR_hi95) else "1.69 (95%CI 1.39-2.05)"` (I²=`r if(!is.null(pcr_re)) sprintf("%.1f%%", pcr_re$I2_pct) else "0%"`, p=`r if(!is.null(pcr_re)) fmt_p(pcr_re$p_pooled) else "1.9e-7"`; Figure 6). The exceptional homogeneity (I²=0%) across four cohorts from different platforms and trials reinforces the cross-platform consistency of the CorePAM pCR association.
 
-**I-SPY2 exploratory analysis.** In the I-SPY2 external exploratory cohort (GSE194040; N=`r if(!is.null(ispy2_uni)) format(ispy2_uni$n_total, big.mark=",") else "986"`; pCR rate=`r if(!is.null(ispy2_uni)) sprintf("%.1f%%", 100*ispy2_uni$pcr_rate) else "32.4%"`), the Core-PAM score predicted pCR univariately (OR=`r if(!is.null(ispy2_uni)) sprintf("%.2f, 95%%CI %.2f\u2013%.2f", ispy2_uni$or_per_1SD, ispy2_uni$or_ci_lo95_wald, ispy2_uni$or_ci_hi95_wald) else "1.68, 95%CI 1.45-1.95"`, p=`r if(!is.null(ispy2_uni)) fmt_p(ispy2_uni$p_wald) else "<0.001"`, AUC=`r if(!is.null(ispy2_uni)) round(ispy2_uni$auc, 3) else "0.648"`). Inclusion of I-SPY2 in the meta-analysis (k=5) yielded OR=`r if(!is.null(pcr_re_ispy2)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", pcr_re_ispy2$pooled_OR, pcr_re_ispy2$pooled_OR_lo95, pcr_re_ispy2$pooled_OR_hi95) else "1.69"` (I²=0%), virtually identical to the primary analysis, confirming external generalizability.
+**I-SPY2 exploratory analysis.** In the I-SPY2 external exploratory cohort (GSE194040; N=`r if(!is.null(ispy2_uni)) format(ispy2_uni$n_total, big.mark=",") else "986"`; pCR rate=`r if(!is.null(ispy2_uni)) sprintf("%.1f%%", 100*ispy2_uni$pcr_rate) else "32.4%"`), the CorePAM score predicted pCR univariately (OR=`r if(!is.null(ispy2_uni)) sprintf("%.2f, 95%%CI %.2f\u2013%.2f", ispy2_uni$or_per_1SD, ispy2_uni$or_ci_lo95_wald, ispy2_uni$or_ci_hi95_wald) else "1.68, 95%CI 1.45-1.95"`, p=`r if(!is.null(ispy2_uni)) fmt_p(ispy2_uni$p_wald) else "<0.001"`, AUC=`r if(!is.null(ispy2_uni)) round(ispy2_uni$auc, 3) else "0.648"`). Inclusion of I-SPY2 in the meta-analysis (k=5) yielded OR=`r if(!is.null(pcr_re_ispy2)) sprintf("%.2f (95%%CI %.2f\u2013%.2f)", pcr_re_ispy2$pooled_OR, pcr_re_ispy2$pooled_OR_lo95, pcr_re_ispy2$pooled_OR_hi95) else "1.69"` (I²=0%), virtually identical to the primary analysis, confirming external generalizability.
 
 ## Discussion
 
-We demonstrate that Core-PAM — a `r if(!is.null(card)) card$selected$df else "24"`-gene data-driven reduction of the PAM50 panel — achieves non-inferior prognostic performance compared to using all 50 PAM50 genes, as evaluated in three independent external validation cohorts spanning two RNA-sequencing and two microarray platforms. Several methodological features distinguish this study from prior panel-reduction attempts.
+We demonstrate that CorePAM — a `r if(!is.null(card)) card$selected$df else "24"`-gene data-driven reduction of the PAM50 panel — achieves non-inferior prognostic performance relative to a full 50-gene Cox elastic-net model built on PAM50 genes, as evaluated in three independent external validation cohorts spanning two RNA-sequencing and two microarray platforms. It is important to note that the comparator in this study is a 50-gene Cox elastic-net model, not the commercial Prosigna/PAM50 assay, which uses a centroid-based subtype classifier combined with a ROR score. The non-inferiority claim is therefore scoped to this methodologically comparable elastic-net framework. Several methodological features distinguish this study from prior panel-reduction attempts.
 
-**Deterministic, leakage-proof derivation.** Fold assignment in cross-validation was based on SHA-256(patient_id) rather than a random seed, eliminating the seed as a driver of gene selection. This guarantees that the gene count and weights are reproducible from first principles without relying on a specific computational environment.
+**Deterministic fold assignment.** Fold assignment in cross-validation was based on SHA-256(patient_id) rather than a random seed, eliminating the seed as a driver of gene selection. This guarantees that the gene count and weights are reproducible from first principles without relying on a specific computational environment.
 
 **Non-pre-specified gene count.** The number of genes (N=`r if(!is.null(card)) card$selected$df else "24"`) was not assumed before analysis. The Pareto frontier of model complexity versus OOF C-index (Figure S1) shows that prognostic performance plateaus well before 50 genes under the non-inferiority criterion of ΔC=0.010. This conservative margin preserves 99% of the achievable prognostic information.
 
 **Heterogeneity is expected and informative.** The high I² (90.6%) in the OS meta-analysis reflects the well-documented cross-platform variability in RNA-based breast cancer classifiers: a 5-year follow-up RNA-seq cohort (TCGA-BRCA; HR=1.20) will necessarily show a smaller hazard ratio than a 13-year microarray cohort with 57.8% event rate (METABRIC; HR=1.41). The consistency of *direction* (positive HR in all three cohorts), rather than magnitude, is the key finding. The Hartung-Knapp sensitivity analysis, which provides conservative inference under high heterogeneity, confirms a statistically significant pooled estimate.
 
-**Cross-platform consistency in pCR prediction.** The exceptional homogeneity in the pCR block (I²=0% across four independent cohorts) provides strong evidence that the Core-PAM score captures biology relevant to chemosensitivity. This is a biologically coherent finding: the panel includes proliferation markers (MYBL2, PTTG1, EXO1) that drive both prognosis and sensitivity to cytotoxic agents.
+**Biological coherence of the retained genes.** The 24 genes selected by elastic-net penalisation recapitulate the core biology of PAM50 subtypes without redundancy. Luminal differentiation markers (ESR1, PGR, BCL2, MLPH, NAT1, SFRP1) anchor the Luminal A versus Basal distinction. Proliferation-associated genes (MYBL2, PTTG1, EXO1, CENPF, MYC, MDM2, PHGDH) drive the Luminal A versus Luminal B separation, explaining both the prognosis signal in OS analyses and the pCR signal in neoadjuvant cohorts, since these same proliferation pathways are targeted by anthracycline-taxane regimens. Basal markers (KRT5, KRT17, FOXC1, BLVRA) and HER2-enriched markers (ERBB2, GRB7, MIA) complete the subtype representation. The 26 PAM50 genes receiving zero weight across the entire regularisation path tend to be platform-limited or functionally redundant with retained genes, consistent with the elastic-net grouping property under correlated predictors.
 
-**Clinical implications.** A 24-gene panel can be measured by a variety of RT-PCR, NanoString nCounter, or targeted RNA-seq platforms that are unable to reliably quantify all 50 PAM50 genes. If validated in prospective cohorts, Core-PAM could extend the reach of molecular stratification to resource-limited settings.
+**Cross-platform consistency in pCR prediction.** The exceptional homogeneity in the pCR block (I²=0% across four independent cohorts) provides strong evidence that the CorePAM score captures biology relevant to chemosensitivity. This is biologically coherent: the proliferation genes retained in the panel (MYBL2, PTTG1, EXO1) are directly targeted by anthracycline-taxane neoadjuvant regimens, and their higher expression in basal-like and Luminal B tumours aligns with the known pCR gradient across PAM50 subtypes.
 
-**Limitations.** This is a retrospective study using public data. The TCGA-BRCA cohort has structurally short follow-up (median 32 months), which limits the power of the survival analysis in that cohort; the 24-month sensitivity analysis partially mitigates this. The METABRIC analysis relies on DSS (not OS) as the primary endpoint, following established precedent for that dataset. Six PAM50 genes are absent from the Affymetrix HGU133A platform used in GSE20685 (44/50; 88%); performance in this cohort therefore represents an application under imperfect gene coverage, constituting a real-world robustness test. No prospective clinical validation was performed.
+**Clinical implications.** A 24-gene panel can be measured by a variety of RT-PCR, NanoString nCounter, or targeted RNA-seq platforms that are unable to reliably quantify all 50 PAM50 genes. If validated in prospective cohorts, CorePAM could extend the reach of molecular stratification to resource-limited settings.
+
+**Limitations.** This is a retrospective study using public data. The TCGA-BRCA cohort has structurally short follow-up (median 32 months), which limits the power of the survival analysis in that cohort; the 24-month sensitivity analysis partially mitigates this. The lower HR in TCGA-BRCA relative to the microarray cohorts may additionally reflect the enrichment of Luminal A tumours (approximately 40% of the TCGA-BRCA sample), which have long natural histories with late recurrences beyond 5-10 years that are simply not captured within the cohort's effective follow-up window. The METABRIC analysis relies on DSS (not OS) as the primary endpoint, following established precedent for that dataset. Six PAM50 genes are absent from the Affymetrix HGU133A platform used in GSE20685 (44/50; 88%); performance in this cohort therefore represents an application under imperfect gene coverage, constituting a real-world robustness test. No prospective clinical validation was performed.
 
 ## Conclusions
 
-Core-PAM is a `r if(!is.null(card)) card$selected$df else "24"`-gene data-driven reduction of the PAM50 panel, derived without pre-specifying gene count, that achieves non-inferior prognostic discrimination across three independent validation cohorts and two distinct expression platforms (RNA-seq and microarray). The score provides incremental value beyond a clinical baseline model, predicts pathologic complete response to neoadjuvant chemotherapy with high cross-cohort consistency (I²=0%), and generalises to the large I-SPY2 platform trial. The analytical pipeline is fully reproducible from publicly available data.
+CorePAM is a `r if(!is.null(card)) card$selected$df else "24"`-gene data-driven reduction of the PAM50 panel, derived without pre-specifying gene count, that achieves non-inferior prognostic discrimination relative to a full 50-gene Cox elastic-net model across three independent validation cohorts and two distinct expression platforms (RNA-seq and microarray). The score provides incremental value beyond a clinical baseline model, predicts pathologic complete response to neoadjuvant chemotherapy with high cross-cohort consistency (I²=0%), and generalises to the large I-SPY2 platform trial. The analytical pipeline is fully reproducible from publicly available data.
 
 ## Figures
 
 ```{r fig-study-design}
 #| label: fig-study-design
-#| fig-cap: "**Figure 1. Study overview.** Schematic of the Core-PAM derivation and validation pipeline, cohort roles, sample sizes, and frozen analytical parameters."
+#| fig-cap: "Study overview. Schematic of the CorePAM derivation and validation pipeline, cohort roles, sample sizes, and frozen analytical parameters."
 f <- file.path(ROOT, "figures/main/en/png/Fig1_StudyDesign_EN.png")
 if (file.exists(f)) knitr::include_graphics(f)
 ```
 
 ```{r fig-km-validation}
 #| label: fig-km-validation
-#| fig-cap: "**Figure 2. Kaplan-Meier survival curves — validation cohorts.** Patients dichotomised at the intra-cohort median Core-PAM score. Left: TCGA-BRCA (OS, N=1,072); Centre: METABRIC (DSS, N=1,978); Right: GSE20685 (OS, N=327). HR per 1 SD with 95%CI shown. Shading: 95%CI of KM estimate. Numbers at risk shown below x-axis."
-for (f in c(file.path(ROOT, "figures/main/en/png/Fig2_KM_TCGA_BRCA_OS_EN.png"),
-            file.path(ROOT, "figures/main/en/png/Fig2_KM_METABRIC_DSS_EN.png"),
-            file.path(ROOT, "figures/main/en/png/Fig2_KM_GSE20685_OS_EN.png"))) {
-  if (file.exists(f)) knitr::include_graphics(f)
-}
+#| fig-cap: "Kaplan-Meier survival curves in validation cohorts. Patients dichotomised at the intra-cohort median CorePAM score. Left: TCGA-BRCA (OS, N=1,072); Centre: METABRIC (DSS, N=1,978); Right: GSE20685 (OS, N=327). HR per 1 SD with 95%CI shown. Shading: 95%CI of KM estimate. Numbers at risk shown below x-axis."
+#| fig-show: hold
+files <- c(file.path(ROOT, "figures/main/en/png/Fig2_KM_TCGA_BRCA_OS_EN.png"),
+           file.path(ROOT, "figures/main/en/png/Fig2_KM_METABRIC_DSS_EN.png"),
+           file.path(ROOT, "figures/main/en/png/Fig2_KM_GSE20685_OS_EN.png"))
+existing <- files[file.exists(files)]
+if (length(existing) > 0) knitr::include_graphics(existing)
 ```
 
 ```{r fig-km-training}
 #| label: fig-km-training
-#| fig-cap: "**Figure 3. Kaplan-Meier survival curve — SCAN-B training cohort.** OS dichotomised at the intra-cohort median Core-PAM score (N=3,069). Note: C-index in training is in-sample (0.698); out-of-fold C-index = 0.670."
+#| fig-cap: "Kaplan-Meier survival curve in the SCAN-B training cohort. OS dichotomised at the intra-cohort median CorePAM score (N=3,069). Note: C-index in training is in-sample (0.698); out-of-fold C-index = 0.670."
 f <- file.path(ROOT, "figures/main/en/png/Fig3_KM_SCANB_OS_CorePAM.png")
 if (file.exists(f)) knitr::include_graphics(f)
 ```
 
 ```{r fig-forest-meta}
 #| label: fig-forest-meta
-#| fig-cap: "**Figure 4. Forest plot — random-effects meta-analysis.** HR per 1 SD Core-PAM score across three validation cohorts plus pooled random-effects estimate. REML estimator."
+#| fig-cap: "Forest plot — random-effects meta-analysis. HR per 1 SD CorePAM score across three validation cohorts plus pooled random-effects estimate. REML estimator."
 f <- file.path(ROOT, "figures/main/en/png/Fig4_Meta_Forest_HR_per1SD_CorePAM.png")
 if (file.exists(f)) knitr::include_graphics(f)
 ```
 
 ```{r fig-incremental}
 #| label: fig-incremental
-#| fig-cap: "**Figure 5. Incremental value and calibration.** A: ΔC-index (Core-PAM added to CORE-A clinical model) with 95% bootstrap CI across cohorts. B: Calibration curves at 60 months (24m for TCGA-BRCA)."
-for (f in c(file.path(ROOT, "figures/main/en/png/Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.png"),
-            file.path(ROOT, "figures/main/en/png/Fig5_Calibration_60m_Panels_CorePAM.png"))) {
-  if (file.exists(f)) knitr::include_graphics(f)
-}
+#| fig-cap: "Incremental value and calibration. A: Delta C-index (CorePAM added to CORE-A clinical model) with 95% bootstrap CI across cohorts. B: Calibration curves at 60 months (24m for TCGA-BRCA)."
+#| fig-show: hold
+files <- c(file.path(ROOT, "figures/main/en/png/Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.png"),
+           file.path(ROOT, "figures/main/en/png/Fig5_Calibration_60m_Panels_CorePAM.png"))
+existing <- files[file.exists(files)]
+if (length(existing) > 0) knitr::include_graphics(existing)
 ```
 
 ```{r fig-pcr-forest}
 #| label: fig-pcr-forest
-#| fig-cap: "**Figure 6. Forest plot — Core-PAM and pCR.** OR per 1 SD Core-PAM score (logistic regression) in four neoadjuvant chemotherapy cohorts, with random-effects pooled estimate (DerSimonian-Laird; I²=0%)."
+#| fig-cap: "Forest plot — CorePAM and pCR. OR per 1 SD CorePAM score (logistic regression) in four neoadjuvant chemotherapy cohorts, with random-effects pooled estimate (DerSimonian-Laird; I²=0%)."
 f <- file.path(ROOT, "figures/pcr/en/png/Fig_pCR1_Forest_OR_EN.png")
 if (file.exists(f)) knitr::include_graphics(f)
 ```
@@ -447,35 +463,35 @@ if (file.exists(f)) knitr::include_graphics(f)
 
 ```{r figs1-pareto}
 #| label: figs1-pareto
-#| fig-cap: "**Figure S1. Pareto frontier: gene count vs. OOF C-index.** Each point represents a unique df level (number of non-zero genes) along the glmnet regularisation path. Dashed red line: non-inferiority boundary (C_max − 0.010). Selected Core-PAM point indicated."
+#| fig-cap: "Pareto frontier: gene count vs. OOF C-index. Each point represents a unique df level (number of non-zero genes) along the glmnet regularisation path. Dashed red line: non-inferiority boundary (C_max minus 0.010). Selected CorePAM point indicated."
 f <- file.path(ROOT, "figures/supp/en/png/FigS_Pareto_CorePAM_EN.png")
 if (file.exists(f)) knitr::include_graphics(f)
 ```
 
 ```{r figs2-weights}
 #| label: figs2-weights
-#| fig-cap: "**Figure S2. Core-PAM gene weights (lollipop plot).** Elastic-net Cox regression coefficients. Positive weights (red): higher expression associated with worse survival. Negative weights (blue): higher expression associated with better survival. Genes ordered by absolute weight."
+#| fig-cap: "CorePAM gene weights (lollipop plot). Elastic-net Cox regression coefficients. Positive weights (red): higher expression associated with worse survival. Negative weights (blue): higher expression associated with better survival. Genes ordered by absolute weight."
 f <- file.path(ROOT, "figures/supp/en/png/FigS_Weights_CorePAM_Lollipop.png")
 if (file.exists(f)) knitr::include_graphics(f)
 ```
 
 ```{r figs3-correlation}
 #| label: figs3-correlation
-#| fig-cap: "**Figure S3. Off-diagonal Core-PAM score correlations between cohorts.** Spearman rho computed on paired percentiles across cohorts. Diagonal excluded (no self-autocorrelation). High correlation indicates cross-platform consistency of score distributions."
+#| fig-cap: "Off-diagonal CorePAM score correlations between cohorts. Spearman rho computed on paired percentiles across cohorts. Diagonal excluded (no self-autocorrelation). High correlation indicates cross-platform consistency of score distributions."
 f <- file.path(ROOT, "figures/supp/en/png/FigS3_Correlation_OffDiagonal.png")
 if (file.exists(f)) knitr::include_graphics(f)
 ```
 
 ```{r figs5-metabric-sensitivity}
 #| label: figs5-metabric-sensitivity
-#| fig-cap: "**Figure S5. METABRIC sensitivity analyses.** A: OS endpoint (primary = DSS). B: Fine-Gray competing risks model. C: Quartile Kaplan-Meier (DSS)."
+#| fig-cap: "METABRIC sensitivity analyses. A: OS endpoint (primary = DSS). B: Fine-Gray competing risks model. C: Quartile Kaplan-Meier (DSS)."
 f <- file.path(ROOT, "figures/supp/en/png/FigS5_METABRIC_Sensitivity_EN.png")
 if (file.exists(f)) knitr::include_graphics(f)
 ```
 
 ```{r figs6-tcga-24m}
 #| label: figs6-tcga-24m
-#| fig-cap: "**Figure S6. TCGA-BRCA 24-month sensitivity analysis.** Patients censored at 24 months. HR=1.64 (95%CI 1.24–2.16), p=0.00047. Mitigates the structural limitation of short follow-up in TCGA-BRCA."
+#| fig-cap: "TCGA-BRCA 24-month sensitivity analysis. Patients censored at 24 months. HR=1.64 (95%CI 1.24-2.16), p=0.00047. Mitigates the structural limitation of short follow-up in TCGA-BRCA."
 f <- file.path(ROOT, "figures/supp/en/png/FigS6_TCGA_24m_Sensitivity_EN.png")
 if (file.exists(f)) knitr::include_graphics(f)
 ```

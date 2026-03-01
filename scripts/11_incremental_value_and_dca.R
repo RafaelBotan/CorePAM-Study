@@ -236,16 +236,84 @@ for (coh in COHORTS) {
                     SCRIPT_NAME, coh, cal_horizon))
   }
 
+  # ------------------------------------------------------------------
+  # CORE-A+ sensitivity: CORE-A + clinical staging (pT/pN where available)
+  # Candidate staging columns in analysis_ready files (cohort-specific names)
+  # ------------------------------------------------------------------
+  staging_candidates <- c(
+    "t_stage", "n_stage",                    # generic
+    "pathologic_T", "pathologic_N",          # TCGA GDC naming
+    "ajcc_pathologic_t", "ajcc_pathologic_n", # TCGA alternative
+    "tumor_stage_t", "tumor_stage_n",
+    "tumour_size_cat", "lymph_nodes_cat",     # METABRIC-style categorical
+    "node_positive", "her2_status"            # binary staging proxies
+  )
+  staging_avail <- intersect(staging_candidates, names(df))
+  staging_avail <- staging_avail[sapply(staging_avail,
+                                        function(v) mean(!is.na(df[[v]])) >= 0.8)]
+
+  c_base_plus <- c_full_plus <- delta_plus <- ci_lo_plus <- ci_hi_plus <- NA_real_
+  corea_plus_used <- NA_character_
+
+  if (length(staging_avail) > 0) {
+    corea_plus_vars <- unique(c(corea_avail, staging_avail))
+    corea_plus_used <- paste(corea_plus_vars, collapse = "+")
+    df_mp <- df[complete.cases(df[, c(corea_plus_vars, "score_z", time_col, event_col)]), ]
+    if (nrow(df_mp) >= 30) {
+      corea_plus_mat <- df_mp[, corea_plus_vars, drop = FALSE]
+      for (v in names(corea_plus_mat)) {
+        if (is.character(corea_plus_mat[[v]]) || is.factor(corea_plus_mat[[v]])) {
+          corea_plus_mat[[v]] <- as.numeric(factor(corea_plus_mat[[v]]))
+        }
+      }
+      corea_plus_mat <- as.matrix(corea_plus_mat)
+      old_warn <- getOption("warn"); options(warn = 0)
+      boot_plus <- tryCatch(
+        bootstrap_delta_cindex(
+          df_mp[[time_col]], df_mp[[event_col]], df_mp$score_z, corea_plus_mat,
+          n_boot = as.integer(FREEZE$bootstrap_n),
+          seed   = as.integer(FREEZE$seed_folds)
+        ),
+        error = function(e) {
+          message(sprintf("[%s] %s CORE-A+ bootstrap failed: %s", SCRIPT_NAME, coh, e$message))
+          NULL
+        }
+      )
+      options(warn = old_warn)
+      if (!is.null(boot_plus)) {
+        c_base_plus <- boot_plus$c_base
+        c_full_plus <- boot_plus$c_full
+        delta_plus  <- boot_plus$delta
+        ci_lo_plus  <- boot_plus$ci_low
+        ci_hi_plus  <- boot_plus$ci_high
+        message(sprintf("[%s] %s CORE-A+: C_base=%.4f | C_full=%.4f | DC=%.4f (%.4f, %.4f)",
+                        SCRIPT_NAME, coh,
+                        c_base_plus, c_full_plus, delta_plus, ci_lo_plus, ci_hi_plus))
+      }
+    } else {
+      message(sprintf("[%s] %s: n=%d insufficient for CORE-A+ delta C-index",
+                      SCRIPT_NAME, coh, nrow(df_mp)))
+    }
+  } else {
+    message(sprintf("[%s] %s: no staging columns available for CORE-A+", SCRIPT_NAME, coh))
+  }
+
   results_list[[coh]] <- tibble(
-    cohort          = coh,
-    corea_vars_used = corea_used,
-    n               = nrow(df),
-    c_corea         = round(c_base, 4),
-    c_corea_score   = round(c_full, 4),
-    delta_cindex    = round(delta, 4),
-    delta_ci_lo95   = round(ci_lo, 4),
-    delta_ci_hi95   = round(ci_hi, 4),
-    cal60_note      = cal_note
+    cohort              = coh,
+    corea_vars_used     = corea_used,
+    corea_plus_vars     = corea_plus_used,
+    n                   = nrow(df),
+    c_corea             = round(c_base, 4),
+    c_corea_score       = round(c_full, 4),
+    delta_cindex        = round(delta, 4),
+    delta_ci_lo95       = round(ci_lo, 4),
+    delta_ci_hi95       = round(ci_hi, 4),
+    c_corea_plus        = round(c_base_plus, 4),
+    c_corea_plus_score  = round(c_full_plus, 4),
+    delta_cindex_plus   = round(delta_plus, 4),
+    delta_ci_lo95_plus  = round(ci_lo_plus, 4),
+    delta_ci_hi95_plus  = round(ci_hi_plus, 4),
+    cal60_note          = cal_note
   )
 
   # Save calibration per cohort (filename encodes horizon)
