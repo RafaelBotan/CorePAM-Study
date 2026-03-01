@@ -88,8 +88,19 @@ pooled_p     <- 2 * pnorm(-abs(pooled_loghr / pooled_se))
 
 # I² and tau²
 i2_pct   <- max(0, 100 * (q_stat - df_q) / q_stat)
+p_het    <- pchisq(q_stat, df = df_q, lower.tail = FALSE)
 message(sprintf("[%s] RE pool: HR=%.3f (%.3f-%.3f) | Q=%.2f df=%d | I²=%.1f%% | τ²=%.4f",
                 SCRIPT_NAME, pooled_hr, pooled_lo, pooled_hi, q_stat, df_q, i2_pct, tau2_dl))
+
+# Fixed-effects pooled (inverse-variance; assumes homogeneity)
+pooled_loghr_fe <- sum(wi_f * yi) / sum(wi_f)
+pooled_se_fe    <- sqrt(1 / sum(wi_f))
+pooled_hr_fe    <- exp(pooled_loghr_fe)
+pooled_lo_fe    <- exp(pooled_loghr_fe - 1.96 * pooled_se_fe)
+pooled_hi_fe    <- exp(pooled_loghr_fe + 1.96 * pooled_se_fe)
+pooled_p_fe     <- 2 * pnorm(-abs(pooled_loghr_fe / pooled_se_fe))
+message(sprintf("[%s] FE pool: HR=%.3f (%.3f-%.3f)",
+                SCRIPT_NAME, pooled_hr_fe, pooled_lo_fe, pooled_hi_fe))
 
 # Build data for forest plot
 forest_df <- tab_surv |>
@@ -104,9 +115,9 @@ forest_df <- tab_surv |>
     y_pos       = rev(seq_len(n()))
   )
 
-# Add pooled row
-pooled_row <- tibble(
-  cohort    = "Pooled (IVW)",
+# Add RE pooled row (y_pos=0) and FE pooled row (y_pos=-1)
+pooled_row_re <- tibble(
+  cohort    = "Pooled (RE/DL)",
   endpoint  = "",
   n_samples = sum(tab_surv$n_samples),
   n_events  = sum(tab_surv$n_events),
@@ -117,26 +128,49 @@ pooled_row <- tibble(
   loghr_uni = pooled_loghr,
   se_loghr_uni = pooled_se,
   c_index   = NA_real_, c_index_lo95 = NA_real_, c_index_hi95 = NA_real_,
-  label     = sprintf("Pooled RE (DL)\nN=%d, Events=%d | I²=%.0f%%",
-                      sum(tab_surv$n_samples), sum(tab_surv$n_events), i2_pct),
+  label     = sprintf("Pooled RE (DerSimonian-Laird)\nI²=%.0f%%, τ²=%.4f, p_het=%.3f",
+                      i2_pct, tau2_dl, p_het),
   p_label   = formatC(pooled_p, format = "e", digits = 1),
   c_label   = NA_character_,
-  right_label = sprintf("HR=%.2f (%.2f–%.2f) | p=%s | I²=%.0f%%",
+  right_label = sprintf("HR=%.2f (%.2f–%.2f) | p=%s | RE",
                         pooled_hr, pooled_lo, pooled_hi,
-                        formatC(pooled_p, format = "e", digits = 1), i2_pct),
+                        formatC(pooled_p, format = "e", digits = 1)),
   y_pos     = 0
 )
 
-forest_all <- bind_rows(forest_df, pooled_row) |>
+pooled_row_fe <- tibble(
+  cohort    = "Pooled (FE/IVW)",
+  endpoint  = "",
+  n_samples = sum(tab_surv$n_samples),
+  n_events  = sum(tab_surv$n_events),
+  hr_uni    = pooled_hr_fe,
+  hr_uni_lo95 = pooled_lo_fe,
+  hr_uni_hi95 = pooled_hi_fe,
+  p_uni     = pooled_p_fe,
+  loghr_uni = pooled_loghr_fe,
+  se_loghr_uni = pooled_se_fe,
+  c_index   = NA_real_, c_index_lo95 = NA_real_, c_index_hi95 = NA_real_,
+  label     = "Pooled FE (inverse-variance)\n(assumes homogeneity)",
+  p_label   = formatC(pooled_p_fe, format = "e", digits = 1),
+  c_label   = NA_character_,
+  right_label = sprintf("HR=%.2f (%.2f–%.2f) | p=%s | FE",
+                        pooled_hr_fe, pooled_lo_fe, pooled_hi_fe,
+                        formatC(pooled_p_fe, format = "e", digits = 1)),
+  y_pos     = -1
+)
+
+forest_all <- bind_rows(forest_df, pooled_row_re, pooled_row_fe) |>
   mutate(
-    is_pooled = (cohort == "Pooled (IVW)"),
-    pt_shape  = ifelse(is_pooled, 18, 15),  # diamond for pooled
-    pt_size   = ifelse(is_pooled, 5, 3.5),
-    color_cat = case_when(
-      cohort == "TCGA_BRCA"       ~ "TCGA-BRCA",
-      cohort == "METABRIC"        ~ "METABRIC",
-      cohort == "GSE20685"        ~ "GSE20685",
-      cohort == "Pooled (IVW)"   ~ "Pooled"
+    is_pooled_re = (cohort == "Pooled (RE/DL)"),
+    is_pooled_fe = (cohort == "Pooled (FE/IVW)"),
+    pt_shape  = dplyr::case_when(is_pooled_re ~ 18, is_pooled_fe ~ 23, TRUE ~ 15),
+    pt_size   = dplyr::case_when(is_pooled_re ~ 5,  is_pooled_fe ~ 4,  TRUE ~ 3.5),
+    color_cat = dplyr::case_when(
+      cohort == "TCGA_BRCA"        ~ "TCGA-BRCA",
+      cohort == "METABRIC"         ~ "METABRIC",
+      cohort == "GSE20685"         ~ "GSE20685",
+      cohort == "Pooled (RE/DL)"   ~ "Pooled RE",
+      cohort == "Pooled (FE/IVW)"  ~ "Pooled FE"
     )
   )
 
@@ -161,7 +195,8 @@ p_forest <- ggplot(forest_all,
     "TCGA-BRCA" = "#2980B9",
     "METABRIC"  = "#E67E22",
     "GSE20685"  = "#27AE60",
-    "Pooled"    = "#2C3E50"
+    "Pooled RE" = "#2C3E50",
+    "Pooled FE" = "#7F8C8D"
   )) +
   scale_x_continuous(
     name   = "Hazard Ratio (per 1 SD Core-PAM score) with 95% CI",
@@ -176,13 +211,17 @@ p_forest <- ggplot(forest_all,
            y = 0.4, yend = nrow(forest_df) + 0.4,
            color = "grey40") +
   annotate("rect", xmin = -Inf, xmax = Inf,
-           ymin = -0.5, ymax = 0.5,
-           fill = "#ECF0F1", alpha = 0.5) +
+           ymin = -1.5, ymax = 0.5,
+           fill = "#ECF0F1", alpha = 0.4) +
+  annotate("text", x = 0.87, y = -0.5, label = "▲ RE (DL)",
+           hjust = 0, size = 2.3, color = "#2C3E50", fontface = "italic") +
+  annotate("text", x = 0.87, y = -1.0, label = "● FE (IVW)",
+           hjust = 0, size = 2.3, color = "#7F8C8D", fontface = "italic") +
   labs(
     title    = "Core-PAM Score — Hazard Ratios Across Validation Cohorts",
-    subtitle = "HR per 1 SD of score_z (intra-cohort Z-score) | Primary endpoint: TCGA-BRCA/GSE20685=OS, METABRIC=DSS | Cox univariate",
-    caption  = sprintf("Pooled estimate: DerSimonian-Laird random-effects | I²=%.0f%%, τ²=%.4f | Note: mixed endpoints (OS+DSS)",
-                       i2_pct, tau2_dl),
+    subtitle = "HR per 1 SD of score_z (intra-cohort Z-score) | TCGA-BRCA/GSE20685=OS, METABRIC=DSS | Cox univariate",
+    caption  = sprintf("Heterogeneity: I²=%.0f%%, τ²=%.4f, Q=%.2f (df=%d, p_het=%.3f) | RE=random-effects (DL); FE=fixed-effects (IVW; assumes homogeneity)",
+                       i2_pct, tau2_dl, q_stat, df_q, p_het),
     color    = NULL
   ) +
   theme_classic(base_size = 11) +
@@ -195,7 +234,7 @@ p_forest <- ggplot(forest_all,
     panel.grid.major.x = element_line(color = "grey90", linewidth = 0.3)
   )
 
-save_fig(p_forest, "FigS_Forest_HR_ValidationCohorts", w = 12, h = 5)
+save_fig(p_forest, "FigS_Forest_HR_ValidationCohorts", w = 12, h = 6)
 
 # --------------------------------------------------------------------------
 # 2) SCORE DISTRIBUTION — density overlay per cohort
@@ -233,7 +272,7 @@ p_dist <- ggplot(score_dist, aes(x = score_z, color = cohort_label, fill = cohor
     x        = "Core-PAM Score (z-standardized)",
     y        = "Density",
     title    = "Core-PAM Score Distribution by Cohort",
-    subtitle = "Intra-cohort z-standardized; median split line shown",
+    subtitle = "Intra-cohort z-standardized | TCGA-BRCA n=1072, METABRIC n=1978, GSE20685 n=327",
     color    = NULL, fill = NULL
   ) +
   theme_classic(base_size = 11) +
@@ -293,11 +332,13 @@ load_heatmap_data <- function(cohort_name, endpoint_col, event_col) {
 
   # take a sample of max 200 patients for heatmap visibility
   set.seed(42)
-  n_show <- min(200, nrow(z_sub))
-  idx    <- sample(nrow(z_sub), n_show)
-  z_show <- z_sub[idx, ]
+  n_show   <- min(200, nrow(z_sub))
+  idx      <- sample(nrow(z_sub), n_show)
+  z_show   <- z_sub[idx, ]
+  score_z_show <- rdy_sub$score_z[idx]
   ann_df <- data.frame(
-    score_group = ifelse(rdy_sub$score_z[idx] >= 0, "High", "Low"),
+    score_group = ifelse(score_z_show >= 0, "High", "Low"),
+    score_z     = score_z_show,   # for continuous sort
     row.names   = rownames(z_show)
   )
   list(z = z_show, ann = ann_df, cohort = cohort_name)
@@ -313,16 +354,20 @@ make_heatmap <- function(hdata, title_str, fig_name) {
   g_order <- g_order[order(weights_df$weight[match(g_order, weights_df$gene)])]
   z_m <- z_m[, g_order, drop = FALSE]
 
-  # Sort rows by score group then score
-  row_ord <- order(ann$score_group, rownames(z_m))
+  # Sort rows by group (Low first = best prognosis) then by score_z continuously
+  if ("score_z" %in% names(ann)) {
+    row_ord <- order(ann$score_group, ann$score_z)
+  } else {
+    row_ord <- order(ann$score_group, rownames(z_m))
+  }
   z_m <- z_m[row_ord, ]
-  ann <- ann[row_ord, , drop = FALSE]
+  ann_plot <- ann[row_ord, "score_group", drop = FALSE]  # only score_group for pheatmap
 
   if (requireNamespace("pheatmap", quietly = TRUE)) {
     ann_colors    <- list(score_group = c(High = COL$km_high, Low = COL$km_low))
     heat_args     <- list(
       t(z_m),
-      annotation_col    = ann,
+      annotation_col    = ann_plot,
       annotation_colors = ann_colors,
       cluster_rows      = FALSE,
       cluster_cols      = FALSE,
@@ -362,7 +407,7 @@ make_heatmap <- function(hdata, title_str, fig_name) {
     # Fallback: ggplot tile heatmap
     z_long <- as.data.frame(z_m) |>
       mutate(sample_id = rownames(z_m),
-             score_group = ann$score_group) |>
+             score_group = ann_plot$score_group) |>
       pivot_longer(-c(sample_id, score_group), names_to = "gene", values_to = "z")
 
     z_long$gene <- factor(z_long$gene, levels = g_order)
@@ -624,6 +669,7 @@ if (file.exists(pareto_path)) {
                label = sprintf("C_max=%.4f", c_max),
                hjust = 1, size = 2.5, color = "grey40") +
       scale_x_continuous(breaks = seq(0, 50, 5)) +
+      coord_cartesian(ylim = c(0.58, c_max + 0.012)) +
       labs(x = x_lbl, y = y_lbl,
            title    = if (lang == "EN") "Core-PAM Derivation: Pareto Curve (df vs C-index OOF)"
                       else "Derivação Core-PAM: Curva Pareto (df × C-index OOF)",

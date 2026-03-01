@@ -149,7 +149,7 @@ km_plot_med <- ggsurvplot(
   pval          = TRUE,
   conf.int      = TRUE,
   palette       = c("#E74C3C", "#2980B9"),
-  title         = sprintf("KM CorePAM — %s | %s | Median cutpoint", COHORT, ENDPOINT),
+  title         = sprintf("KM CorePAM — %s | %s | Intra-cohort median cutpoint (pre-specified, not optimized)", COHORT, ENDPOINT),
   xlab          = "Time (months)",
   ylab          = "Overall survival",
   legend.labs   = c("High", "Low"),

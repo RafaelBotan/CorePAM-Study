@@ -96,12 +96,15 @@ message(sprintf("[%s] Cox uni HR=%.3f (%.3f-%.3f) p=%.4g", SCRIPT_NAME, hr_uni, 
 # --------------------------------------------------------------------------
 corea_vars  <- c("age", "er_status")
 corea_avail <- intersect(corea_vars, names(df))
-corea_used  <- paste(corea_avail, collapse = "+")
+# Only include covariates with ≥80% non-NA (er_status not available in GSE20685 pData)
+corea_avail <- corea_avail[sapply(corea_avail, function(v) mean(!is.na(df[[v]])) >= 0.8)]
+corea_used  <- if (length(corea_avail) > 0) paste(corea_avail, collapse = "+") else "none"
 
 hr_multi <- lo_multi <- hi_multi <- p_multi <- NA_real_
 
-if (length(corea_avail) > 0) {
+if (length(corea_avail) > 0 && corea_used != "none") {
   df_m <- df[complete.cases(df[, c(corea_avail, "score_z", time_col, event_col)]), ]
+  message(sprintf("[%s] CORE-A vars: %s | n complete: %d", SCRIPT_NAME, corea_used, nrow(df_m)))
   fml  <- as.formula(paste0("Surv(", time_col, ",", event_col, ") ~ score_z + ",
                              paste(corea_avail, collapse = " + ")))
   old_warn <- getOption("warn"); options(warn = 0)
@@ -196,7 +199,10 @@ old_warn <- getOption("warn"); options(warn = 0)
 for (lang in c("EN", "PT")) {
   xlb <- if (lang == "EN") "Time (months)"    else "Tempo (meses)"
   ylb <- if (lang == "EN") "Overall survival" else "Sobrevida global"
-  ttl <- if (lang == "EN") sprintf("KM CorePAM — %s | %s | Quartiles (sensitivity)", COHORT, ENDPOINT) else sprintf("KM CorePAM — %s | %s | Quartis (sensibilidade)", COHORT, ENDPOINT)
+  ttl <- if (lang == "EN")
+    sprintf("KM CorePAM — %s | %s | Quartiles (Q1=lowest score/best prognosis, Q4=highest/worst)", COHORT, ENDPOINT)
+  else
+    sprintf("KM CorePAM — %s | %s | Quartis (Q1=menor escore/melhor prognóstico, Q4=maior/pior)", COHORT, ENDPOINT)
   lbs <- c("Q1", "Q2", "Q3", "Q4")
   km_plot_q <- ggsurvplot(
     km_fit_q, data = df, risk.table = TRUE, pval = TRUE, conf.int = FALSE,

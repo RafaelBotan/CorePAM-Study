@@ -19,6 +19,7 @@ suppressPackageStartupMessages({
 # --------------------------------------------------------------------------
 # 1) Combine individual survival_results CSVs
 # --------------------------------------------------------------------------
+# Validation cohorts (Table 3 primary rows)
 surv_files <- c(
   file.path(PATHS$results$supp, "survival_results_TCGA_BRCA.csv"),
   file.path(PATHS$results$supp, "survival_results_METABRIC.csv"),
@@ -26,39 +27,54 @@ surv_files <- c(
 )
 stopifnot(all(file.exists(surv_files)))
 
+# Training cohort — C-index without optimism correction (no cross-validation)
+scanb_path <- file.path(PATHS$results$supp, "survival_results_SCANB.csv")
+
 tab_all <- bind_rows(lapply(surv_files, read_csv, show_col_types = FALSE))
 
 # --------------------------------------------------------------------------
 # 2) Table 3: primary survival performance
 # --------------------------------------------------------------------------
-tab3 <- tab_all |>
-  mutate(
-    hr_uni_fmt    = sprintf("%.2f (%.2f–%.2f)", hr_uni, hr_uni_lo95, hr_uni_hi95),
-    p_uni_fmt     = ifelse(p_uni < 0.001,
-                           formatC(p_uni, format = "e", digits = 2),
-                           sprintf("%.4f", p_uni)),
-    c_index_fmt   = sprintf("%.3f (%.3f–%.3f)", c_index, c_index_lo95, c_index_hi95),
-    hr_age_fmt    = ifelse(!is.na(hr_multi),
-                           sprintf("%.2f (%.2f–%.2f)", hr_multi, hr_multi_lo95, hr_multi_hi95),
-                           "—"),
-    p_age_fmt     = ifelse(!is.na(p_multi),
-                           ifelse(p_multi < 0.001,
-                                  formatC(p_multi, format = "e", digits = 2),
-                                  sprintf("%.4f", p_multi)),
-                           "—")
-  ) |>
-  select(
-    Cohort           = cohort,
-    Endpoint         = endpoint,
-    N                = n_samples,
-    Events           = n_events,
-    `FU med (mo)`    = fu_median_months,
-    `HR uni (95%CI)` = hr_uni_fmt,
-    `p (uni)`        = p_uni_fmt,
-    `C_adj (95%CI)`  = c_index_fmt,
-    `HR age-adj`     = hr_age_fmt,
-    `p (age-adj)`    = p_age_fmt
-  )
+format_row <- function(df) {
+  df |>
+    mutate(
+      hr_uni_fmt    = sprintf("%.2f (%.2f–%.2f)", hr_uni, hr_uni_lo95, hr_uni_hi95),
+      p_uni_fmt     = ifelse(p_uni < 0.001,
+                             formatC(p_uni, format = "e", digits = 2),
+                             sprintf("%.4f", p_uni)),
+      c_index_fmt   = sprintf("%.3f (%.3f–%.3f)", c_index, c_index_lo95, c_index_hi95),
+      hr_age_fmt    = ifelse(!is.na(hr_multi),
+                             sprintf("%.2f (%.2f–%.2f)", hr_multi, hr_multi_lo95, hr_multi_hi95),
+                             "—"),
+      p_age_fmt     = ifelse(!is.na(p_multi),
+                             ifelse(p_multi < 0.001,
+                                    formatC(p_multi, format = "e", digits = 2),
+                                    sprintf("%.4f", p_multi)),
+                             "—")
+    ) |>
+    select(
+      Cohort           = cohort,
+      Role             = role,
+      Endpoint         = endpoint,
+      N                = n_samples,
+      Events           = n_events,
+      `FU med (mo)`    = fu_median_months,
+      `HR uni (95%CI)` = hr_uni_fmt,
+      `p (uni)`        = p_uni_fmt,
+      `C_adj (95%CI)`  = c_index_fmt,
+      `HR age-adj`     = hr_age_fmt,
+      `p (age-adj)`    = p_age_fmt
+    )
+}
+
+# Add Role column and build table: SCAN-B first (training), then validations
+tab_scanb <- if (file.exists(scanb_path)) {
+  read_csv(scanb_path, show_col_types = FALSE) |> mutate(role = "Training *")
+} else NULL
+
+tab_val <- tab_all |> mutate(role = "Validation")
+
+tab3 <- bind_rows(tab_scanb, tab_val) |> format_row()
 
 message("[", SCRIPT_NAME, "] Table 3 — ", nrow(tab3), " rows")
 print(tab3)
@@ -106,10 +122,10 @@ note_row   <- nrow(tab3) + 3
 note_style <- createStyle(fontSize = 9, fontColour = "#5D6D7E",
                           textDecoration = "italic")
 note_text  <- paste0(
-  "* HR age-adj: Cox model adjusted for age (CORE-A model). ",
-  "Validation cohorts (TCGA-BRCA, METABRIC, GSE20685): age only. ",
-  "Training cohort (SCANB): age + ER status. ",
-  "ER status not available in processed clinical files for validation cohorts."
+  "* Training cohort (SCAN-B): C_adj reported without optimism correction (no cross-validation applied to survival analysis). ",
+  "** C_adj = max(C_raw, 1 − C_raw); direction-invariant; 95% CI by bootstrap (B=1,000). ",
+  "*** HR age-adj: Cox model adjusted for age only (CORE-A); SCAN-B additionally adjusts for ER status. ",
+  "ER status unavailable in processed clinical files for validation cohorts."
 )
 writeData(wb, "Table3", note_text, startRow = note_row, startCol = 1)
 addStyle(wb, "Table3", note_style, rows = note_row, cols = 1, gridExpand = FALSE)

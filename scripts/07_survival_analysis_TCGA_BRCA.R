@@ -203,7 +203,10 @@ old_warn <- getOption("warn"); options(warn = 0)
 for (lang in c("EN", "PT")) {
   xlb <- if (lang == "EN") "Time (months)"    else "Tempo (meses)"
   ylb <- if (lang == "EN") "Overall survival" else "Sobrevida global"
-  ttl <- if (lang == "EN") sprintf("KM CorePAM — %s | %s | Quartiles (sensitivity)", COHORT, ENDPOINT) else sprintf("KM CorePAM — %s | %s | Quartis (sensibilidade)", COHORT, ENDPOINT)
+  ttl <- if (lang == "EN")
+    sprintf("KM CorePAM — %s | %s | Quartiles (Q1=lowest score/best prognosis, Q4=highest/worst)", COHORT, ENDPOINT)
+  else
+    sprintf("KM CorePAM — %s | %s | Quartis (Q1=menor escore/melhor prognóstico, Q4=maior/pior)", COHORT, ENDPOINT)
   lbs <- c("Q1", "Q2", "Q3", "Q4")
   km_plot_q <- ggsurvplot(
     km_fit_q, data = df, risk.table = TRUE, pval = TRUE, conf.int = FALSE,
