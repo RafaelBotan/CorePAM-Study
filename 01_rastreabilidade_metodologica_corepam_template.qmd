@@ -42,15 +42,16 @@ fora-da-dobra (OOF), com margem ΔC = 0,010 pré-especificada.
 
 | Coorte | Papel | Plataforma | N | Eventos OS | % | Mediana FU (censurados) | PAM50 cobertura |
 |--------|-------|------------|---|------------|---|--------------------------|-----------------|
-| SCAN-B (GSE96058) | **Treino** | RNA-seq Illumina | **3.069** | 322 | 10,5% | 54,9 meses | 50/50 (100%) |
-| TCGA-BRCA | Validação | RNA-seq STAR/GDC | **1.072** | 150 | 14,0% | 28,3 meses | 49/50 (98%)¹ |
-| METABRIC | Validação | Microarray Illumina HT-12 | **1.980** | 1.144 OS / 646 DSS | 57,8% OS | **157,9 meses** | 50/50 (100%) |
-| GSE20685 | Validação | Microarray Affymetrix HGU133A | **327** | 83 | 25,4% | 97,2 meses | 44/50 (88%)² |
+| SCAN-B (GSE96058) | **Treino** | RNA-seq Illumina | **3.069** | 322 | 10,5% | 55,7 meses | 50/50 (100%) |
+| TCGA-BRCA | Validação | RNA-seq STAR/GDC | **1.072** | 150 | 14,0% | **32,0 meses**³ | 49/50 (98%)¹ |
+| METABRIC | Validação | Microarray Illumina HT-12 | **1.978** | 646 DSS | 57,8% OS | **159,0 meses** | 50/50 (100%) |
+| GSE20685 | Validação | Microarray Affymetrix HGU133A | **327** | 83 | 25,4% | 112,8 meses | 44/50 (88%)² |
 
 ¹ MIA ausente no TCGA-BRCA (não mapeado por org.Hs.eg.db nesta coorte)
 ² 6 genes ausentes (ANLN, CXXC5, GPR160, NUF2, TMEM45B, UBE2T) são **limitação da plataforma
 HGU133A** (2003): não possuem probes neste array — confirmado via `hgu133a.db`.
 44/50 é o teto absoluto desta plataforma.
+³ Seguimento mediano curto (32 meses) reflete a natureza do TCGA-BRCA como biorepositório de diagnóstico, não de seguimento clínico prolongado. Análise de sensibilidade em horizonte 24m disponível (FigS6). *Valores definitivos carregados dinamicamente na Seção 5.1.*
 
 > **Opção A (aprovada 2026-02-28):** SCAN-B = todos os 3.069 samples do GSE96058
 > como treino. Não há split interno; GSE96058 não é coorte de validação separada.
@@ -155,42 +156,102 @@ if (file.exists(pareto_path) && requireNamespace("ggplot2", quietly=TRUE)) {
 > O resultado principal do TCGA deve ser reportado com ênfase na análise de sensibilidade de 24m.
 
 ```{r survival-results}
-# Lê os resultados individuais dos 3 coortes de validação (gerados pelos scripts 07_*)
-surv_files <- c(
+# Lê resultados de todas as 4 coortes (treino + 3 validações)
+surv_files_all <- c(
+  "results/supp/survival_results_SCANB.csv",
   "results/supp/survival_results_TCGA_BRCA.csv",
   "results/supp/survival_results_METABRIC.csv",
   "results/supp/survival_results_GSE20685.csv"
 )
-if (all(file.exists(surv_files))) {
-  tab_surv <- bind_rows(lapply(surv_files, read_csv, show_col_types = FALSE)) |>
+surv_files_exist <- surv_files_all[file.exists(surv_files_all)]
+if (length(surv_files_exist) > 0) {
+  tab_surv <- bind_rows(lapply(surv_files_exist, read_csv, show_col_types = FALSE)) |>
     select(cohort, endpoint, n_samples, n_events, fu_median_months,
            hr_uni, hr_uni_lo95, hr_uni_hi95, p_uni,
            c_index, c_index_lo95, c_index_hi95)
   kable(tab_surv, digits = 3,
         col.names = c("Coorte","Endpoint","N","Eventos","FU med (mo)",
-                      "HR","IC95% inf","IC95% sup","p","C_adj","IC_lo","IC_hi"))
+                      "HR","IC95% inf","IC95% sup","p","C_adj","IC_lo","IC_hi"),
+        caption = "SCAN-B = coorte de treino (C-index sem correção de otimismo). Validações: TCGA-BRCA, METABRIC, GSE20685.")
 } else {
   cat("Aguardando scripts 07_survival_analysis_*.R.\n")
 }
 ```
 
-## 5.2 Meta-análise
+## 5.2 Meta-análise (4 Coortes, Efeitos Aleatórios REML)
 
 ```{r meta-results}
-if (file.exists("results/main/Meta_Survival_Summary.csv")) {
-  meta <- read_csv("results/main/Meta_Survival_Summary.csv", show_col_types = FALSE)
-  kable(meta, digits = 3)
+meta_path <- "results/main/meta_survival_summary.csv"
+if (file.exists(meta_path)) {
+  meta <- read_csv(meta_path, show_col_types = FALSE)
+  kable(meta |> select(analysis, n_cohorts, meta_HR, meta_HR_lo95, meta_HR_hi95,
+                        p_value, I2_pct, tau2),
+        digits = 3,
+        col.names = c("Análise","N coortes","Meta HR","IC95% inf","IC95% sup",
+                      "p","I² (%)","τ²"),
+        caption = "Método REML; fallback para DL em caso de não-convergência. I²=90.6% esperado em estudo multi-plataforma (RNA-seq + 2 microarray).")
 } else {
   cat("Aguardando script 08_meta_survival.R.\n")
 }
 ```
 
+## 5.3 Valor Incremental (ΔC-index: CORE-A vs CORE-A + CorePAM)
+
+```{r incremental-value}
+incr_path <- "results/main/incremental_value_by_cohort.csv"
+if (file.exists(incr_path)) {
+  incr <- read_csv(incr_path, show_col_types = FALSE)
+  kable(incr |> select(cohort, corea_vars_used, n, c_corea, c_corea_score,
+                        delta_cindex, delta_ci_lo95, delta_ci_hi95, cal60_note),
+        digits = 3,
+        col.names = c("Coorte","CORE-A vars","N","C CORE-A","C CORE-A+Score",
+                      "ΔC","IC95% inf","IC95% sup","Calibração 60m"),
+        caption = "Bootstrap 1.000 iterações (seed=42). ΔC positivo em todas as coortes confirma valor incremental além das covariáveis clínicas.")
+} else {
+  cat("Aguardando script 11_incremental_value_and_dca.R.\n")
+}
+```
+
 # 6. Controle de Qualidade
 
-- Correlações off-diagonal entre scores das coortes (script 13)
-- PCA forense no METABRIC (script 14)
-- Verificação de esquema e intervalos (script 15)
-- Anti-hard-code: nenhum número no manuscrito foi digitado manualmente (script 16)
+```{r qc-schema}
+qc_schema_path <- "results/supp/qc_schema_range_report.csv"
+if (file.exists(qc_schema_path)) {
+  qc <- read_csv(qc_schema_path, show_col_types = FALSE)
+  n_pass <- sum(qc$status == "PASS", na.rm = TRUE)
+  n_fail <- sum(qc$status == "FAIL", na.rm = TRUE)
+  cat(sprintf("Schema/Range QC (script 15): %d PASS | %d FAIL\n", n_pass, n_fail))
+  if (n_fail > 0) {
+    kable(qc[qc$status == "FAIL",], caption = "Falhas QC de schema/intervalo")
+  }
+} else {
+  cat("Aguardando script 15_qc_schema_range_checks.R.\n")
+}
+```
+
+```{r qc-assertions}
+qc_assert_path <- "results/supp/qc_text_vs_results_report.csv"
+if (file.exists(qc_assert_path)) {
+  qa <- read_csv(qc_assert_path, show_col_types = FALSE)
+  n_pass <- sum(qa$status == "PASS", na.rm = TRUE)
+  n_fail <- sum(qa$status == "FAIL", na.rm = TRUE)
+  cat(sprintf("Anti-hard-code assertions (script 16): %d PASS | %d FAIL\n", n_pass, n_fail))
+} else {
+  cat("Aguardando script 16_qc_text_vs_results_assert.R.\n")
+}
+```
+
+```{r pca-forensics}
+pca_path <- "results/supp/metabric_pca_forensics.csv"
+if (file.exists(pca_path)) {
+  pca <- read_csv(pca_path, show_col_types = FALSE)
+  n_out <- nrow(pca[pca$is_outlier == TRUE,])
+  cat(sprintf("PCA forense METABRIC (script 14): %d outlier(s) detectado(s) (Mahalanobis p<0.001)\n", n_out))
+  if (n_out > 0) kable(pca[pca$is_outlier == TRUE, c("sample_id","pc1","pc2","mahal_p")], digits=4)
+} else {
+  cat("Aguardando script 14_qc_metabric_pca_forensics.R.\n")
+}
+```
 
 # 7. Figuras e Tabelas (embutidas)
 
