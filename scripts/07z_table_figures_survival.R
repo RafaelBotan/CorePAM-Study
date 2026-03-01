@@ -62,8 +62,8 @@ format_row <- function(df) {
       `HR uni (95%CI)` = hr_uni_fmt,
       `p (uni)`        = p_uni_fmt,
       `C_adj (95%CI)`  = c_index_fmt,
-      `HR age-adj`     = hr_age_fmt,
-      `p (age-adj)`    = p_age_fmt
+      `HR adj (CORE-A)`     = hr_age_fmt,
+      `p (CORE-A adj)`    = p_age_fmt
     )
 }
 
@@ -122,10 +122,12 @@ note_row   <- nrow(tab3) + 3
 note_style <- createStyle(fontSize = 9, fontColour = "#5D6D7E",
                           textDecoration = "italic")
 note_text  <- paste0(
-  "* Training cohort (SCAN-B): C_adj reported without optimism correction (no cross-validation applied to survival analysis). ",
+  "* Training cohort (SCAN-B): C_adj = 0.698 (in-sample; no optimism correction). ",
+  "OOF C-index used for model selection = 0.670 (PAM50-full OOF = 0.679; gap = 0.009 < \u03b4 = 0.010, non-inferiority confirmed). ",
   "** C_adj = max(C_raw, 1 − C_raw); direction-invariant; 95% CI by bootstrap (B=1,000). ",
-  "*** HR age-adj: Cox model adjusted for age only (CORE-A); SCAN-B additionally adjusts for ER status. ",
-  "ER status unavailable in processed clinical files for validation cohorts."
+  "*** HR adj (CORE-A): Cox model adjusted for available covariates. ",
+  "CORE-A covariates by cohort: SCAN-B (age + ER status), METABRIC (age + ER status), ",
+  "TCGA-BRCA (age only), GSE20685 (age only). Covariates included only if >80% non-missing."
 )
 writeData(wb, "Table3", note_text, startRow = note_row, startCol = 1)
 addStyle(wb, "Table3", note_style, rows = note_row, cols = 1, gridExpand = FALSE)

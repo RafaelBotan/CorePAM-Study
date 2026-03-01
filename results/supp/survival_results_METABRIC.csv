@@ -1,2 +1,2 @@
 cohort,endpoint,n_samples,n_events,fu_median_months,hr_uni,hr_uni_lo95,hr_uni_hi95,p_uni,hr_multi,hr_multi_lo95,hr_multi_hi95,p_multi,corea_vars_used,c_index,c_index_lo95,c_index_hi95,loghr_uni,se_loghr_uni,hr_sens_os,hr_sens_os_lo95,hr_sens_os_hi95,p_sens_os,c_sens_os,fg_coef,fg_p
-METABRIC,DSS,1978,646,159,1.4123000000000001,1.3095,1.5232,3.447e-19,1.4145,1.3112,1.5259,3.066e-19,age,0.6376,0.6147,0.6594,0.34522,0.03856,1.2304,1.1623000000000001,1.3024,9.231e-13,0.5925,NA,NA
+METABRIC,DSS,1978,646,159,1.4123000000000001,1.3095,1.5232,3.447e-19,1.357,1.2437,1.4806,6.82e-12,age+er_status,0.6376,0.6147,0.6594,0.34522,0.03856,1.2304,1.1623000000000001,1.3024,9.231e-13,0.5925,0.347577,8.964e-19

@@ -229,26 +229,45 @@ registry_append(COHORT, "figure_km_quartile", km_q_pdf, h_km_q, "ok", SCRIPT_NAM
 supp_dir <- PATHS$results$supp
 dir.create(supp_dir, showWarnings = FALSE, recursive = TRUE)
 
+# Read OOF C-index from model selection summary (derived in script 05)
+oof_json_path <- file.path(PATHS$results$corepam, "selected_CorePAM_summary.json")
+c_oof <- c_oof_pam50full <- c_oof_gap <- NA_real_
+if (file.exists(oof_json_path)) {
+  old_warn <- getOption("warn"); options(warn = 0)
+  oof_summary <- tryCatch(jsonlite::fromJSON(oof_json_path), error = function(e) NULL)
+  options(warn = old_warn)
+  if (!is.null(oof_summary)) {
+    c_oof          <- round(oof_summary$selected$c_adj,  4)
+    c_oof_pam50full <- round(oof_summary$selected$c_max, 4)
+    c_oof_gap       <- round(oof_summary$selected$gap,   4)
+    message(sprintf("[%s] OOF C-index: CorePAM=%.4f | PAM50-full=%.4f | gap=%.4f",
+                    SCRIPT_NAME, c_oof, c_oof_pam50full, c_oof_gap))
+  }
+}
+
 res_df <- tibble(
-  cohort          = COHORT,
-  endpoint        = ENDPOINT,
-  n_samples       = nrow(df),
-  n_events        = sum(df[[event_col]]),
-  fu_median_months = round(fu_median, 1),
-  hr_uni          = round(hr_uni, 4),
-  hr_uni_lo95     = round(lo_uni, 4),
-  hr_uni_hi95     = round(hi_uni, 4),
-  p_uni           = signif(p_uni, 4),
-  hr_multi        = round(hr_multi, 4),
-  hr_multi_lo95   = round(lo_multi, 4),
-  hr_multi_hi95   = round(hi_multi, 4),
-  p_multi         = signif(p_multi, 4),
-  corea_vars_used = corea_used,
-  c_index         = round(boot_res$c_index, 4),
-  c_index_lo95    = round(boot_res$ci_low, 4),
-  c_index_hi95    = round(boot_res$ci_high, 4),
-  loghr_uni       = round(log(hr_uni), 6),
-  se_loghr_uni    = round((log(hi_uni) - log(lo_uni)) / (2 * 1.96), 6)
+  cohort             = COHORT,
+  endpoint           = ENDPOINT,
+  n_samples          = nrow(df),
+  n_events           = sum(df[[event_col]]),
+  fu_median_months   = round(fu_median, 1),
+  hr_uni             = round(hr_uni, 4),
+  hr_uni_lo95        = round(lo_uni, 4),
+  hr_uni_hi95        = round(hi_uni, 4),
+  p_uni              = signif(p_uni, 4),
+  hr_multi           = round(hr_multi, 4),
+  hr_multi_lo95      = round(lo_multi, 4),
+  hr_multi_hi95      = round(hi_multi, 4),
+  p_multi            = signif(p_multi, 4),
+  corea_vars_used    = corea_used,
+  c_index            = round(boot_res$c_index, 4),  # in-sample (training, no optimism correction)
+  c_index_lo95       = round(boot_res$ci_low, 4),
+  c_index_hi95       = round(boot_res$ci_high, 4),
+  c_oof              = c_oof,           # OOF C-index used for model selection (script 05)
+  c_oof_pam50full    = c_oof_pam50full, # PAM50-full OOF C-index
+  c_oof_gap          = c_oof_gap,       # gap = c_oof_pam50full - c_oof (must be < delta_c)
+  loghr_uni          = round(log(hr_uni), 6),
+  se_loghr_uni       = round((log(hi_uni) - log(lo_uni)) / (2 * 1.96), 6)
 )
 
 supp_path <- file.path(supp_dir, sprintf("survival_results_%s.csv", COHORT))

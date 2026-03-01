@@ -113,7 +113,7 @@ out$dss_event <- dplyr::case_when(
 out$age       <- suppressWarnings(as.numeric(clin_full[[AGE_COL]]))
 out$er_status <- dplyr::case_when(
   tolower(trimws(clin_full[[ER_COL]])) %in%
-    c("positive", "pos", "1", "+") ~ "Positive",
+    c("positive", "positve", "pos", "1", "+") ~ "Positive",  # "positve" = cBioPortal typo
   tolower(trimws(clin_full[[ER_COL]])) %in%
     c("negative", "neg", "0", "-") ~ "Negative",
   TRUE ~ NA_character_

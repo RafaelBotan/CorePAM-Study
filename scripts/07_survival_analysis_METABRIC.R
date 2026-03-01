@@ -331,7 +331,7 @@ if (has_dss && all(c("os_time_months", "os_event") %in% names(df))) {
 # --------------------------------------------------------------------------
 fg_coef <- fg_p <- NA_real_
 
-if (has_cmprsk && has_dss && all(c("os_time", "os_event") %in% names(df))) {
+if (has_cmprsk && has_dss && all(c("os_time_months", "os_event") %in% names(df))) {
   message(sprintf("[%s] Fine-Gray (sensitivity)...", SCRIPT_NAME))
   # Event: 1=cancer death, 2=other cause death, 0=alive/censored
   df$fg_status <- ifelse(df[[event_col]] == 1, 1,
@@ -350,7 +350,21 @@ if (has_cmprsk && has_dss && all(c("os_time", "os_event") %in% names(df))) {
   options(warn = old_warn)
   if (!is.null(fg_res)) {
     fg_coef <- fg_res$coef[1]
-    fg_p    <- fg_res$p.values.2[1]
+    # p-value: use p.values.2 if available (older cmprsk), else compute Wald p
+    fg_p <- tryCatch(
+      {
+        pv <- fg_res$p.values.2
+        if (!is.null(pv) && length(pv) >= 1 && is.numeric(pv)) pv[1]
+        else {
+          fg_se <- sqrt(fg_res$var[1, 1])
+          2 * pnorm(-abs(fg_coef / fg_se))
+        }
+      },
+      error = function(e) {
+        fg_se <- sqrt(fg_res$var[1, 1])
+        2 * pnorm(-abs(fg_coef / fg_se))
+      }
+    )
     message(sprintf("[%s] Fine-Gray: coef=%.4f (exp=%.3f) p=%.4g",
                     SCRIPT_NAME, fg_coef, exp(fg_coef), fg_p))
   }
