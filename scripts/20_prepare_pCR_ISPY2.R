@@ -205,19 +205,31 @@ message(sprintf("[%s] Sample IDs from matrix (first 5): %s",
 mat_ids    <- colnames(expr_mat)
 common_ids <- intersect(pdata_combined$patient_id_clean, mat_ids)
 
-message(sprintf("[%s] pData IDs: %d | Matrix IDs: %d | Common: %d",
-                SCRIPT_NAME,
-                length(pdata_combined$patient_id_clean),
-                length(mat_ids),
-                length(common_ids)))
+n_pdata  <- nrow(pdata_combined)
+n_matrix <- length(mat_ids)
+n_common <- length(common_ids)
 
-if (length(common_ids) < 900) {
+# IDs present in pData but absent from expression matrix
+ids_pdata_only  <- setdiff(pdata_combined$patient_id_clean, mat_ids)
+# IDs present in matrix but absent from pData
+ids_matrix_only <- setdiff(mat_ids, pdata_combined$patient_id_clean)
+
+message(sprintf("[%s] pData rows: %d | Matrix cols: %d | Common: %d",
+                SCRIPT_NAME, n_pdata, n_matrix, n_common))
+if (length(ids_pdata_only) > 0)
+  message(sprintf("[%s]   pData-only IDs (no expression): %s",
+                  SCRIPT_NAME, paste(ids_pdata_only, collapse = ", ")))
+if (length(ids_matrix_only) > 0)
+  message(sprintf("[%s]   Matrix-only IDs (no clinical): %s",
+                  SCRIPT_NAME, paste(ids_matrix_only, collapse = ", ")))
+
+if (n_common < 900) {
   stop(sprintf("[%s] ID matching failure: only %d common IDs (expected ~988). Check ID format.",
-               SCRIPT_NAME, length(common_ids)))
+               SCRIPT_NAME, n_common))
 }
 
 # Subset and align
-expr_matched <- expr_mat[, common_ids, drop = FALSE]
+expr_matched  <- expr_mat[, common_ids, drop = FALSE]
 pdata_matched <- pdata_combined[match(common_ids, pdata_combined$patient_id_clean), ]
 rownames(pdata_matched) <- common_ids
 
@@ -300,9 +312,43 @@ final_df <- tibble(
 # Drop samples without pCR
 n_before <- nrow(final_df)
 final_df <- final_df[!is.na(final_df$pcr), ]
-n_dropped <- n_before - nrow(final_df)
-if (n_dropped > 0)
-  message(sprintf("[%s] Dropped %d samples with NA pCR", SCRIPT_NAME, n_dropped))
+n_dropped_na_pcr <- n_before - nrow(final_df)
+if (n_dropped_na_pcr > 0)
+  message(sprintf("[%s] Dropped %d samples with NA pCR", SCRIPT_NAME, n_dropped_na_pcr))
+
+# --------------------------------------------------------------------------
+# Inclusion log — documents every exclusion step for transparent reporting
+# --------------------------------------------------------------------------
+inclusion_log <- data.frame(
+  step         = c("pData from series matrix",
+                   "Expression matrix columns",
+                   "After ID matching (intersect)",
+                   "pData-only IDs (missing expression)",
+                   "Matrix-only IDs (missing clinical)",
+                   "After dropping NA pCR",
+                   "FINAL ANALYZED N"),
+  n            = c(n_pdata,
+                   n_matrix,
+                   n_common,
+                   length(ids_pdata_only),
+                   length(ids_matrix_only),
+                   n_dropped_na_pcr,
+                   nrow(final_df)),
+  note         = c("GPL20078 (654) + GPL30493 (334)",
+                   "Gene-level batch-corrected file GSE194040_geneLevel_n988.txt.gz",
+                   "Samples with both clinical and expression data",
+                   paste0(if (length(ids_pdata_only) > 0) paste(ids_pdata_only, collapse=";") else "none",
+                          " — excluded (no expression data found)"),
+                   paste0(if (length(ids_matrix_only) > 0) paste(ids_matrix_only, collapse=";") else "none",
+                          " — excluded (no clinical data found)"),
+                   "NA in pcr:ch1 field",
+                   "Used in all downstream analyses"),
+  stringsAsFactors = FALSE
+)
+
+incl_log_path <- file.path(PATHS$results$pcr, "ISPY2_inclusion_log.csv")
+write.csv(inclusion_log, incl_log_path, row.names = FALSE)
+message(sprintf("[%s] Inclusion log saved: %s", SCRIPT_NAME, incl_log_path))
 
 message(sprintf("[%s] Final N=%d | pCR+=%d (%.1f%%) | HR+=%d | HER2+=%d",
                 SCRIPT_NAME,

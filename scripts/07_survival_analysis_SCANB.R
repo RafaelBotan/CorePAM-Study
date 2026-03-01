@@ -156,6 +156,16 @@ km_plot_med <- ggsurvplot(
   ggtheme       = theme_classic()
 )
 
+# Add HR/CI annotation (positioned at 5 months, bottom of plot)
+km_hr_lbl <- sprintf("HR = %.2f (%.2f\u2013%.2f), p = %s",
+                     hr_uni, lo_uni, hi_uni,
+                     formatC(p_uni, format = "e", digits = 1))
+km_plot_med$plot <- km_plot_med$plot +
+  ggplot2::annotate("text",
+                    x = 5, y = 0.10,
+                    label = km_hr_lbl,
+                    hjust = 0, size = 3.0, colour = "grey20")
+
 km_pdf <- file.path(fig_dir, sprintf("Fig3_KM_%s_%s_CorePAM.pdf", COHORT, ENDPOINT))
 km_png <- file.path(fig_dir, sprintf("Fig3_KM_%s_%s_CorePAM.png", COHORT, ENDPOINT))
 

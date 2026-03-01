@@ -11,8 +11,8 @@
 #     (genes as rows, first col = "gene", remaining cols = sample IDs)
 #
 # OUTPUTS (all in figures/supp/):
-#   FigS_CorePAM_RawScore_Distribution_EN.pdf/.png
-#   FigS_CorePAM_RawScore_Distribution_PT.pdf/.png
+#   FigS_CorePAM_Score_Distribution_EN.pdf/.png
+#   FigS_CorePAM_Score_Distribution_PT.pdf/.png
 #   FigS_CorePAM_vs_PAM50full_EN.pdf/.png
 #   FigS_CorePAM_vs_PAM50full_PT.pdf/.png
 #
@@ -31,8 +31,8 @@ suppressPackageStartupMessages({
 
 FORCE <- as.logical(Sys.getenv("FORCE_RERUN", "FALSE"))
 
-out_dist_en <- file.path(PATHS$figures$supp, "FigS_CorePAM_RawScore_Distribution_EN.pdf")
-out_dist_pt <- file.path(PATHS$figures$supp, "FigS_CorePAM_RawScore_Distribution_PT.pdf")
+out_dist_en <- file.path(PATHS$figures$supp, "FigS_CorePAM_Score_Distribution_EN.pdf")
+out_dist_pt <- file.path(PATHS$figures$supp, "FigS_CorePAM_Score_Distribution_PT.pdf")
 out_scat_en <- file.path(PATHS$figures$supp, "FigS_CorePAM_vs_PAM50full_EN.pdf")
 out_scat_pt <- file.path(PATHS$figures$supp, "FigS_CorePAM_vs_PAM50full_PT.pdf")
 
@@ -214,20 +214,21 @@ COL_OS <- c(
 )
 
 # --------------------------------------------------------------------------
-# FIG A: Raw score distribution by cohort — violin + boxplot
+# FIG A: Score distribution by cohort — violin + boxplot
+# Plots score_z_corepam (= scale(Σwᵢzᵢ/Σ|wᵢ|), intra-cohort standardized)
 # --------------------------------------------------------------------------
 make_dist_fig <- function(lang = "EN") {
   xl  <- if (lang == "EN") "Cohort" else "Coorte"
-  yl  <- if (lang == "EN") "CorePAM raw score (intra-cohort Z-scored)" else
-                            "Escore bruto CorePAM (Z-score intracoorte)"
+  yl  <- if (lang == "EN") "CorePAM Score (z-standardized, SD units)" else
+                            "Escore CorePAM (z-padronizado, unidades DP)"
   tt  <- if (lang == "EN") "CorePAM score distribution by OS cohort" else
                             "Distribuição do escore CorePAM por coorte OS"
   cap <- if (lang == "EN")
-    "Score = \u03a3(w\u1d62\u00b7z\u1d62) / \u03a3|w\u1d62|, then Z-scored within cohort"
+    "score_z = scale(\u03a3(w\u1d62\u00b7z\u1d62) / \u03a3|w\u1d62|), intra-cohort standardized; used in all Cox regressions"
   else
-    "Escore = \u03a3(w\u1d62\u00b7z\u1d62) / \u03a3|w\u1d62|, depois Z-score intracoorte"
+    "score_z = scale(\u03a3(w\u1d62\u00b7z\u1d62) / \u03a3|w\u1d62|), padronizado intracoorte; usado em todas as regressões Cox"
 
-  ggplot(all_scores, aes(x = cohort, y = score_raw, fill = cohort, colour = cohort)) +
+  ggplot(all_scores, aes(x = cohort, y = score_z_corepam, fill = cohort, colour = cohort)) +
     geom_violin(alpha = 0.35, linewidth = 0.5, trim = FALSE) +
     geom_boxplot(width = 0.18, alpha = 0.7, outlier.size = 0.5,
                  outlier.alpha = 0.4, colour = COL$black, fill = "white",
@@ -243,15 +244,15 @@ old_warn <- getOption("warn"); options(warn = 0)
 for (lang in c("EN", "PT")) {
   pA <- make_dist_fig(lang)
   pdf_f <- file.path(PATHS$figures$supp,
-                     sprintf("FigS_CorePAM_RawScore_Distribution_%s.pdf", lang))
+                     sprintf("FigS_CorePAM_Score_Distribution_%s.pdf", lang))
   png_f <- file.path(PATHS$figures$supp,
-                     sprintf("FigS_CorePAM_RawScore_Distribution_%s.png", lang))
+                     sprintf("FigS_CorePAM_Score_Distribution_%s.png", lang))
   cairo_pdf(pdf_f, width = 8, height = 5); print(pA); dev.off()
   png(png_f, width = 8, height = 5, units = "in", res = 600); print(pA); dev.off()
-  registry_append("META_OS", sprintf("figS_corepam_rawscore_dist_%s", lang),
+  registry_append("META_OS", sprintf("figS_corepam_score_dist_%s", lang),
                   pdf_f, sha256_file(pdf_f), "ok", SCRIPT_NAME,
                   file.info(pdf_f)$size / 1e6)
-  message(sprintf("[%s] [%s] FigS_CorePAM_RawScore_Distribution saved: %s",
+  message(sprintf("[%s] [%s] FigS_CorePAM_Score_Distribution saved: %s",
                   SCRIPT_NAME, lang, pdf_f))
 }
 gc(); options(warn = old_warn)

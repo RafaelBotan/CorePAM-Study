@@ -168,6 +168,23 @@ for (lang in c("EN", "PT")) {
     pval.coord = c(xlim_val * 0.5, 0.15),
     ggtheme = theme_classic()
   )
+  # Add HR/CI annotation and pre-specified cutoff label
+  hr_anno_lbl <- if (lang == "EN")
+    sprintf("HR = %.2f (%.2f\u2013%.2f), p = %s",
+            hr_uni, lo_uni, hi_uni, formatC(p_uni, format = "e", digits = 1))
+  else
+    sprintf("HR = %.2f (IC: %.2f\u2013%.2f), p = %s",
+            hr_uni, lo_uni, hi_uni, formatC(p_uni, format = "e", digits = 1))
+  subt_lbl <- if (lang == "EN")
+    "Cutoff: intra-cohort median (pre-specified, not optimized)"
+  else
+    "Ponto de corte: mediana intracoorte (pr\u00e9-especificado, n\u00e3o otimizado)"
+  km_p$plot <- km_p$plot +
+    ggplot2::labs(subtitle = subt_lbl) +
+    ggplot2::annotate("text",
+                      x = xlim_val * 0.02, y = 0.10,
+                      label = hr_anno_lbl,
+                      hjust = 0, size = 3.0, colour = "grey20")
   pdf_path <- file.path(fig_dir, sprintf("Fig2_KM_%s_%s_%s.pdf", COHORT, ENDPOINT, lang))
   png_path <- file.path(fig_dir, sprintf("Fig2_KM_%s_%s_%s.png", COHORT, ENDPOINT, lang))
   cairo_pdf(pdf_path, width = 8, height = 6); print(km_p); dev.off()
