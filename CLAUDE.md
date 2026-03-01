@@ -68,6 +68,18 @@ Y:/Phd-Genomic-claude/          ← ROOT_REPO (working directory)
 
 **SCAN-B usa o acesso GEO GSE96058 (TODAS as 3069 amostras = treinamento). Não há split interno.** O pData do GEO não possui coluna de separação training/validation. Decisão aprovada em 2026-02-28 (Option A): usar todas as amostras como treino.
 
+**Bloco pCR — coortes e papéis:**
+
+| Coorte | GEO | Papel | Plataforma | N | Endpoint |
+|---|---|---|---|---|---|
+| GSE25066 | GSE25066 | PRIMARY | HGU133A | 508 | pCR |
+| GSE20194 | GSE20194 | PRIMARY | HGU133Plus2 | 278 | pCR |
+| GSE32646 | GSE32646 | PRIMARY | HGU133Plus2 | 154 | pCR |
+| ISPY1 | GSE22226 | PRIMARY | Agilent 44K | 149 | pCR |
+| ISPY2 | GSE194040 | EXPLORATORY | Agilent 44K (batch-corrected) | 986 | pCR |
+
+I-SPY2: coorte externa exploratória (suplementar); sem CORE-A (idade indisponível); análises: univariada + ajustada (HR+HER2+braço) + sensibilidade controle (Paclitaxel).
+
 ## Pipeline de execução (ordem)
 
 ```
@@ -81,8 +93,12 @@ Y:/Phd-Genomic-claude/          ← ROOT_REPO (working directory)
 07A_preflight_files_strict.R        ← verificação estrita de inputs (rodar antes do 07)
 07D_validate_one_cohort_corepam.R   ← smoke test por coorte
 07_survival_analysis_<COHORT>.R     ← Cox, C-index, KM, CORE-A
+07x_extra_figures.R                 ← figuras suplementares OS (forest, heatmaps, lollipop, etc.)
+07y_pam50full_comparison.R          ← comparação CorePAM vs PAM50-full (scatter + HR forest)
+07z_table_figures_survival.R        ← Table3 + Fig4 meta-forest + sensitivity figures
 08_meta_survival.R                  ← meta-análise random-effects
 11_incremental_value_and_dca.R      ← ΔC-index + calibração
+11b_dca_corepam.R                   ← Decision Curve Analysis (OS 4 coortes + pCR 4 coortes)
 13_qc_correlations_offdiag.R        ← QC correlações off-diagonal
 14_qc_metabric_pca_forensics.R      ← PCA forense METABRIC
 15_qc_schema_range_checks.R         ← QC estrutural hard-fail
@@ -92,10 +108,16 @@ Y:/Phd-Genomic-claude/          ← ROOT_REPO (working directory)
 
 # pCR block (NACT — análise secundária, separada do bloco OS)
 19_download_pCR_raw_data.R          ← download GEO: GSE25066, GSE20194, GSE32646, GSE22226
-20_prepare_pCR_<COHORT>.R           ← harmonize + preprocess + Z-score + CorePAM score (4 scripts)
-21_pCR_logistic_analysis.R          ← glm(pcr ~ score_z) + AUC + bootstrap OR CI por coorte
-22_meta_pCR.R                       ← meta-análise RE/FE de log(OR)
-23_pCR_figures.R                    ← Fig6 forest + FigS9 ROC + FigS10 distribuição
+20_prepare_pCR_<COHORT>.R           ← harmonize + preprocess + Z-score + CorePAM score (4 scripts: GSE25066, GSE20194, GSE32646, ISPY1)
+20_prepare_pCR_ISPY2.R              ← I-SPY2 (GSE194040): gene-level batch-corrected + z-score + CorePAM score (986 amostras, 24/24 genes)
+20_utils_pcr_extract.R              ← helpers compartilhados: extract_pcr_column, extract_numeric/binary_covariate
+21_pCR_logistic_analysis.R          ← glm(pcr ~ score_z) + AUC + bootstrap OR CI por coorte (4 coortes primárias)
+21c_pcr_er_interaction.R            ← teste LRT formal ER × score em coortes com dados ER (GSE32646, ISPY1)
+21_ispy2_analysis.R                 ← I-SPY2: (i) univariada, (ii) ajustada HR+HER2+braço, (iii) controle Paclitaxel
+22_meta_pCR.R                       ← meta-análise RE/FE de log(OR) — 4 coortes GEO primárias
+22b_meta_pCR_with_ispy2.R           ← duas meta-análises: k=4 sem I-SPY2 e k=5 com I-SPY2
+23_pCR_figures.R                    ← forest OR primary + ROC + quartile rate + distribuição (4 coortes)
+23b_pCR_ispy2_figures.R             ← extended forest: 4 primárias + I-SPY2 (Exploratory) + 2 pooled RE
 ```
 
 ## Helpers disponíveis (carregados via 00_setup.R)
@@ -187,12 +209,21 @@ Se HR(score) < 1 → inverter sinal; registrar `score_direction = -1`.
 | 16_qc_text_vs_results_assert.R | Complete |
 | 17_render_manuscript_quarto.R | Complete |
 | 18_make_submission_bundle.R | Complete |
+| 07x_extra_figures.R | Complete (10 supplementary figures: forest, heatmaps, lollipop, distributions) |
+| 07y_pam50full_comparison.R | Complete (CorePAM vs PAM50-full: scatter + HR forest + C-index table) |
+| 07z_table_figures_survival.R | Complete (Table3 + Fig4 meta-forest + sensitivity KM quartiles) |
+| 11b_dca_corepam.R | Complete (DCA OS 4 cohorts 60m/24m + pCR 4 cohorts) |
 | 19_download_pCR_raw_data.R | Complete (pCR block — requires internet) |
-| 20_prepare_pCR_*.R | Complete (4 cohorts: GSE25066, GSE20194, GSE32646, ISPY1) |
+| 20_prepare_pCR_*.R | Complete (4 primary cohorts: GSE25066, GSE20194, GSE32646, ISPY1) |
+| 20_prepare_pCR_ISPY2.R | Complete (I-SPY2/GSE194040: 986 samples, 24/24 genes, pCR=32.4%) |
 | 20_utils_pcr_extract.R | Complete (shared pCR helper) |
-| 21_pCR_logistic_analysis.R | Complete |
-| 22_meta_pCR.R | Complete |
-| 23_pCR_figures.R | Complete (Fig6, FigS9, FigS10) |
+| 21_pCR_logistic_analysis.R | Complete (4 primary cohorts) |
+| 21c_pcr_er_interaction.R | Complete (LRT ER×score: ISPY1 p=0.0005, GSE32646 p=0.92) |
+| 21_ispy2_analysis.R | Complete (univariate OR=1.685, adjusted OR=1.485, control OR=1.443) |
+| 22_meta_pCR.R | Complete (k=4 primary: RE OR=1.686, I²=0%) |
+| 22b_meta_pCR_with_ispy2.R | Complete (k=4 OR=1.686 vs k=5+ISPY2 OR=1.685, I²=0% both) |
+| 23_pCR_figures.R | Complete (forest + ROC + quartile rate + distribution, 4 primary cohorts) |
+| 23b_pCR_ispy2_figures.R | Complete (extended forest EN+PT: 4 primary + I-SPY2 Exploratory) |
 
 ## Git
 
