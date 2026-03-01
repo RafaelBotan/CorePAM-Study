@@ -52,3 +52,8 @@ CHECKLIST_MASTER_*.md
 FIGURES_TABLES_PLAN_*.md
 SCRIPTS_PLAN_*.md
 01_docs/REVIEWER_RESPONSE_LETTER.md
+
+# Manuscrito — arquivos de trabalho local (não versionar)
+manuscript/references.bib
+manuscript/*.pdf
+manuscript/*.html
