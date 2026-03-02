@@ -1,13 +1,18 @@
 # =============================================================================
-# INTEGRATION: GSE1456 (Stockholm/Karolinska, N=159) into main pipeline
-# PURPOSE: 4th external validation cohort (Affymetrix HG-U133A, OS + DSS)
-# PRODUCES:
+# SCRIPT: 24_integrate_GSE1456_stockholm.R
+# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
+# PURPOSE: Integrate GSE1456 (Stockholm/Karolinska, N=159) as 4th external
+#          validation cohort (Affymetrix HG-U133A, OS + DSS).
+#          Downloads, harmonises clinical, preprocesses expression, computes
+#          CorePAM score, and runs survival analysis in a single script.
+# INPUTS:  GEO accession GSE1456, results/corepam/CorePAM_weights.csv
+# OUTPUTS:
 #   - PROCESSED/GSE1456/expression_genelevel_preZ.parquet
 #   - PROCESSED/GSE1456/clinical_FINAL.parquet
 #   - PROCESSED/GSE1456/analysis_ready.parquet
 #   - results/supp/survival_results_GSE1456.csv
 #   - results/supp/risk_score_summary_GSE1456.csv
-#   - figures/main/en/png/Fig2_KM_GSE1456_OS_EN.png
+#   - figures/main/en/{pdf,png}/Fig2_KM_GSE1456_OS_EN.{pdf,png}
 # =============================================================================
 source("scripts/00_setup.R")
 

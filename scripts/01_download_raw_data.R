@@ -14,7 +14,7 @@
 #   only if any cohort failed — making it easy to re-run just the failures.
 #
 # SOURCES:
-#   GSE96058  (SCAN-B training + validation) — GEO via GEOquery
+#   GSE96058  (SCAN-B — all samples = training) — GEO via GEOquery
 #   METABRIC  (validation microarray)        — cBioPortal open access
 #   TCGA-BRCA (validation RNA-seq)           — GDC via TCGAbiolinks
 #   GSE20685  (Taiwan, validation)           — GEO via GEOquery

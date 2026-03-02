@@ -4,7 +4,7 @@
 #            GSE25066  (Hatzis 2011)  — HGU133Plus2, N=508
 #            GSE20194  (Mina)         — HGU133Plus2, N=278
 #            GSE32646  (Tabchy 2010)  — HGU133Plus2, N=154
-#            GSE22226  (I-SPY1)       — HGU133A,     N=149
+#            GSE22226  (I-SPY1)       — Agilent 44K, N=149
 #          Downloads series matrices via GEOquery; skips if already present.
 #          SHA-256 + registry for all downloaded files.
 #
@@ -43,7 +43,7 @@ PCR_COHORTS <- list(
   list(cohort    = "ISPY1",
        accession = "GSE22226",
        platform  = "hgu133a",
-       note      = "I-SPY1 / Rubin 2011; HGU133A; N=149; NACT (AC→T)")
+       note      = "I-SPY1 / Rubin 2011; Agilent 44K; N=149; NACT (AC→T)")
 )
 
 .errors <- list()

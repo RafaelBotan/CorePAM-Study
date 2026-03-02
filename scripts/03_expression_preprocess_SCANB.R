@@ -1,6 +1,6 @@
 # =============================================================================
 # SCRIPT: 03_expression_preprocess_SCANB.R
-# PURPOSE: Expression preprocessing for SCAN-B (training subset).
+# PURPOSE: Expression preprocessing for SCAN-B (training cohort, all 3069 samples).
 #          RNA-seq: raw counts → edgeR TMM → logCPM; HGNC mapping.
 # PROJETO: Core-PAM (Memorial v6.1 §4.2)
 #

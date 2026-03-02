@@ -1,11 +1,11 @@
 # =============================================================================
 # SCRIPT: 20_prepare_pCR_ISPY1.R
-# PURPOSE: Harmonize clinical (pCR), preprocess expression (Affymetrix
-#          HGU133A), compute CorePAM score for I-SPY1 (GSE22226).
+# PURPOSE: Harmonize clinical (pCR), preprocess expression (Agilent 44K),
+#          compute CorePAM score for I-SPY1 (GSE22226).
 #          Produces analysis_ready.parquet for 21_pCR_logistic_analysis.R.
 #
 # COHORT:  ISPY1 | GEO: GSE22226 | Endpoint: pCR
-# PLATFORM: HGU133A (GPL96) — NOTE: same restricted gene space as GSE20685.
+# PLATFORM: Agilent 44K (GPL4133/GPL1708) — auto-detected from GEO.
 #           CorePAM coverage may be < 100% due to platform limitations.
 #           Minimum gene coverage: 80% (FREEZE$min_genes_fraction).
 # N expected: ~149 pre-treatment biopsies
