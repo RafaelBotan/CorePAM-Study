@@ -16,7 +16,7 @@ suppressPackageStartupMessages({
 
 message(sprintf("[%s] Starting CorePAM survival meta-analysis", SCRIPT_NAME))
 
-COHORTS <- c("SCANB", "TCGA_BRCA", "METABRIC", "GSE20685")
+COHORTS <- c("SCANB", "TCGA_BRCA", "METABRIC", "GSE20685", "GSE1456")
 
 # --------------------------------------------------------------------------
 # 1) Read survival results from all cohorts
@@ -59,7 +59,7 @@ message(sprintf("[%s] All cohorts with valid logHR+SE: %d rows", SCRIPT_NAME, nr
 # Subset: EXTERNAL VALIDATION only (exclude SCAN-B training cohort)
 # Primary endpoint: METABRIC DSS (primary); TCGA OS; GSE20685 OS
 # --------------------------------------------------------------------------
-VALIDATION_COHORTS <- c("TCGA_BRCA", "METABRIC", "GSE20685")
+VALIDATION_COHORTS <- c("TCGA_BRCA", "METABRIC", "GSE20685", "GSE1456")
 
 # For METABRIC: keep only the DSS row (primary endpoint) for the primary analysis
 val_res <- all_res %>%
@@ -74,7 +74,8 @@ if ("endpoint" %in% names(val_res)) {
       (cohort == "METABRIC"   & endpoint == "DSS") |
       (cohort == "TCGA_BRCA"  & endpoint == "OS")  |
       (cohort == "GSE20685"   & endpoint == "OS")  |
-      !(cohort %in% c("METABRIC", "TCGA_BRCA", "GSE20685"))
+      (cohort == "GSE1456"    & endpoint == "OS")  |
+      !(cohort %in% c("METABRIC", "TCGA_BRCA", "GSE20685", "GSE1456"))
     )
 }
 
@@ -218,7 +219,8 @@ if ("endpoint" %in% names(all_res)) {
     filter(
       (cohort == "METABRIC"   & endpoint == "OS")  |
       (cohort == "TCGA_BRCA"  & endpoint == "OS")  |
-      (cohort == "GSE20685"   & endpoint == "OS")
+      (cohort == "GSE20685"   & endpoint == "OS")  |
+      (cohort == "GSE1456"    & endpoint == "OS")
     ) %>%
     group_by(cohort) %>% slice(1) %>% ungroup() %>%
     filter(!is.na(loghr_uni) & !is.na(se_loghr_uni))

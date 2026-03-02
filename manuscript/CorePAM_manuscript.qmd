@@ -100,6 +100,14 @@ pcr_re_ispy2 <- if (!is.null(pcr_meta_ispy2)) pcr_meta_ispy2[pcr_meta_ispy2$mode
 gcov_path <- file.path(ROOT, "results/supp/gene_coverage_by_cohort.csv")
 gcov <- if (file.exists(gcov_path)) read_csv(gcov_path, show_col_types = FALSE) else NULL
 
+# CORE-A expanded (exploratory: age+ER+T+N)
+corea_exp_path <- file.path(ROOT, "tech_validation/exploratory/EXP_corea_expanded_results.csv")
+corea_exp <- if (file.exists(corea_exp_path)) read_csv(corea_exp_path, show_col_types = FALSE) else NULL
+
+# Genefu comparison (research-based ROR-S and ODX-RS)
+genefu_path <- file.path(ROOT, "tech_validation/exploratory/EXP_genefu_comparison.csv")
+genefu_df <- if (file.exists(genefu_path)) read_csv(genefu_path, show_col_types = FALSE) else NULL
+
 # Survival by cohort (supp)
 surv_files <- c(SCANB="survival_results_SCANB.csv", TCGA="survival_results_TCGA_BRCA.csv",
                 METABRIC="survival_results_METABRIC.csv", GSE20685="survival_results_GSE20685.csv")
@@ -377,6 +385,10 @@ if (!is.null(incr)) {
 
 The CorePAM score improved the C-index over the CORE-A clinical model in all four cohorts (@tbl-incr). CORE-A covariates were: age and ER status in SCAN-B and METABRIC; age alone in TCGA-BRCA and GSE20685 (where ER status was absent from harmonised clinical files). The largest increment was observed in METABRIC (ΔC=`r if(!is.null(incr)) round(incr$delta_cindex[incr$cohort=="METABRIC"], 3) else "+0.043"`), consistent with the long follow-up and high event rate in that cohort. Decision curve analysis confirmed net clinical benefit across a range of probability thresholds in all cohorts (Supplementary Figure S7). Sensitivity analysis comparing age-only versus age+ER baselines confirmed that the CorePAM HR remains significant under both definitions (Supplementary Figure S10).
 
+### Sensitivity analysis: adjustment for anatomical stage
+
+As an exploratory post-hoc sensitivity analysis, we fitted expanded multivariable Cox models adjusting for age, ER status (where available), pathological T-stage, and nodal status. T-stage and nodal status were available in `r if(!is.null(corea_exp)) sprintf("%.0f–%.0f%%", 100*min(corea_exp$n_tn_complete/corea_exp$n_total), 100*max(corea_exp$n_tn_complete/corea_exp$n_total)) else "89–100%"` of samples across cohorts. CorePAM remained independently significant in all four cohorts (all p < 0.002; @tbl-corea-expanded), with HR attenuation of less than 10% compared to the primary CORE-A baseline. Adding CorePAM to the expanded clinical model increased the C-index by `r if(!is.null(corea_exp)) sprintf("+%.3f to +%.3f", min(corea_exp$delta_c_expanded), max(corea_exp$delta_c_expanded)) else "+0.022 to +0.027"`.
+
 ### Pathologic complete response (secondary analysis)
 
 ```{r tbl-pcr}
@@ -417,9 +429,15 @@ We demonstrate that CorePAM — a `r if(!is.null(card)) card$selected$df else "2
 
 **Cross-platform consistency in pCR prediction.** The pCR block showed exceptional homogeneity (I²=0% across four cohorts), consistent with the biological basis of the signal: the retained proliferation genes are directly targeted by standard neoadjuvant regimens.
 
+**Calibration and clinical utility.** Calibration at clinically relevant horizons (60 months for SCAN-B, METABRIC, GSE20685; 24 months for TCGA-BRCA) showed adequate concordance between predicted and observed event rates (Figure 5B). Decision curve analysis confirmed positive net benefit across a range of probability thresholds in all cohorts (Supplementary Figure S7).
+
+**Independence from anatomical staging.** An exploratory sensitivity analysis adjusting for pathological T-stage and nodal status — the key clinical-pathological confounders not included in the primary CORE-A baseline — confirmed that CorePAM retains independent prognostic value in all four cohorts (@tbl-corea-expanded). The HR attenuation was less than 10%, and the incremental C-index remained positive (`r if(!is.null(corea_exp)) sprintf("+%.3f to +%.3f", min(corea_exp$delta_c_expanded), max(corea_exp$delta_c_expanded)) else "+0.022 to +0.027"`). This does not alter the primary endpoint or replace the main analyses; it corroborates robustness against pathological confounding.
+
+**Comparison with established signatures.** An exploratory head-to-head comparison against research-based implementations (genefu R package) of the PAM50-derived Risk of Recurrence score (ROR-S, 50 genes) and the OncotypeDX Recurrence Score (ODX-RS, 21 genes) showed that CorePAM (24 genes) performs competitively (@tbl-genefu-comparison). CorePAM showed advantages in the RNA-seq cohorts (its training domain) and small deficits (ΔC < 0.03) in the microarray cohorts (the development domain of those signatures). This comparison involves research-based score implementations — not commercial assays — and should be interpreted as evidence of competitive performance, not clinical equivalence.
+
 **Clinical implications.** A 24-gene panel can be measured by a variety of RT-PCR, NanoString nCounter, or targeted RNA-seq platforms that are unable to reliably quantify all 50 PAM50 genes. If validated in prospective cohorts, CorePAM could extend the reach of molecular stratification to resource-limited settings.
 
-**Limitations.** This is a retrospective study using public data. TCGA-BRCA has structurally short follow-up (median 32 months), attenuating the detectable HR; the 24-month sensitivity analysis (Figure S6) partially mitigates this. METABRIC uses DSS as the primary endpoint, following established precedent for that dataset. Two CorePAM genes are absent from the Affymetrix HGU133A platform used in GSE20685 (22/24 = 91.7% coverage); gene dropout sensitivity analysis confirmed minimal impact (Supplementary Figure S9). The CORE-A clinical baseline was restricted to age and ER status — the two variables consistently available across cohorts in harmonised form; TNM staging was not included due to insufficient harmonisation. ER status was unavailable in TCGA-BRCA and GSE20685, restricting CORE-A to age alone in those cohorts. The incremental value beyond a model incorporating anatomical staging should be evaluated in prospective studies. No prospective validation was performed.
+**Limitations.** This is a retrospective study using public data. TCGA-BRCA has structurally short follow-up (median 32 months), attenuating the detectable HR; the 24-month sensitivity analysis (Figure S6) partially mitigates this. METABRIC uses DSS as the primary endpoint, following established precedent for that dataset. Two CorePAM genes are absent from the Affymetrix HGU133A platform used in GSE20685 (22/24 = 91.7% coverage); gene dropout sensitivity analysis confirmed minimal impact (Supplementary Figure S9). The primary CORE-A clinical baseline was restricted to age and ER status — the two variables consistently available in harmonised form — although expanded models including T-stage and nodal status confirmed independent prognostic value (Supplementary Table S3). ER status was unavailable in TCGA-BRCA and GSE20685, restricting CORE-A to age alone in those cohorts. Comparisons with ROR-S and ODX-RS used research-based implementations, not commercial assays. No prospective validation was performed.
 
 ## Conclusions
 
@@ -548,6 +566,47 @@ if (file.exists(f)) knitr::include_graphics(f)
 #| fig-cap: "CORE-A baseline sensitivity analysis. Forest plot comparing CorePAM adjusted HR under age-only versus age+ER clinical baselines. Results are robust: maximum HR difference between baselines is 0.067 (SCAN-B); the CorePAM HR remains significant under both definitions in all cohorts."
 f <- file.path(ROOT, "figures/supp/en/png/FigS_COREA_Sensitivity_EN.png")
 if (file.exists(f)) knitr::include_graphics(f)
+```
+
+\newpage
+
+## Supplementary Tables
+
+```{r tbl-corea-expanded}
+#| label: tbl-corea-expanded
+#| tbl-cap: "Expanded CORE-A analysis: CorePAM independence from anatomical staging. Multivariable Cox regression adjusting for age, ER status (where available), T-stage, and nodal status. CorePAM HR per 1 SD with 95% CI. Delta C-index = C(clinical+CorePAM) minus C(clinical alone) for the expanded model."
+if (!is.null(corea_exp)) {
+  tbl <- corea_exp %>%
+    mutate(
+      `HR (95% CI)` = sprintf("%.2f (%.2f–%.2f)", hr_expanded_corea, hr_exp_lo95, hr_exp_hi95),
+      p = sapply(p_expanded_corea, fmt_p)
+    ) %>%
+    select(Cohort = cohort, N = n_tn_complete, `Covariates` = corea_vars_expanded,
+           `HR (95% CI)`, `p-value` = p,
+           `C clinical` = c_clinical_expanded, `C clinical+CorePAM` = c_clinical_plus_score,
+           `Delta C` = delta_c_expanded)
+  knitr::kable(tbl, digits = 4, align = "lrlllrrr")
+}
+```
+
+```{r tbl-genefu-comparison}
+#| label: tbl-genefu-comparison
+#| tbl-cap: "Head-to-head C-index comparison: CorePAM vs research-based ROR-S and OncotypeDX-RS. ROR-S computed from PAM50 centroid correlations (50 genes); ODX-RS from weighted gene expression sums (21 genes). All scores standardised (per 1 SD)."
+if (!is.null(genefu_df)) {
+  tbl <- genefu_df %>%
+    mutate(
+      `CorePAM C` = sprintf("%.3f", c_corepam),
+      `ROR-S C` = sprintf("%.3f", c_ror_s),
+      `ODX-RS C` = sprintf("%.3f", c_odx_rs),
+      `CorePAM HR` = sprintf("%.2f", hr_corepam),
+      `ROR-S HR` = sprintf("%.2f", hr_ror_s),
+      `ODX-RS HR` = sprintf("%.2f", hr_odx_rs)
+    ) %>%
+    select(Cohort = cohort, N = n, `PAM50 genes` = n_pam50_genes,
+           `CorePAM C`, `ROR-S C`, `ODX-RS C`,
+           `CorePAM HR`, `ROR-S HR`, `ODX-RS HR`)
+  knitr::kable(tbl, align = "lrrllllll")
+}
 ```
 
 \newpage

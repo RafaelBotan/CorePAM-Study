@@ -1,0 +1,2 @@
+"cohort","endpoint","n_samples","n_events","fu_median_months","hr_uni","hr_uni_lo95","hr_uni_hi95","p_uni","hr_multi","hr_multi_lo95","hr_multi_hi95","p_multi","corea_vars_used","c_index","c_index_lo95","c_index_hi95","loghr_uni","se_loghr_uni","hr_sens_dss","hr_sens_dss_lo95","hr_sens_dss_hi95","p_sens_dss","c_sens_dss"
+"GSE1456","OS",159,40,91.1,1.7119,1.2298,2.383,0.00144428020989385,1.7119,1.2298,2.383,0.00144428020989385,"none (age/ER unavailable)",0.6613,0.5818,0.7409,0.537593563295464,0.168754621904559,2.2233,1.486,3.3265,0.000101635805649019,0.726

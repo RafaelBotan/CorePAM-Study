@@ -38,8 +38,18 @@ Perguntas dos revisoes.docx
 # Estado interno do Claude
 .claude/
 
+# Technical validation workspace (large parquet files, local only)
+tech_validation/
+
+# Rendered HTML templates (local only)
+01_rastreabilidade_metodologica_corepam_template.html
+01_rastreabilidade_metodologica_corepam_template_files/
+
 # Logs de execução e scripts temporários de diagnóstico
 logs/
+
+# Internal tracking documents (not relevant for reviewers)
+PLAN_SYNC.md
 
 # Documentos de trabalho interno (não relevantes para revisores)
 # Somente scripts, QMD, figuras finais, resultados CSV, CLAUDE.md e Memorial devem

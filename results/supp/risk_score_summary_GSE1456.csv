@@ -1,0 +1,2 @@
+"cohort","n_samples","n_panel_genes","genes_present","genes_missing","frac_present","denom_sum_absw","score_direction","score_mean","score_sd","n_time_leq0_dropped"
+"GSE1456",159,24,21,"GPR160,CXXC5,KRT17",0.875,1.626956,"original",0,0.278346,0
