@@ -254,7 +254,7 @@ Logistic regression: pCR ~ score_z (univariate); adjusted for age and ER/HER2 st
 
 ### Quality control
 
-Comprehensive QC comprised: (i) off-diagonal score correlation between cohorts via percentile-based Spearman rho; (ii) forensic PCA of METABRIC expression for batch effects and outliers; (iii) schema/range hard-checks on all `analysis_ready` files; (iv) automated anti-hardcoding assertions verifying all reported values against source CSV/JSON files.
+Comprehensive QC comprised: (i) off-diagonal score correlation between cohorts via Pearson correlation of empirical quantile values (100 percentiles); (ii) forensic PCA of METABRIC expression for batch effects and outliers; (iii) schema/range hard-checks on all `analysis_ready` files; (iv) automated anti-hardcoding assertions verifying all reported values against source CSV/JSON files.
 
 ### Data and code availability
 
@@ -514,7 +514,7 @@ if (file.exists(f)) knitr::include_graphics(f)
 
 ```{r figs3-correlation}
 #| label: figs3-correlation
-#| fig-cap: "Off-diagonal CorePAM score correlations between cohorts. Spearman rho computed on paired percentiles across cohorts. Diagonal excluded (no self-autocorrelation). High correlation indicates cross-platform consistency of score distributions."
+#| fig-cap: "Off-diagonal CorePAM score correlations between cohorts. Pearson correlation computed on empirical quantile values (100 percentiles) across cohorts. Diagonal excluded. High correlation (r > 0.98 for all pairs) indicates cross-platform consistency of score distributions."
 f <- file.path(ROOT, "figures/supp/en/png/FigS3_Correlation_OffDiagonal.png")
 if (file.exists(f)) knitr::include_graphics(f)
 ```
@@ -568,9 +568,167 @@ f <- file.path(ROOT, "figures/supp/en/png/FigS_COREA_Sensitivity_EN.png")
 if (file.exists(f)) knitr::include_graphics(f)
 ```
 
+```{r figs11-forest-hr-validation}
+#| label: figs11-forest-hr-validation
+#| fig-cap: "Validation cohort forest plot. Univariate and multivariate (CORE-A adjusted) hazard ratios for CorePAM score across the three external validation cohorts, displayed side by side."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_Forest_HR_ValidationCohorts.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs12-cindex-bycohort}
+#| label: figs12-cindex-bycohort
+#| fig-cap: "C-index comparison across cohorts. Harrell's C-index for CORE-A alone, CorePAM score alone, and the combined CORE-A + CorePAM model in each of the four study cohorts, with 95% bootstrap CI."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_Cindex_ByCohort.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs13-score-dist}
+#| label: figs13-score-dist
+#| fig-cap: "CorePAM score distribution by cohort. Density plots of the CorePAM score in all four cohorts. Vertical line indicates intra-cohort median. Z-score-based computation ensures approximately symmetric distributions centred near zero in each cohort."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_ScoreDistribution_ByCohort.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs14-score-by-er}
+#| label: figs14-score-by-er
+#| fig-cap: "CorePAM score stratified by ER status. Distribution of the CorePAM score in ER-positive versus ER-negative tumours across cohorts where ER status was available. Higher scores in ER-negative tumours are consistent with the proliferation and basal gene content of CorePAM."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_ScoreByER_ByCohort.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs15-raw-score-dist}
+#| label: figs15-raw-score-dist
+#| fig-cap: "Raw CorePAM score distribution across all four cohorts. Unnormalised score distributions before intra-cohort standardisation, illustrating the consistency of the weighted gene expression composite across platforms."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_CorePAM_RawScore_Distribution_EN.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs16-heatmap-tcga}
+#| label: figs16-heatmap-tcga
+#| fig-cap: "Expression heatmap: TCGA-BRCA. Z-scored expression of the 24 CorePAM genes across TCGA-BRCA samples, ordered by CorePAM score (left = low risk, right = high risk). Red: high expression; blue: low expression."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_Heatmap_TCGA_BRCA.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs17-heatmap-metabric}
+#| label: figs17-heatmap-metabric
+#| fig-cap: "Expression heatmap: METABRIC. Z-scored expression of the 24 CorePAM genes across METABRIC samples, ordered by CorePAM score."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_Heatmap_METABRIC.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs18-heatmap-gse20685}
+#| label: figs18-heatmap-gse20685
+#| fig-cap: "Expression heatmap: GSE20685. Z-scored expression of the 22 available CorePAM genes (of 24; 2 genes absent from HGU133A platform) across GSE20685 samples, ordered by CorePAM score."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_Heatmap_GSE20685.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs19-corepam-vs-pam50full}
+#| label: figs19-corepam-vs-pam50full
+#| fig-cap: "CorePAM vs full 50-gene PAM50 elastic-net model: score scatter plot. Per-sample scores from the CorePAM (24-gene) and PAM50-full (50-gene) elastic-net models in each cohort, illustrating high concordance between the reduced and full panels."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_CorePAM_vs_PAM50full_EN.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs20-corepam-vs-pam50full-hr}
+#| label: figs20-corepam-vs-pam50full-hr
+#| fig-cap: "CorePAM vs full 50-gene PAM50 elastic-net model: HR forest plot. Side-by-side comparison of univariate Cox hazard ratios per 1 SD for CorePAM (24 genes) versus the full PAM50 elastic-net model (50 genes) in each cohort."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_CorePAM_vs_PAM50full_HR_EN.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs21-km-quartile-tcga}
+#| label: figs21-km-quartile-tcga
+#| fig-cap: "Quartile Kaplan-Meier analysis: TCGA-BRCA. OS stratified by CorePAM score quartiles, showing dose-response relationship across risk strata."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_KM_TCGA_BRCA_OS_Quartis_CorePAM_EN.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs22-km-quartile-metabric}
+#| label: figs22-km-quartile-metabric
+#| fig-cap: "Quartile Kaplan-Meier analysis: METABRIC. DSS stratified by CorePAM score quartiles."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_KM_METABRIC_DSS_Quartis_CorePAM_EN.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs23-km-quartile-gse20685}
+#| label: figs23-km-quartile-gse20685
+#| fig-cap: "Quartile Kaplan-Meier analysis: GSE20685. OS stratified by CorePAM score quartiles."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_KM_GSE20685_OS_Quartis_CorePAM_EN.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+### Supplementary pCR Figures
+
+```{r figs-pcr-roc}
+#| label: figs-pcr-roc
+#| fig-cap: "ROC curves for CorePAM pCR prediction. Receiver operating characteristic curves for the CorePAM score predicting pathologic complete response in each of the four primary neoadjuvant cohorts, with AUC and 95% bootstrap CI."
+f <- file.path(ROOT, "figures/pcr/en/png/Fig_pCR2_ROC_EN.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs-pcr-quartile-rate}
+#| label: figs-pcr-quartile-rate
+#| fig-cap: "pCR rate by CorePAM score quartile. Pathologic complete response rates across quartiles of the CorePAM score in each neoadjuvant cohort, illustrating the dose-response relationship."
+f <- file.path(ROOT, "figures/pcr/en/png/Fig_pCR3_QuartileRate_EN.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs-pcr-score-dist}
+#| label: figs-pcr-score-dist
+#| fig-cap: "CorePAM score distribution in neoadjuvant cohorts. Density plots of the CorePAM score stratified by pCR status (pCR vs non-pCR) in each of the four primary neoadjuvant cohorts."
+f <- file.path(ROOT, "figures/pcr/en/png/Fig_pCR4_ScoreDist_EN.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs-pcr-extended-forest}
+#| label: figs-pcr-extended-forest
+#| fig-cap: "Extended pCR forest plot including I-SPY2. OR per 1 SD CorePAM score in four primary neoadjuvant cohorts plus the I-SPY2 exploratory cohort (N=986), with random-effects pooled estimates for primary (k=4) and all cohorts (k=5)."
+f <- file.path(ROOT, "figures/pcr/en/png/Fig_pCR1_Extended_OR_EN.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs-pcr-ispy2-detail}
+#| label: figs-pcr-ispy2-detail
+#| fig-cap: "I-SPY2 exploratory analysis detail. Univariate, adjusted (HR + HER2 + treatment arm), and paclitaxel control arm sensitivity analyses for CorePAM pCR prediction in the I-SPY2 trial (GSE194040, N=986)."
+f <- file.path(ROOT, "figures/pcr/en/png/FigS_pCR_PR_EN.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs-pcr-er-interaction}
+#| label: figs-pcr-er-interaction
+#| fig-cap: "ER-by-CorePAM interaction for pCR prediction. Likelihood ratio test results and stratified OR estimates for the ER x CorePAM score interaction in cohorts where ER data were available (GSE32646 and I-SPY1). Significant interaction in I-SPY1 (p=0.0005) indicates differential pCR prediction by ER status."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_pCR_ER_Interaction_EN.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
+```{r figs-dca-pcr}
+#| label: figs-dca-pcr
+#| fig-cap: "Decision curve analysis for pCR prediction. Net benefit of the CorePAM score versus treat-all and treat-none strategies for predicting pathologic complete response across the four primary neoadjuvant cohorts."
+f <- file.path(ROOT, "figures/supp/en/png/FigS_DCA_pCR_EN.png")
+if (file.exists(f)) knitr::include_graphics(f)
+```
+
 \newpage
 
 ## Supplementary Tables
+
+```{r tbl-gene-weights}
+#| label: tbl-gene-weights
+#| tbl-cap: "CorePAM gene panel: all 24 selected genes and their elastic-net Cox regression weights. Positive weights indicate higher expression associated with worse survival; negative weights indicate protective association. Genes ordered by absolute weight."
+if (!is.null(wt_df)) {
+  wt_show <- wt_df %>%
+    arrange(desc(abs(weight))) %>%
+    mutate(
+      Gene = gene,
+      Weight = round(weight, 4),
+      Direction = ifelse(weight > 0, "Risk (+)", "Protective (−)")
+    ) %>%
+    select(Gene, Weight, Direction)
+  kable(wt_show, align = c("l", "r", "l"))
+}
+```
 
 ```{r tbl-corea-expanded}
 #| label: tbl-corea-expanded

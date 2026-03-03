@@ -33,12 +33,14 @@ for (coh in COHORTS) {
     message(sprintf("[%s] %s: score_z column missing. Skipping.", SCRIPT_NAME, coh))
     next
   }
-  # Use sample_id as key
-  if (!"sample_id" %in% names(df)) {
-    message(sprintf("[%s] %s: sample_id missing. Skipping.", SCRIPT_NAME, coh))
+  # Use sample_id or patient_id as key
+  id_col <- intersect(c("sample_id", "patient_id"), names(df))
+  if (length(id_col) == 0) {
+    message(sprintf("[%s] %s: no sample_id or patient_id found. Skipping.", SCRIPT_NAME, coh))
     next
   }
-  score_list[[coh]] <- df[, c("sample_id", "score_z")]
+  id_col <- id_col[1]
+  score_list[[coh]] <- df[, c(id_col, "score_z")]
   names(score_list[[coh]])[2] <- coh
   message(sprintf("[%s] %s: %d samples with score_z loaded", SCRIPT_NAME, coh, nrow(df)))
 }
@@ -72,7 +74,11 @@ for (coh in cohort_names) {
   options(warn = old_warn)
 }
 
-# Spearman correlation matrix between cohort percentiles
+# Pearson correlation matrix between cohort quantile VALUES
+# NOTE: Spearman is inappropriate here because quantile vectors are monotonically
+# increasing by construction, so Spearman (which operates on ranks) always
+# returns 1.0 regardless of distribution shape. Pearson on the actual quantile
+# VALUES measures whether the score distributions have similar shapes.
 cor_mat <- matrix(NA_real_, nrow = n_coh, ncol = n_coh,
                   dimnames = list(cohort_names, cohort_names))
 
@@ -83,7 +89,7 @@ for (i in seq_len(n_coh)) {
     } else {
       old_warn <- getOption("warn"); options(warn = 0)
       cor_val <- tryCatch(
-        cor(pct_mat[, i], pct_mat[, j], method = "spearman", use = "complete.obs"),
+        cor(pct_mat[, i], pct_mat[, j], method = "pearson", use = "complete.obs"),
         error = function(e) NA_real_
       )
       options(warn = old_warn)
@@ -114,36 +120,29 @@ registry_append("ALL", "qc_correlations_offdiag", cor_path, h_cor, "ok", SCRIPT_
 # --------------------------------------------------------------------------
 # 4) Figure FigS3 — off-diagonal correlation heatmap
 # --------------------------------------------------------------------------
-# Convert to long format for ggplot
-cor_long <- reshape2::melt(cor_mat, varnames = c("Cohort_A", "Cohort_B"),
-                            value.name = "Spearman_rho", na.rm = TRUE)
-
-# Ensure reshape2 is available
-if (!requireNamespace("reshape2", quietly = TRUE)) {
-  cor_long <- do.call(rbind, lapply(cohort_names, function(i) {
-    do.call(rbind, lapply(cohort_names, function(j) {
-      if (i != j) {
-        data.frame(Cohort_A = i, Cohort_B = j, Spearman_rho = cor_mat[i, j],
-                   stringsAsFactors = FALSE)
-      }
-    }))
+# Convert to long format for ggplot (base R, no reshape2 dependency)
+cor_long <- do.call(rbind, lapply(cohort_names, function(i) {
+  do.call(rbind, lapply(cohort_names, function(j) {
+    data.frame(Cohort_A = i, Cohort_B = j,
+               Pearson_r = cor_mat[i, j],
+               stringsAsFactors = FALSE)
   }))
-}
+}))
 
 # figure dirs created by 00_setup.R
 
-p_cor <- ggplot(cor_long, aes(x = Cohort_A, y = Cohort_B, fill = Spearman_rho)) +
+p_cor <- ggplot(cor_long, aes(x = Cohort_A, y = Cohort_B, fill = Pearson_r)) +
   geom_tile(color = "white", linewidth = 0.5) +
-  geom_text(aes(label = sprintf("%.2f", Spearman_rho)),
-            color = "black", size = 4, na.rm = TRUE) +
+  geom_text(aes(label = ifelse(is.na(Pearson_r), "", sprintf("%.3f", Pearson_r))),
+            color = "black", size = 3.5) +
   scale_fill_gradient2(
     low  = "#2166AC", mid = "white", high = "#D6604D",
     midpoint = 0, limits = c(-1, 1), na.value = "gray90",
-    name = "Spearman rho\n(percentis)"
+    name = "Pearson r\n(quantile values)"
   ) +
   labs(
-    title    = "CorePAM score correlations (off-diagonal, via percentiles)",
-    subtitle = "Diagonal excluded (no self-autocorrelation self=1)",
+    title    = "CorePAM score correlations (off-diagonal, via quantile values)",
+    subtitle = "Pearson on quantile values | Diagonal excluded",
     x        = NULL,
     y        = NULL
   ) +

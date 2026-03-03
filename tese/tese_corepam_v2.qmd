@@ -507,7 +507,7 @@ Para a coorte exploratória I-SPY2, realizaram-se três análises: (i) univariad
 
 ## Controle de qualidade
 
-O controle de qualidade do *pipeline* abrangeu: (i) correlação de Spearman dos escores entre coortes (percentis pareados, excluindo a diagonal); (ii) análise de componentes principais forense da expressão do METABRIC; (iii) verificações automatizadas de esquema e intervalo em todos os arquivos; (iv) asserções anti-*hardcoding* verificando que todos os valores reportados no manuscrito derivam de arquivos-fonte.
+O controle de qualidade do *pipeline* abrangeu: (i) correlação de Pearson dos valores de quantis empíricos dos escores entre coortes (100 percentis, excluindo a diagonal); (ii) análise de componentes principais forense da expressão do METABRIC; (iii) verificações automatizadas de esquema e intervalo em todos os arquivos; (iv) asserções anti-*hardcoding* verificando que todos os valores reportados no manuscrito derivam de arquivos-fonte.
 
 ## Ambiente computacional
 
@@ -866,7 +866,17 @@ A transparência nos procedimentos de controle de qualidade é essencial para a 
 
 ### Consistência entre plataformas
 
-A consistência do escore CorePAM entre plataformas foi avaliada pela comparação dos *hazard ratios*, C-index e padrões de estratificação nas curvas de Kaplan-Meier. A concordância direcional e a magnitude semelhante dos efeitos prognósticos entre coortes de RNA-seq (SCAN-B, TCGA-BRCA) e microarranjo (METABRIC, GSE20685), sem qualquer correção de lote inter-coorte, confirmam a robustez do sinal e sua independência da tecnologia de mensuração.
+A consistência das distribuições do escore CorePAM entre coortes foi avaliada pela correlação de Pearson dos valores de quantis empíricos (100 percentis pareados, excluindo a diagonal). Todas as correlações inter-coorte superaram 0,98, indicando que a forma das distribuições dos escores é altamente preservada entre plataformas de RNA-seq e microarranjo (@fig-correlacao). Essa consistência, aliada à concordância direcional dos *hazard ratios* e C-index, confirma a robustez do sinal e sua independência da tecnologia de mensuração.
+
+```{r fig-correlacao}
+#| label: fig-correlacao
+#| fig-cap: "Correlação de Pearson dos valores de quantis empíricos dos escores CorePAM entre coortes (100 percentis, diagonal excluída). Todas as correlações inter-coorte excedem 0,98, indicando elevada consistência das distribuições dos escores entre plataformas de RNA-seq (SCAN-B, TCGA-BRCA) e microarranjo (METABRIC, GSE20685)."
+#| out-width: "100%"
+#| fig-align: center
+f <- fig_pt(file.path(ROOT, "figures/supp/pt/png/FigS3_Correlation_OffDiagonal_PT.png"),
+            file.path(ROOT, "figures/supp/en/png/FigS3_Correlation_OffDiagonal.png"))
+if (!is.null(f)) knitr::include_graphics(f)
+```
 
 ### Análise de componentes principais: forense do METABRIC
 
