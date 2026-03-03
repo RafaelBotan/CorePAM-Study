@@ -85,8 +85,9 @@ n_genes <- if (!is.null(card)) card$selected$df else 24
 # EPÍGRAFE {.unnumbered}
 
 \begin{flushright}
-\textit{``A medicina é a ciência da incerteza e a arte da probabilidade.''}\\
---- William Osler (1849--1919)
+\textit{``A perfeição é alcançada não quando não há mais nada a acrescentar,}\\
+\textit{mas quando não há mais nada a retirar.''}\\
+--- Antoine de Saint-Exupéry, \textit{Terre des Hommes} (1939)
 \end{flushright}
 
 \newpage
@@ -260,7 +261,7 @@ Uma objeção legítima ao uso de coortes retrospectivas públicas é que o padr
 
 Um estudo prospectivo global e multicêntrico exigiria o recrutamento de milhares de pacientes (idealmente >5.000), com seguimento mínimo de 10--15 anos para capturar recorrências tardias (típicas dos tumores luminais), coleta de amostras biológicas com qualidade controlada, e infraestrutura de bioinformática para processamento multiômico. O custo estimado para um estudo dessa magnitude é da ordem de US\$ 200--500 milhões, com tempo de conclusão de 12--15 anos [@Sparano2018; @Cardoso2016]. Para referência, o estudo TAILORx (que validou prospectivamente o Oncotype DX) levou 14 anos entre o início do recrutamento (2004) e a publicação dos resultados finais (2018), com financiamento do *National Cancer Institute* dos Estados Unidos [@Sparano2018].
 
-O presente trabalho não é um atalho para contornar a necessidade de validação prospectiva --- que permanece essencial para a implementação clínica definitiva. É, antes, o passo anterior e necessário: a demonstração, com dados públicos e métodos transparentes, de que a base científica para a redução do painel PAM50 é robusta e merece investimento em validação prospectiva. As coortes públicas disponíveis (SCAN-B, TCGA-BRCA, METABRIC, GSE20685) somam mais de 6.400 pacientes com dados de expressão gênica e seguimento clínico, representando plataformas tecnológicas e populações distintas --- e fornecendo, portanto, 70--80% do poder informativo de um estudo prospectivo ideal, a custo substancialmente menor.
+O presente trabalho não é um atalho para contornar a necessidade de validação prospectiva --- que permanece essencial para a implementação clínica definitiva. É, antes, o passo anterior e necessário: a demonstração, com dados públicos e métodos transparentes, de que a base científica para a redução do painel PAM50 é robusta e merece investimento em validação prospectiva. As coortes públicas disponíveis (SCAN-B, TCGA-BRCA, METABRIC, GSE20685) somam mais de 6.400 pacientes com dados de expressão gênica e seguimento clínico, representando plataformas tecnológicas e populações distintas --- e fornecendo, portanto, uma base substancial de evidência retrospectiva, a custo incomparavelmente menor.
 
 ## A pergunta central: todos os 50 genes são realmente necessários?
 
@@ -330,7 +331,7 @@ Trata-se de estudo retrospectivo multicoorte utilizando exclusivamente dados pub
 
 Todos os parâmetros analíticos foram pré-especificados e congelados antes de qualquer análise, conforme protocolo arquivado no repositório do projeto. Esse "congelamento" prévio é essencial para evitar o chamado *p-hacking* --- a prática (geralmente inconsciente) de ajustar parâmetros até encontrar resultados favoráveis.
 
-O estudo segue as diretrizes TRIPOD (*Transparent Reporting of a multivariable prediction model for Individual Prognosis Or Diagnosis*) para reporte de modelos preditivos [@Moons2015; @Collins2015].
+O estudo segue as diretrizes TRIPOD (*Transparent Reporting of a multivariable prediction model for Individual Prognosis Or Diagnosis*) para reporte de modelos preditivos [@Moons2015; @Collins2015], com tipo 2b (validação externa de modelo já derivado).
 
 ## Coortes
 
@@ -361,7 +362,7 @@ coortes <- data.frame(
   Plataforma = c("RNA-seq Illumina", "RNA-seq (GDC/STAR)", "Microarranjo Illumina HT-12",
                   "Microarranjo Affymetrix HGU133A",
                   "Microarranjo HGU133A", "Microarranjo HGU133Plus2", "Microarranjo HGU133Plus2",
-                  "Microarranjo Agilent 44K", "RNA-seq"),
+                  "Microarranjo Agilent 44K", "Microarranjo Agilent 44K"),
   N = c("3.069", "1.072", "1.978", "327", "182", "278", "115", "122", "986"),
   Desfecho = c("SG", "SG", "SDE", "SG", "pCR", "pCR", "pCR", "pCR", "pCR"),
   stringsAsFactors = FALSE
@@ -377,7 +378,7 @@ Como análise secundária, inteiramente independente do bloco de sobrevida, aval
 - **GSE20194** (N=278) [@MAQCII2010]: coorte do consórcio MAQC-II; microarranjo Affymetrix HGU133Plus2.
 - **GSE32646** (N=115) [@Tabchy2010]: ensaio multicêntrico randomizado; microarranjo HGU133Plus2.
 - **I-SPY1/GSE22226** (N=122) [@Esserman2012]: ensaio neoadjuvante multicêntrico (CALGB 150007/ACRIN 6657); microarranjo Agilent 44K.
-- **I-SPY2/GSE194040** (N=986) [@Wolf2022]: coorte externa **exploratória**; ensaio neoadjuvante multibraço; biópsias pré-tratamento; dados em nível gênico com correção de lote pelo consórcio original.
+- **I-SPY2/GSE194040** (N=986) [@Wolf2022]: coorte externa **exploratória**; ensaio neoadjuvante adaptativo multibraço; biópsias pré-tratamento; microarranjo Agilent 44K com dados em nível gênico e correção de lote pelo consórcio original.
 
 ## Parâmetros analíticos congelados
 
@@ -546,6 +547,10 @@ A credibilidade dos resultados depende de verificações sistemáticas que confi
 (iii) **Verificações automatizadas** de esquema e intervalo em todos os arquivos de dados (valores impossíveis, colunas ausentes, tipos incorretos).
 
 (iv) **Asserções anti-*hardcoding*** verificando que todos os valores numéricos reportados no manuscrito derivam automaticamente de arquivos-fonte, sem digitação manual susceptível a erros.
+
+## Considerações éticas
+
+Este estudo utilizou exclusivamente dados secundários, publicamente disponíveis e desidentificados, depositados em repositórios de acesso aberto (GEO, GDC, cBioPortal) pelos consórcios responsáveis pela coleta original. Todos os conjuntos de dados originais foram aprovados por comitês de ética em pesquisa de suas respectivas instituições, e os termos de uso dos repositórios permitem análises secundárias sem necessidade de aprovação ética adicional. Nenhum dado novo foi coletado de pacientes, nenhuma informação identificadora foi acessada, e nenhuma intervenção clínica foi realizada. Conforme a Resolução CNS 510/2016, pesquisas que utilizam exclusivamente informações de domínio público ou dados desidentificados previamente disponibilizados não necessitam de registro no sistema CEP/CONEP. Não obstante, o estudo aderiu integralmente aos princípios da Declaração de Helsinque e às boas práticas de pesquisa com dados humanos.
 
 ## Ambiente computacional
 
@@ -810,7 +815,7 @@ if (!is.null(f)) knitr::include_graphics(f)
 
 A síntese quantitativa dos achados das coortes de validação é essencial para estimar a magnitude global do efeito e avaliar a consistência entre estudos. Utilizou-se meta-análise de efeitos aleatórios (DerSimonian-Laird, método REML), conforme descrito na metodologia.
 
-A meta-análise das coortes de validação (K=`r if(!is.null(re_row) && nrow(re_row)>0) re_row$n_cohorts[[1]] else 4`) produziu HR agrupado de `r if(!is.null(re_row) && nrow(re_row)>0) sprintf("**%.2f** (IC95%% %.2f–%.2f; p=%s)", re_row$meta_HR[[1]], re_row$meta_HR_lo95[[1]], re_row$meta_HR_hi95[[1]], fmt_p(re_row$p_value[[1]])) else "**1,37**"` (@fig-forest-meta; @tbl-meta). Em termos clínicos, esse resultado significa que cada aumento de 1 desvio-padrão no escore CorePAM associa-se a um incremento de aproximadamente `r if(!is.null(re_row) && nrow(re_row)>0) sprintf("%.0f", (re_row$meta_HR[[1]]-1)*100) else "37"`% no risco relativo.
+A meta-análise das coortes de validação (K=`r if(!is.null(re_row) && nrow(re_row)>0) re_row$n_cohorts[[1]] else 3`) produziu HR agrupado de `r if(!is.null(re_row) && nrow(re_row)>0) sprintf("**%.2f** (IC95%% %.2f–%.2f; p=%s)", re_row$meta_HR[[1]], re_row$meta_HR_lo95[[1]], re_row$meta_HR_hi95[[1]], fmt_p(re_row$p_value[[1]])) else "**1,37**"` (@fig-forest-meta; @tbl-meta). Em termos clínicos, esse resultado significa que cada aumento de 1 desvio-padrão no escore CorePAM associa-se a um incremento de aproximadamente `r if(!is.null(re_row) && nrow(re_row)>0) sprintf("%.0f", (re_row$meta_HR[[1]]-1)*100) else "37"`% no risco relativo.
 
 A heterogeneidade foi baixa (I²=`r if(!is.null(re_row) && nrow(re_row)>0) sprintf("%.1f", re_row$I2_pct[[1]]) else "38,3"`%; τ²=`r if(!is.null(re_row) && nrow(re_row)>0) sprintf("%.4f", re_row$tau2[[1]]) else "0,0042"`), indicando que a associação prognóstica é consistente entre plataformas e populações, apesar das diferenças substanciais em tecnologia de mensuração, composição demográfica e duração de seguimento entre as coortes. A análise de sensibilidade de Hartung-Knapp, que aplica correção adicional quando o número de estudos é pequeno, confirmou o resultado com intervalos de confiança mais conservadores. A meta-análise restrita à sobrevida global harmonizada (excluindo o desfecho SDE do METABRIC) produziu resultado semelhante, reforçando a robustez do achado.
 
@@ -1282,7 +1287,7 @@ if (!is.null(f)) knitr::include_graphics(f)
 
 # DISCUSSÃO
 
-Esta seção contextualiza os achados do presente estudo no cenário da oncologia genômica, discutindo suas implicações clínicas, limitações e perspectivas futuras.
+O presente estudo demonstrou que o painel PAM50 pode ser reduzido para `r n_genes` genes --- o CorePAM --- sem comprometimento mensurável da capacidade prognóstica, com validação em três coortes externas independentes e capacidade preditiva adicional para pCR. Esta seção contextualiza esses achados no cenário da oncologia genômica, discutindo suas implicações clínicas, limitações e perspectivas futuras.
 
 ## Redução orientada por dados do PAM50
 
@@ -1342,7 +1347,7 @@ A análise de sensibilidade com SG harmonizada (utilizando SG para todas as coor
 
 ## Predição de pCR: dupla utilidade prognóstica e preditiva
 
-O achado mais robusto deste estudo reside na predição de resposta patológica completa (pCR) à quimioterapia neoadjuvante. A pCR é um desfecho binário direto --- presença ou ausência de tumor residual na peça cirúrgica após quimioterapia neoadjuvante --- com forte correlação com sobrevida a longo prazo, reconhecida como *surrogate endpoint* pelo FDA para aprovação acelerada de novos agentes [@Cortazar2014; @Symmans2017].
+Um dos achados mais notáveis deste estudo reside na predição de resposta patológica completa (pCR) à quimioterapia neoadjuvante. A pCR é um desfecho binário direto --- presença ou ausência de tumor residual na peça cirúrgica após quimioterapia neoadjuvante --- com forte correlação com sobrevida a longo prazo, reconhecida como *surrogate endpoint* pelo FDA para aprovação acelerada de novos agentes [@Cortazar2014; @Symmans2017].
 
 O CorePAM predisse pCR com consistência notável: quatro coortes independentes, de três plataformas diferentes, de quatro consórcios distintos, produziram ORs praticamente idênticos, resultando em I$^2$=0%. Esse nível de homogeneidade é incomum em meta-análises de biomarcadores genômicos e fortalece a confiança no resultado.
 
@@ -1438,6 +1443,8 @@ Todos os dados utilizados neste estudo são publicamente disponíveis em reposit
 
 8. **Coerência biológica emergente:** o painel retido recapitula os quatro eixos biológicos fundamentais do PAM50, demonstrando que a redução preserva a estrutura biológica subjacente.
 
+9. **Relevância translacional para países de renda média e baixa:** a demonstração de que `r n_genes` genes preservam a informação prognóstica essencial amplia a possibilidade de implementação em plataformas mais acessíveis, com impacto potencial direto na equidade de acesso à estratificação molecular.
+
 ## Limitações
 
 O reconhecimento transparente das limitações é essencial para a adequada interpretação dos resultados:
@@ -1500,7 +1507,7 @@ O **CorePAM** --- uma redução de `r n_genes` genes derivada do painel PAM50, s
 
 Retornando à cena do consultório com que abrimos esta tese: a paciente de 52 anos com carcinoma ductal invasivo RE-positivo ainda não pode, hoje, ser classificada pelo CorePAM na rotina clínica. Mas este trabalho demonstra que o caminho para uma ferramenta genômica mais acessível é cientificamente viável. A redução de 50 para `r n_genes` genes preserva a discriminação prognóstica e pode, no futuro, viabilizar a estratificação molecular em cenários de recursos limitados --- não como substituição dos testes existentes, mas como alternativa para quem ainda não tem acesso a nenhum deles.
 
-A medicina de precisão será verdadeiramente transformadora quando alcançar não apenas os grandes centros de referência, mas também o hospital universitário do interior, o ambulatório do SUS, o consultório da cidade média. Este trabalho é uma contribuição para esse objetivo.
+A medicina de precisão será verdadeiramente transformadora quando alcançar não apenas os grandes centros de referência, mas também o hospital universitário do interior, o ambulatório do SUS, o consultório da cidade média. Assim como a perfeição de um projeto é alcançada não quando não há mais nada a acrescentar, mas quando não há mais nada a retirar, a simplificação do painel PAM50 revela que o essencial pode ser preservado com menos. Este trabalho é uma contribuição para esse objetivo.
 
 \newpage
 

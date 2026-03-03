@@ -243,7 +243,7 @@ p_forest <- ggplot(forest_all,
     panel.grid.major.x = element_line(color = "grey90", linewidth = 0.3)
   )
 
-save_fig(p_forest, "FigS_Forest_HR_ValidationCohorts", w = 12, h = 6)
+save_fig(p_forest, "FigS_Forest_HR_ValidationCohorts", w = 12, h = 9)
 
 # --------------------------------------------------------------------------
 # 2) SCORE DISTRIBUTION — density overlay per cohort

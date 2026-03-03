@@ -1083,7 +1083,7 @@ tryCatch({
       panel.grid.major.x = element_line(color = "grey90", linewidth = 0.3)
     )
 
-  save_pt(p_forest, "FigS_Forest_HR_ValidationCohorts_PT", w = 12, h = 6)
+  save_pt(p_forest, "FigS_Forest_HR_ValidationCohorts_PT", w = 12, h = 9)
 }, error = function(e) {
   message(sprintf("[%s] ERROR Forest HR PT: %s", SCRIPT_NAME, e$message))
 })

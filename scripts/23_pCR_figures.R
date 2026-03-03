@@ -249,8 +249,8 @@ if (length(roc_list) > 0) {
     p2 <- make_roc_fig(lang)
     pdf_f <- pcr_fig_path(sprintf("Fig_pCR2_ROC_%s.pdf", lang), lang, "pdf")
     png_f <- pcr_fig_path(sprintf("Fig_pCR2_ROC_%s.png", lang), lang, "png")
-    cairo_pdf(pdf_f, width = 8, height = 7); print(p2); dev.off()
-    png(png_f, width = 8, height = 7, units = "in", res = 600); print(p2); dev.off()
+    cairo_pdf(pdf_f, width = 10, height = 9); print(p2); dev.off()
+    png(png_f, width = 10, height = 9, units = "in", res = 600); print(p2); dev.off()
     registry_append("META_PCR", sprintf("fig_pcr2_roc_%s", lang), pdf_f,
                     sha256_file(pdf_f), "ok", SCRIPT_NAME,
                     file.info(pdf_f)$size / 1e6)
