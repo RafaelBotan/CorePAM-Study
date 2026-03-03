@@ -153,11 +153,11 @@ if 'Body Text' in existing_names:
     bt.font.name = 'Times New Roman'
     bt.font.size = Pt(12)
     bt_pf = bt.paragraph_format
-    bt_pf.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    bt_pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     bt_pf.first_line_indent = Cm(0)
     bt_pf.space_before = Pt(6)
     bt_pf.space_after = Pt(6)
-    bt_pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
+    bt_pf.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
 
 # "Figure" paragraph style (custom) -- centered, no indent
 if 'Figure' not in existing_names:
@@ -225,7 +225,7 @@ for s in style:
 if tbl_grid is not None:
     # Set font properties on the table style's linked paragraph properties
     tbl_grid.font.name = 'Times New Roman'
-    tbl_grid.font.size = Pt(10)
+    tbl_grid.font.size = Pt(9)
     tbl_grid.font.color.rgb = RGBColor(0, 0, 0)
 
     # Access the underlying XML element for the table style
@@ -345,7 +345,7 @@ if 'Compact' not in existing_names:
     compact = style.add_style('Compact', WD_STYLE_TYPE.PARAGRAPH)
     compact.base_style = style['Normal']
     compact.font.name = 'Times New Roman'
-    compact.font.size = Pt(10)
+    compact.font.size = Pt(9)
     compact.font.color.rgb = RGBColor(0, 0, 0)
     compact_pf = compact.paragraph_format
     compact_pf.space_before = Pt(0)
