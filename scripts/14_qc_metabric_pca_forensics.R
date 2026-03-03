@@ -156,76 +156,152 @@ if (file.exists(raw_clin_path)) {
   }
 }
 
-p1 <- ggplot(annotated, aes(x = PC1, y = PC2)) +
-  {if (!is.null(er_col)) aes(color = as.factor(get(er_col))) else NULL} +
-  geom_point(alpha = 0.5, size = 1.5) +
-  {if (n_outliers > 0 && n_outliers <= 20) {
-    geom_label_repel(
-      data  = annotated[annotated$is_outlier, ],
-      aes(label = sample_id),
-      size  = 2.5,
-      color = "red",
-      max.overlaps = 20
-    )
-  }} +
-  labs(
-    title  = sprintf("METABRIC Forensic PCA — PC1 vs PC2 (top 500 variable genes)"),
-    x      = sprintf("PC1 (%.1f%% variance)", pct_var[1]),
-    y      = sprintf("PC2 (%.1f%% variance)", pct_var[2]),
-    color  = "ER status",
-    caption = sprintf("Outliers (Mahalanobis p<0.001): n=%d", n_outliers)
-  ) +
-  theme_classic(base_size = 11)
+# --- Helper: build PCA plots with language support ---
+make_pca_plots <- function(lang = "EN") {
+  if (lang == "PT") {
+    t1 <- sprintf("PCA Forense METABRIC — PC1 vs PC2 (500 genes mais variáveis)")
+    t2 <- "PCA Forense METABRIC — PC1 vs PC3"
+    t3 <- "Scree plot — Variância explicada pela PCA"
+    x1 <- sprintf("PC1 (%.1f%% variância)", pct_var[1])
+    y1 <- sprintf("PC2 (%.1f%% variância)", pct_var[2])
+    x2 <- sprintf("PC1 (%.1f%%)", pct_var[1])
+    y2 <- sprintf("PC3 (%.1f%%)", pct_var[3])
+    x3 <- "Componente Principal"
+    y3 <- "Variância explicada (%)"
+    col_lab <- "Status RE"
+    cap1 <- sprintf("Outliers (Mahalanobis p<0,001): n=%d", n_outliers)
+  } else {
+    t1 <- sprintf("METABRIC Forensic PCA — PC1 vs PC2 (top 500 variable genes)")
+    t2 <- "METABRIC Forensic PCA — PC1 vs PC3"
+    t3 <- "Scree plot — PCA variance explained"
+    x1 <- sprintf("PC1 (%.1f%% variance)", pct_var[1])
+    y1 <- sprintf("PC2 (%.1f%% variance)", pct_var[2])
+    x2 <- sprintf("PC1 (%.1f%%)", pct_var[1])
+    y2 <- sprintf("PC3 (%.1f%%)", pct_var[3])
+    x3 <- "Principal Component"
+    y3 <- "Variance explained (%)"
+    col_lab <- "ER status"
+    cap1 <- sprintf("Outliers (Mahalanobis p<0.001): n=%d", n_outliers)
+  }
 
-p2 <- ggplot(annotated, aes(x = PC1, y = PC3)) +
-  {if (!is.null(er_col)) aes(color = as.factor(get(er_col))) else NULL} +
-  geom_point(alpha = 0.5, size = 1.5) +
-  labs(
-    title  = "METABRIC Forensic PCA — PC1 vs PC3",
-    x      = sprintf("PC1 (%.1f%%)", pct_var[1]),
-    y      = sprintf("PC3 (%.1f%%)", pct_var[3]),
-    color  = "ER status"
-  ) +
-  theme_classic(base_size = 11)
+  p1 <- ggplot(annotated, aes(x = PC1, y = PC2)) +
+    {if (!is.null(er_col)) aes(color = as.factor(get(er_col))) else NULL} +
+    geom_point(alpha = 0.5, size = 1.8) +
+    {if (n_outliers > 0 && n_outliers <= 20) {
+      geom_label_repel(
+        data  = annotated[annotated$is_outlier, ],
+        aes(label = sample_id),
+        size  = 2.5,
+        color = "red",
+        max.overlaps = 20
+      )
+    }} +
+    labs(title = t1, x = x1, y = y1, color = col_lab, caption = cap1) +
+    theme_classic(base_size = 12)
 
-p3 <- ggplot(
-  data.frame(pc = seq_len(10), pct = pct_var[seq_len(10)]),
-  aes(x = pc, y = pct)
-) +
-  geom_col(fill = "#2980B9") +
-  geom_line(color = "red", linewidth = 0.8) +
-  geom_point(color = "red", size = 2) +
-  labs(
-    title = "Scree plot — PCA variance explained",
-    x     = "Principal Component",
-    y     = "Variance explained (%)"
+  p2 <- ggplot(annotated, aes(x = PC1, y = PC3)) +
+    {if (!is.null(er_col)) aes(color = as.factor(get(er_col))) else NULL} +
+    geom_point(alpha = 0.5, size = 1.8) +
+    labs(title = t2, x = x2, y = y2, color = col_lab) +
+    theme_classic(base_size = 12)
+
+  p3 <- ggplot(
+    data.frame(pc = seq_len(10), pct = pct_var[seq_len(10)]),
+    aes(x = pc, y = pct)
   ) +
-  theme_classic(base_size = 11)
+    geom_col(fill = "#2980B9") +
+    geom_line(color = "red", linewidth = 0.8) +
+    geom_point(color = "red", size = 2) +
+    labs(title = t3, x = x3, y = y3) +
+    theme_classic(base_size = 12)
+
+  list(scatter1 = p1, scatter2 = p2, scree = p3)
+}
+
+plots_en <- make_pca_plots("EN")
+plots_pt <- make_pca_plots("PT")
+p1 <- plots_en$scatter1; p2 <- plots_en$scatter2; p3 <- plots_en$scree
 
 # ---------------------------------------------------------------------------
-# 7) Save figures
+# 7) Save figures — split: scatter (2 panels) + scree (1 panel), EN + PT
 # ---------------------------------------------------------------------------
-fig_dir <- PATHS$figures$supp
-dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
-
-out_png <- file.path(fig_dir, sprintf("FigS4_%s_PCA_forensics.png", COHORT))
+for (d in c(PATHS$figures$supp_en_pdf, PATHS$figures$supp_en_png,
+            PATHS$figures$supp_pt_pdf, PATHS$figures$supp_pt_png)) {
+  dir.create(d, showWarnings = FALSE, recursive = TRUE)
+}
 
 old_warn <- getOption("warn"); options(warn = 0)
+
+# --- Legacy 3-panel EN (backwards compat) ---
 pdf(out_pdf, width = 14, height = 5)
 gridExtra::grid.arrange(p1, p2, p3, ncol = 3)
 dev.off()
-
-png(out_png, width = 1400, height = 500, res = 100)
+out_png_legacy <- file.path(PATHS$figures$supp_en_png,
+                            sprintf("FigS4_%s_PCA_forensics.png", COHORT))
+png(out_png_legacy, width = 1400, height = 500, res = 100)
 gridExtra::grid.arrange(p1, p2, p3, ncol = 3)
 dev.off()
+
+# --- EN: scatter (2-panel, larger) ---
+en_scatter_pdf <- file.path(PATHS$figures$supp_en_pdf, "FigS4_METABRIC_PCA_scatter_EN.pdf")
+en_scatter_png <- file.path(PATHS$figures$supp_en_png, "FigS4_METABRIC_PCA_scatter_EN.png")
+cairo_pdf(en_scatter_pdf, width = 12, height = 6)
+gridExtra::grid.arrange(plots_en$scatter1, plots_en$scatter2, ncol = 2)
+dev.off()
+png(en_scatter_png, width = 3600, height = 1800, res = 300)
+gridExtra::grid.arrange(plots_en$scatter1, plots_en$scatter2, ncol = 2)
+dev.off()
+
+# --- EN: scree (standalone, larger) ---
+en_scree_pdf <- file.path(PATHS$figures$supp_en_pdf, "FigS4_METABRIC_PCA_scree_EN.pdf")
+en_scree_png <- file.path(PATHS$figures$supp_en_png, "FigS4_METABRIC_PCA_scree_EN.png")
+cairo_pdf(en_scree_pdf, width = 7, height = 5)
+print(plots_en$scree)
+dev.off()
+png(en_scree_png, width = 2100, height = 1500, res = 300)
+print(plots_en$scree)
+dev.off()
+
+# --- PT: scatter (2-panel, larger) ---
+pt_scatter_pdf <- file.path(PATHS$figures$supp_pt_pdf, "FigS4_METABRIC_PCA_scatter_PT.pdf")
+pt_scatter_png <- file.path(PATHS$figures$supp_pt_png, "FigS4_METABRIC_PCA_scatter_PT.png")
+cairo_pdf(pt_scatter_pdf, width = 12, height = 6)
+gridExtra::grid.arrange(plots_pt$scatter1, plots_pt$scatter2, ncol = 2)
+dev.off()
+png(pt_scatter_png, width = 3600, height = 1800, res = 300)
+gridExtra::grid.arrange(plots_pt$scatter1, plots_pt$scatter2, ncol = 2)
+dev.off()
+
+# --- PT: scree (standalone, larger) ---
+pt_scree_pdf <- file.path(PATHS$figures$supp_pt_pdf, "FigS4_METABRIC_PCA_scree_PT.pdf")
+pt_scree_png <- file.path(PATHS$figures$supp_pt_png, "FigS4_METABRIC_PCA_scree_PT.png")
+cairo_pdf(pt_scree_pdf, width = 7, height = 5)
+print(plots_pt$scree)
+dev.off()
+png(pt_scree_png, width = 2100, height = 1500, res = 300)
+print(plots_pt$scree)
+dev.off()
+
+# --- PT: legacy combined (for backwards compat with existing QMD reference) ---
+pt_combined_pdf <- file.path(PATHS$figures$supp_pt_pdf, "FigS4_METABRIC_PCA_forensics_PT.pdf")
+pt_combined_png <- file.path(PATHS$figures$supp_pt_png, "FigS4_METABRIC_PCA_forensics_PT.png")
+cairo_pdf(pt_combined_pdf, width = 14, height = 5)
+gridExtra::grid.arrange(plots_pt$scatter1, plots_pt$scatter2, plots_pt$scree, ncol = 3)
+dev.off()
+png(pt_combined_png, width = 4200, height = 1500, res = 300)
+gridExtra::grid.arrange(plots_pt$scatter1, plots_pt$scatter2, plots_pt$scree, ncol = 3)
+dev.off()
+
 options(warn = old_warn)
 
-h_pdf <- sha256_file(out_pdf)
-h_png <- sha256_file(out_png)
-registry_append(COHORT, "figure_pca_forensics_pdf", out_pdf, h_pdf, "ok",
-                SCRIPT_NAME, file.info(out_pdf)$size / 1e6)
-registry_append(COHORT, "figure_pca_forensics_png", out_png, h_png, "ok",
-                SCRIPT_NAME, file.info(out_png)$size / 1e6)
+# Registry
+for (f in c(out_pdf, en_scatter_pdf, pt_scatter_pdf, pt_scree_pdf)) {
+  if (file.exists(f)) {
+    h <- sha256_file(f)
+    registry_append(COHORT, "figure_pca_forensics", f, h, "ok",
+                    SCRIPT_NAME, file.info(f)$size / 1e6)
+  }
+}
 
 # ---------------------------------------------------------------------------
 # 8) Save forensics report

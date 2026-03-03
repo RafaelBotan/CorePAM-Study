@@ -673,7 +673,7 @@ tryCatch({
     theme_classic(base_size = 11) +
     theme(plot.title = element_text(face = "bold"))
 
-  save_pt(p_cindex, "FigS_Cindex_ByCohort_PT", w = 7, h = 5)
+  save_pt(p_cindex, "FigS_Cindex_ByCohort_PT", w = 9, h = 5)
 }, error = function(e) {
   message(sprintf("[%s] ERROR Cindex PT: %s", SCRIPT_NAME, e$message))
 })

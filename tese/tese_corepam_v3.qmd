@@ -557,6 +557,8 @@ R versão 4.5.2. Pacotes principais: `glmnet` (*elastic-net*), `survival`/`survm
 
 Os resultados estão organizados na sequência lógica do estudo: primeiro, a derivação do painel na SCAN-B (quantos genes são necessários?); depois, a validação prognóstica em coortes externas (o modelo funciona em pacientes que não foram usadas para construí-lo?); em seguida, a síntese por meta-análise (qual é o efeito global combinado?); e, por fim, a análise secundária de predição de resposta patológica completa (o modelo também prediz resposta à quimioterapia?).
 
+\newpage
+
 ```{r fig-design}
 #| label: fig-design
 #| fig-cap: "Desenho do estudo. Diagrama esquemático do fluxo analítico: a coorte SCAN-B (N=3.069; RNA-seq) constitui a coorte de derivação; três coortes externas independentes (TCGA-BRCA, METABRIC, GSE20685) validam o prognóstico; e cinco coortes neoadjuvantes avaliam a predição de pCR. As setas indicam a direção do fluxo de dados, sem compartilhamento entre etapas."
@@ -619,6 +621,8 @@ if (!is.null(wt_df)) {
 }
 ```
 
+\newpage
+
 ```{r fig-pesos}
 #| label: fig-pesos
 #| fig-cap: "Pesos dos 24 genes CorePAM na regressão Cox *elastic-net*. Cada barra horizontal representa o coeficiente de um gene: barras vermelhas (positivas) indicam que expressão elevada associa-se a pior prognóstico (genes de proliferação e fenótipo basal), enquanto barras azuis (negativas) indicam associação protetora (genes de diferenciação luminal). MYBL2 e EXO1 apresentam os maiores pesos positivos, e ESR1 e BCL2, os maiores negativos."
@@ -638,6 +642,8 @@ Uma preocupação legítima é se os genes selecionados são robustos ou se muda
 A análise de ***bootstrap*** (B=200 re-ajustes na SCAN-B) simulou 200 versões "virtuais" do treinamento, reamostrando pacientes com reposição, e verificou quantas vezes cada gene foi selecionado. Todos os `r n_genes` genes CorePAM foram selecionados em pelo menos 70% das reamostras (@fig-bootstrap), indicando que a composição do painel é estável e não depende de pacientes individuais.
 
 A análise ***leave-one-gene-out*** removeu cada gene individualmente e mediu a perda de desempenho. Nenhuma remoção isolada causou perda catastrófica (@fig-dropout), demonstrando que a informação prognóstica está distribuída entre os genes e não concentrada em um único "gene-chave". Os genes com maior impacto individual (EXO1, NAT1) ainda assim produziram perdas modestas, reforçando a robustez do painel como conjunto.
+
+\newpage
 
 ```{r fig-bootstrap}
 #| label: fig-bootstrap
@@ -808,6 +814,8 @@ A meta-análise das coortes de validação (K=`r if(!is.null(re_row) && nrow(re_
 
 A heterogeneidade foi baixa (I²=`r if(!is.null(re_row) && nrow(re_row)>0) sprintf("%.1f", re_row$I2_pct[[1]]) else "38,3"`%; τ²=`r if(!is.null(re_row) && nrow(re_row)>0) sprintf("%.4f", re_row$tau2[[1]]) else "0,0042"`), indicando que a associação prognóstica é consistente entre plataformas e populações, apesar das diferenças substanciais em tecnologia de mensuração, composição demográfica e duração de seguimento entre as coortes. A análise de sensibilidade de Hartung-Knapp, que aplica correção adicional quando o número de estudos é pequeno, confirmou o resultado com intervalos de confiança mais conservadores. A meta-análise restrita à sobrevida global harmonizada (excluindo o desfecho SDE do METABRIC) produziu resultado semelhante, reforçando a robustez do achado.
 
+\newpage
+
 ```{r fig-forest-meta}
 #| label: fig-forest-meta
 #| fig-cap: "Forest plot da meta-análise de efeitos aleatórios (K=3 coortes de validação). Cada linha representa uma coorte, com o quadrado indicando o HR pontual e as barras horizontais representando o IC95%. O losango na parte inferior representa o efeito agrupado. Todas as estimativas pontuais situam-se à direita de HR=1,0, indicando associação consistente entre escore elevado e pior sobrevida."
@@ -862,6 +870,8 @@ if (!is.null(incr)) {
 }
 ```
 
+\newpage
+
 ```{r fig-delta-cindex}
 #| label: fig-delta-cindex
 #| fig-cap: "Valor incremental do escore CorePAM sobre o modelo clínico CORE-A. Cada par de barras compara o C-index do modelo clínico isolado (CORE-A) com o modelo combinado (CORE-A + escore genômico). O acréscimo ($\\Delta$C-index) é positivo e significativo em todas as coortes, demonstrando que o escore genômico agrega informação prognóstica independente além dos preditores clínicos."
@@ -872,6 +882,8 @@ f <- fig_pt(file.path(ROOT, "figures/main/pt/png/Fig5_DeltaCindex_COREA_vs_COREA
 if (!is.null(f)) knitr::include_graphics(f)
 ```
 
+\newpage
+
 ```{r fig-calibracao}
 #| label: fig-calibracao
 #| fig-cap: "Calibração do modelo CorePAM a 60 meses (24 meses para TCGA-BRCA, devido ao seguimento mais curto). Os gráficos mostram a concordância entre as probabilidades de sobrevida preditas pelo modelo e as taxas observadas (Kaplan-Meier) em quintis de risco. Pontos próximos à diagonal de 45° indicam boa calibração."
@@ -881,6 +893,8 @@ f <- fig_pt(file.path(ROOT, "figures/main/pt/png/Fig5_Calibration_60m_Panels_Cor
             file.path(ROOT, "figures/main/en/png/Fig5_Calibration_60m_Panels_CorePAM.png"))
 if (!is.null(f)) knitr::include_graphics(f)
 ```
+
+\newpage
 
 ```{r fig-dca}
 #| label: fig-dca
@@ -918,6 +932,8 @@ f <- fig_pt(file.path(ROOT, "figures/supp/pt/png/FigS_ScoreByER_ByCohort_PT.png"
 if (!is.null(f)) knitr::include_graphics(f)
 ```
 
+\newpage
+
 ```{r fig-heatmap-tcga}
 #| label: fig-heatmap-tcga
 #| fig-cap: "Mapa de calor da expressão dos 24 genes CorePAM na TCGA-BRCA, com amostras (colunas) ordenadas pelo escore crescente da esquerda para a direita. Observa-se a transição gradual dos perfis de expressão: genes luminais (ESR1, PGR, BCL2) predominam à esquerda (escores baixos), enquanto genes de proliferação e basais predominam à direita (escores altos)."
@@ -928,6 +944,8 @@ f <- fig_pt(file.path(ROOT, "figures/supp/pt/png/FigS_Heatmap_TCGA_BRCA_PT.png")
 if (!is.null(f)) knitr::include_graphics(f)
 ```
 
+\newpage
+
 ```{r fig-heatmap-metabric}
 #| label: fig-heatmap-metabric
 #| fig-cap: "Mapa de calor da expressão dos genes CorePAM no METABRIC (microarranjo Illumina). A mesma estrutura de transição observada na TCGA-BRCA é reproduzida nesta coorte independente, confirmando que o escore CorePAM captura o mesmo gradiente biológico em plataformas distintas."
@@ -937,6 +955,8 @@ f <- fig_pt(file.path(ROOT, "figures/supp/pt/png/FigS_Heatmap_METABRIC_PT.png"),
             file.path(ROOT, "figures/supp/en/png/FigS_Heatmap_METABRIC.png"))
 if (!is.null(f)) knitr::include_graphics(f)
 ```
+
+\newpage
 
 ```{r fig-heatmap-gse20685}
 #| label: fig-heatmap-gse20685
@@ -968,21 +988,37 @@ if (!is.null(f)) knitr::include_graphics(f)
 
 ### Análise de componentes principais: forense do METABRIC
 
-A análise de componentes principais (PCA) dos genes CorePAM na coorte METABRIC não revelou estrutura de lote (*batch*) dominante nos dois primeiros componentes, reforçando que os eixos de variação capturam biologia (subtipos tumorais) e não artefatos técnicos (@fig-pca).
+A análise de componentes principais (PCA) dos genes CorePAM na coorte METABRIC não revelou estrutura de lote (*batch*) dominante nos dois primeiros componentes, reforçando que os eixos de variação capturam biologia (subtipos tumorais) e não artefatos técnicos (@fig-pca-scatter). A proporção de variância explicada pelos componentes é apresentada no *scree plot* (@fig-pca-scree).
 
-```{r fig-pca}
-#| label: fig-pca
-#| fig-cap: "Análise de componentes principais (PCA) dos genes CorePAM no METABRIC. Os dois primeiros componentes explicam a maior parte da variância e refletem a biologia tumoral (separação de subtipos moleculares), sem evidência de estrutura de lote (*batch effect*) dominante. A ausência de agrupamentos por lote técnico indica que o sinal é predominantemente biológico."
+\newpage
+
+```{r fig-pca-scatter}
+#| label: fig-pca-scatter
+#| fig-cap: "Análise de componentes principais (PCA) dos genes CorePAM no METABRIC. Os dois primeiros componentes (PC1 vs PC2 e PC1 vs PC3) separam as amostras por status do receptor de estrogênio (RE), refletindo a biologia tumoral. A ausência de agrupamentos por lote técnico indica que o sinal é predominantemente biológico."
 #| out-width: "100%"
 #| fig-align: center
-f <- fig_pt(file.path(ROOT, "figures/supp/pt/png/FigS4_METABRIC_PCA_forensics_PT.png"),
-            file.path(ROOT, "figures/supp/en/png/FigS4_METABRIC_PCA_forensics.png"))
+f <- fig_pt(file.path(ROOT, "figures/supp/pt/png/FigS4_METABRIC_PCA_scatter_PT.png"),
+            file.path(ROOT, "figures/supp/en/png/FigS4_METABRIC_PCA_scatter_EN.png"))
+if (!is.null(f)) knitr::include_graphics(f)
+```
+
+\newpage
+
+```{r fig-pca-scree}
+#| label: fig-pca-scree
+#| fig-cap: "Scree plot da PCA no METABRIC: variância explicada por cada componente principal. Os dois primeiros componentes capturam a maior parte da variabilidade, consistente com a separação biológica observada na @fig-pca-scatter."
+#| out-width: "70%"
+#| fig-align: center
+f <- fig_pt(file.path(ROOT, "figures/supp/pt/png/FigS4_METABRIC_PCA_scree_PT.png"),
+            file.path(ROOT, "figures/supp/en/png/FigS4_METABRIC_PCA_scree_EN.png"))
 if (!is.null(f)) knitr::include_graphics(f)
 ```
 
 ### Forest plot de hazard ratios
 
 O forest plot das coortes de validação permite visualizar, de forma compacta, a direção e magnitude do efeito em cada coorte (@fig-forest-hr).
+
+\newpage
 
 ```{r fig-forest-hr}
 #| label: fig-forest-hr
@@ -1003,6 +1039,8 @@ No **METABRIC**, a comparação entre sobrevida doença-específica (desfecho pr
 Na **TCGA-BRCA**, a restrição do seguimento a 24 meses revelou HR mais elevado (`r if(!is.null(surv_list$TCGA) && "hr_sens_24m" %in% names(surv_list$TCGA)) sprintf("%.2f; p=%s", surv_list$TCGA$hr_sens_24m[[1]], fmt_p(surv_list$TCGA$p_sens_24m[[1]])) else "1,64"`) que o obtido com o seguimento completo, sugerindo que o escore é particularmente discriminatório nos primeiros anos após o diagnóstico (@fig-sens-tcga).
 
 O **C-index por coorte** com intervalos *bootstrap* (@fig-cindex-coorte) situou-se entre 0,62 e 0,70, faixa comparável ao desempenho reportado para os testes genômicos estabelecidos. A **sensibilidade do modelo CORE-A** à composição de covariáveis (@fig-corea-sens) demonstrou que o ganho incremental do escore genômico é maior quando o modelo clínico é mais parcimonioso (apenas idade), como esperado.
+
+\newpage
 
 ```{r fig-sens-metabric}
 #| label: fig-sens-metabric
@@ -1078,6 +1116,8 @@ if (!is.null(genefu_df)) {
 }
 ```
 
+\newpage
+
 ```{r fig-comparacao-scatter}
 #| label: fig-comparacao-scatter
 #| fig-cap: "Gráfico de dispersão dos escores CorePAM (24 genes) versus PAM50-*full* (50 genes) em cada coorte. A correlação elevada (r > 0,95) indica que os 24 genes retidos capturam a quase totalidade da variância do escore completo de 50 genes, confirmando que os 26 genes excluídos são funcionalmente redundantes."
@@ -1087,6 +1127,8 @@ f <- fig_pt(file.path(ROOT, "figures/supp/pt/png/FigS_CorePAM_vs_PAM50full_PT.pn
             file.path(ROOT, "figures/supp/en/png/FigS_CorePAM_vs_PAM50full_EN.png"))
 if (!is.null(f)) knitr::include_graphics(f)
 ```
+
+\newpage
 
 ```{r fig-comparacao-hr}
 #| label: fig-comparacao-hr
@@ -1134,6 +1176,8 @@ if (!is.null(pcr_df)) {
 }
 ```
 
+\newpage
+
 ```{r fig-pcr-forest}
 #| label: fig-pcr-forest
 #| fig-cap: "Forest plot dos *odds ratios* para predição de pCR nas quatro coortes primárias. Cada incremento de 1 DP no escore CorePAM associa-se a OR > 1,0 em todas as coortes, indicando que escores mais elevados predizem maior probabilidade de resposta patológica completa. A homogeneidade dos ORs (I²=0%) é visível pela sobreposição dos intervalos de confiança."
@@ -1146,6 +1190,8 @@ if (!is.null(f)) knitr::include_graphics(f)
 
 O forest plot da @fig-pcr-forest ilustra a homogeneidade dos ORs entre as coortes primárias, e a @fig-pcr-extended demonstra que a inclusão da coorte I-SPY2 praticamente não altera o efeito agrupado (k=4: OR=1,69; k=5: OR=1,69).
 
+\newpage
+
 ```{r fig-pcr-extended}
 #| label: fig-pcr-extended
 #| fig-cap: "Forest plot estendido incluindo a coorte exploratória I-SPY2 (N=986). As quatro coortes primárias e a I-SPY2 apresentam ORs consistentes, com o efeito agrupado praticamente inalterado pela inclusão da coorte exploratória (k=4: OR=1,69; k=5: OR=1,69). A linha vertical em OR=1,0 não é cruzada por nenhum intervalo de confiança individual."
@@ -1157,6 +1203,8 @@ if (!is.null(f)) knitr::include_graphics(f)
 ```
 
 As curvas ROC (@fig-pcr-roc) demonstram capacidade discriminatória modesta (AUC entre 0,58 e 0,72), o que é esperado para um biomarcador contínuo univariado na predição de pCR --- um desfecho influenciado por múltiplos fatores incluindo subtipo molecular, regime quimioterápico e biologia tumoral individual.
+
+\newpage
 
 ```{r fig-pcr-roc}
 #| label: fig-pcr-roc
@@ -1192,6 +1240,8 @@ if (!is.null(f)) knitr::include_graphics(f)
 
 A análise de interação entre o estado do receptor de estrogênio e o escore CorePAM na predição de pCR revelou resultado heterogêneo: no I-SPY1, o teste de razão de verossimilhança identificou interação significativa (LRT p=0,0005), sugerindo que o efeito preditivo do escore é modulado pelo estado do RE; no GSE32646, essa interação não foi confirmada (LRT p=0,92). Essa inconsistência indica necessidade de validação adicional em coortes maiores (@fig-pcr-er).
 
+\newpage
+
 ```{r fig-pcr-er}
 #| label: fig-pcr-er
 #| fig-cap: "Análise de interação RE $\\times$ CorePAM na predição de pCR. A interação significativa no I-SPY1 (LRT p=0,0005) sugere que o efeito preditivo do escore é modulado pelo estado do RE: em tumores RE-positivos, a associação entre escore e pCR pode diferir da observada em RE-negativos. Esta interação não foi confirmada no GSE32646 (p=0,92), indicando necessidade de validação adicional."
@@ -1204,6 +1254,8 @@ if (!is.null(f)) knitr::include_graphics(f)
 
 A análise de curva de decisão para pCR (@fig-dca-pcr) confirmou que o CorePAM apresenta benefício líquido superior às estratégias de referência ("tratar todos" e "não tratar nenhum") nas coortes com tamanho amostral suficiente, reforçando a utilidade clínica potencial do escore na decisão sobre quimioterapia neoadjuvante. A calibração do modelo logístico (@fig-pcr-pr) demonstrou concordância razoável entre as probabilidades preditas e as taxas observadas de pCR.
 
+\newpage
+
 ```{r fig-dca-pcr}
 #| label: fig-dca-pcr
 #| fig-cap: "Análise de curva de decisão (DCA) para predição de pCR nas coortes neoadjuvantes. O benefício líquido do CorePAM supera as estratégias de referência ('tratar todos' e 'não tratar nenhum') em uma faixa relevante de limiares de probabilidade, indicando utilidade clínica na decisão sobre quimioterapia neoadjuvante."
@@ -1213,6 +1265,8 @@ f <- fig_pt(file.path(ROOT, "figures/supp/pt/png/FigS_DCA_pCR_PT.png"),
             file.path(ROOT, "figures/supp/en/png/FigS_DCA_pCR_EN.png"))
 if (!is.null(f)) knitr::include_graphics(f)
 ```
+
+\newpage
 
 ```{r fig-pcr-pr}
 #| label: fig-pcr-pr

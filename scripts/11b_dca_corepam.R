@@ -211,8 +211,8 @@ for (cohort in names(os_cohort_cfg)) {
 
   if (is.null(dca_res)) next
 
-  # Plot
-  p_dca <- plot(dca_res, smooth = TRUE) +
+  # Plot — EN version
+  p_dca_en <- plot(dca_res, smooth = TRUE) +
     labs(
       title    = sprintf("DCA — %s", cfg$label),
       subtitle = sprintf("CorePAM, age (CORE-A), and combined at %d months", cfg$horizon),
@@ -228,7 +228,26 @@ for (cohort in names(os_cohort_cfg)) {
       panel.grid.minor = element_blank()
     )
 
-  dca_plots_os[[cohort]] <- p_dca
+  # Plot — PT version (translated axes)
+  p_dca_pt <- plot(dca_res, smooth = TRUE) +
+    labs(
+      title    = sprintf("DCA — %s", cfg$label),
+      subtitle = sprintf("CorePAM, idade (CORE-A) e combinado aos %d meses", cfg$horizon),
+      x        = "Limiar de decisão (probabilidade)",
+      y        = "Benefício líquido"
+    ) +
+    coord_cartesian(ylim = c(-0.05, NA)) +
+    scale_color_discrete(labels = function(x) gsub("Treat All", "Tratar todos",
+                                            gsub("Treat None", "Não tratar", x))) +
+    theme_bw(base_size = 10) +
+    theme(
+      legend.position = "bottom",
+      plot.title      = element_text(face = "bold", size = 10),
+      plot.subtitle   = element_text(size = 8),
+      panel.grid.minor = element_blank()
+    )
+
+  dca_plots_os[[cohort]] <- list(en = p_dca_en, pt = p_dca_pt)
 
   message(sprintf("[%s] %s: DCA complete", SCRIPT_NAME, cohort))
 }
@@ -240,9 +259,11 @@ if (length(dca_plots_os) >= 2) {
                  else "Análise de Curva de Decisão — OS/DSS"
     subtitle_str <- if (lang == "EN") "Net clinical benefit of CorePAM vs treat-all and treat-none"
                     else "Benefício clínico líquido do CorePAM vs tratar-todos e não-tratar"
-    n_plots <- length(dca_plots_os)
+    lang_key <- tolower(lang)
+    plot_list <- lapply(dca_plots_os, function(x) x[[lang_key]])
+    n_plots <- length(plot_list)
     layout  <- if (n_plots == 4) c(2, 2) else c(2, ceiling(n_plots / 2))
-    wrap_plots(dca_plots_os, ncol = layout[1]) +
+    wrap_plots(plot_list, ncol = layout[1]) +
       plot_annotation(
         title    = title_str,
         subtitle = subtitle_str,
@@ -326,11 +347,13 @@ for (cohort in pcr_cohorts) {
 
   if (is.null(dca_res)) next
 
-  pcr_rate_str <- sprintf("pCR rate: %.1f%%", 100 * mean(df$pcr))
-  p_dca_pcr <- plot(dca_res, smooth = TRUE) +
+  pcr_rate <- 100 * mean(df$pcr)
+
+  # EN version
+  p_dca_pcr_en <- plot(dca_res, smooth = TRUE) +
     labs(
       title    = sprintf("%s", cohort),
-      subtitle = pcr_rate_str,
+      subtitle = sprintf("pCR rate: %.1f%%", pcr_rate),
       x        = "Decision threshold",
       y        = "Net benefit"
     ) +
@@ -343,7 +366,26 @@ for (cohort in pcr_cohorts) {
       panel.grid.minor = element_blank()
     )
 
-  dca_plots_pcr[[cohort]] <- p_dca_pcr
+  # PT version
+  p_dca_pcr_pt <- plot(dca_res, smooth = TRUE) +
+    labs(
+      title    = sprintf("%s", cohort),
+      subtitle = sprintf("Taxa pCR: %.1f%%", pcr_rate),
+      x        = "Limiar de decisão",
+      y        = "Benefício líquido"
+    ) +
+    coord_cartesian(ylim = c(-0.05, NA)) +
+    scale_color_discrete(labels = function(x) gsub("Treat All", "Tratar todos",
+                                            gsub("Treat None", "Não tratar", x))) +
+    theme_bw(base_size = 10) +
+    theme(
+      legend.position  = "bottom",
+      plot.title       = element_text(face = "bold", size = 10),
+      plot.subtitle    = element_text(size = 8),
+      panel.grid.minor = element_blank()
+    )
+
+  dca_plots_pcr[[cohort]] <- list(en = p_dca_pcr_en, pt = p_dca_pcr_pt)
   message(sprintf("[%s] %s: pCR DCA complete", SCRIPT_NAME, cohort))
 }
 
@@ -354,7 +396,9 @@ if (length(dca_plots_pcr) >= 2) {
     subtitle_str <- if (lang == "EN")
       "Net clinical benefit of CorePAM score for pCR prediction"
       else "Benefício clínico líquido do CorePAM na predição de pCR"
-    wrap_plots(dca_plots_pcr, ncol = 2) +
+    lang_key <- tolower(lang)
+    plot_list <- lapply(dca_plots_pcr, function(x) x[[lang_key]])
+    wrap_plots(plot_list, ncol = 2) +
       plot_annotation(
         title    = title_str,
         subtitle = subtitle_str,

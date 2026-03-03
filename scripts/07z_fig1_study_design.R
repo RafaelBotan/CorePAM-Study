@@ -97,9 +97,9 @@ make_fig1 <- function(lang = "EN") {
     metabric    = "METABRIC\n(Microarray)\nN=1.980 | Eventos=1.144",
     gse20685    = "GSE20685\n(Microarray)\nN=327 | Eventos=83",
     pam50       = "PAM50\n(50 genes)",
-    corepam     = "Core-PAM\n(24 genes)",
+    corepam     = "CorePAM\n(24 genes)",
     method      = "Cox Elastic-Net\nC-index OOF Não-Inferioridade\nΔC ≤ 0,010",
-    freeze      = "Parâmetros Congelados\nα=0,5 | K=10 | semente=SHA-256(ID)\nδC=0,010 | t em meses | Z-score intra-coorte",
+    freeze      = "Parâmetros Congelados\nα=0,5 | K=10 | semente=SHA-256(ID)\nδC=0,010 | t em meses\nZ-score intra-coorte",
     endpoint_os = "Primário: OS/DSS",
     endpoint_pcr= "Desfecho: pCR",
     gse25       = "GSE25066 | N=182",
@@ -212,11 +212,11 @@ make_fig1 <- function(lang = "EN") {
     annotate("text", x = 29, y = 61.5, label = tr$score,
              size = 2.1, color = "white", hjust = 0.5) +
 
-    # Frozen params box
-    annotate("rect", xmin = 3, xmax = 36, ymin = 48.5, ymax = 54,
+    # Frozen params box (taller for 4 lines of PT text)
+    annotate("rect", xmin = 3, xmax = 36, ymin = 46, ymax = 54,
              fill = COL_FREEZE, color = "#B07830", alpha = 0.9, linewidth = 0.5) +
-    annotate("text", x = 19.5, y = 51.2, label = tr$freeze,
-             size = 2.15, color = "#3D1A00", hjust = 0.5, lineheight = 1.3) +
+    annotate("text", x = 19.5, y = 50, label = tr$freeze,
+             size = 2.0, color = "#3D1A00", hjust = 0.5, lineheight = 1.3) +
 
     # Arrow from CorePAM to validation (through center)
     annotate("segment", x = 36, xend = 40, y = 63.5, yend = 63.5,
@@ -233,17 +233,17 @@ make_fig1 <- function(lang = "EN") {
     annotate("rect", xmin = 41, xmax = 58, ymin = 55, ymax = 88,
              fill = COL_VAL, color = NA, alpha = 0.82) +
     annotate("text", x = 49.5, y = 71.5, label = tr$tcga,
-             size = 2.8, color = "white", hjust = 0.5, lineheight = 1.3) +
+             size = 2.5, color = "white", hjust = 0.5, lineheight = 1.3) +
 
     annotate("rect", xmin = 59, xmax = 78, ymin = 55, ymax = 88,
              fill = COL_VAL, color = NA, alpha = 0.82) +
     annotate("text", x = 68.5, y = 71.5, label = tr$metabric,
-             size = 2.8, color = "white", hjust = 0.5, lineheight = 1.3) +
+             size = 2.5, color = "white", hjust = 0.5, lineheight = 1.3) +
 
     annotate("rect", xmin = 79, xmax = 97, ymin = 55, ymax = 88,
              fill = COL_VAL, color = NA, alpha = 0.82) +
     annotate("text", x = 88, y = 71.5, label = tr$gse20685,
-             size = 2.8, color = "white", hjust = 0.5, lineheight = 1.3) +
+             size = 2.5, color = "white", hjust = 0.5, lineheight = 1.3) +
 
     annotate("text", x = 69, y = 50.5, label = tr$endpoint_os,
              size = 2.5, color = COL_VAL, hjust = 0.5, fontface = "italic") +
@@ -290,25 +290,30 @@ make_fig1 <- function(lang = "EN") {
 # --------------------------------------------------------------------------
 # Save EN and PT
 # --------------------------------------------------------------------------
+dir.create("figures/main/en/pdf", showWarnings = FALSE, recursive = TRUE)
+dir.create("figures/main/en/png", showWarnings = FALSE, recursive = TRUE)
+dir.create("figures/main/pt/pdf", showWarnings = FALSE, recursive = TRUE)
+dir.create("figures/main/pt/png", showWarnings = FALSE, recursive = TRUE)
+
 message(sprintf("[%s] Generating Fig1 EN...", SCRIPT_NAME))
 p_en <- make_fig1("EN")
-ggsave("figures/main/Fig1_StudyDesign_EN.pdf", p_en,
-       width = 170, height = 140, units = "mm", device = cairo_pdf)
-ggsave("figures/main/Fig1_StudyDesign_EN.png", p_en,
-       width = 170, height = 140, units = "mm", dpi = 300, bg = "white")
+ggsave("figures/main/en/pdf/Fig1_StudyDesign_EN.pdf", p_en,
+       width = 200, height = 150, units = "mm", device = cairo_pdf)
+ggsave("figures/main/en/png/Fig1_StudyDesign_EN.png", p_en,
+       width = 200, height = 150, units = "mm", dpi = 300, bg = "white")
 message(sprintf("[%s] EN saved", SCRIPT_NAME))
 
 message(sprintf("[%s] Generating Fig1 PT...", SCRIPT_NAME))
 p_pt <- make_fig1("PT")
-ggsave("figures/main/Fig1_StudyDesign_PT.pdf", p_pt,
-       width = 170, height = 140, units = "mm", device = cairo_pdf)
-ggsave("figures/main/Fig1_StudyDesign_PT.png", p_pt,
-       width = 170, height = 140, units = "mm", dpi = 300, bg = "white")
+ggsave("figures/main/pt/pdf/Fig1_StudyDesign_PT.pdf", p_pt,
+       width = 200, height = 150, units = "mm", device = cairo_pdf)
+ggsave("figures/main/pt/png/Fig1_StudyDesign_PT.png", p_pt,
+       width = 200, height = 150, units = "mm", dpi = 300, bg = "white")
 message(sprintf("[%s] PT saved", SCRIPT_NAME))
 
 # Registry
-for (f in c("figures/main/Fig1_StudyDesign_EN.pdf",
-            "figures/main/Fig1_StudyDesign_PT.pdf")) {
+for (f in c("figures/main/en/pdf/Fig1_StudyDesign_EN.pdf",
+            "figures/main/pt/pdf/Fig1_StudyDesign_PT.pdf")) {
   h  <- sha256_file(f)
   sz <- file.info(f)$size / 1e6
   registry_append("STUDY_DESIGN", "fig1_study_design", f, h, "ok", SCRIPT_NAME, sz, list())
