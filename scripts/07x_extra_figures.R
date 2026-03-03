@@ -185,8 +185,8 @@ forest_all <- bind_rows(forest_df, pooled_row_re, pooled_row_fe) |>
 
 # Y-axis labels
 y_labels <- setNames(forest_all$label, forest_all$y_pos)
-x_right  <- max(forest_all$hr_uni_hi95, na.rm = TRUE) * 1.05
-x_xlim   <- max(forest_all$hr_uni_hi95, na.rm = TRUE) * 2.5
+x_right  <- max(forest_all$hr_uni_hi95, na.rm = TRUE) * 1.08
+x_xlim   <- x_right + 0.55   # tight right margin for text labels
 
 p_forest <- ggplot(forest_all,
                    aes(x = hr_uni, xmin = hr_uni_lo95, xmax = hr_uni_hi95,
