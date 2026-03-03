@@ -344,9 +344,9 @@ Utilizaram-se **N=3.069 amostras** que constituem integralmente a coorte de trei
 
 ### Coortes de validação (bloco de sobrevida)
 
-Quatro coortes externas independentes foram empregadas exclusivamente para validação:
+Quatro coortes externas independentes foram empregadas exclusivamente para validação (@tbl-coortes):
 
-**TCGA-BRCA** (*The Cancer Genome Atlas --- Breast Cancer*; N=1.072) [@TCGA2012]: coorte de RNA-seq (alinhador STAR; *release* do GDC --- *Genomic Data Commons*). Desfecho primário: SG (150 eventos; 14,0%). Mediana de seguimento: 32 meses nos censurados. A TCGA-BRCA apresenta seguimento estruturalmente mais curto em comparação às demais coortes, o que atenua a magnitude dos hazard ratios detectáveis.
+**TCGA-BRCA** (*The Cancer Genome Atlas --- Breast Cancer*; N=1.072) [@TCGA2012]: coorte de RNA-seq (alinhador STAR; *release* do GDC --- *Genomic Data Commons*). Desfecho primário: SG (150 eventos; 14,0%). Mediana de seguimento: 32 meses. A TCGA-BRCA apresenta seguimento estruturalmente mais curto em comparação às demais coortes, o que atenua a magnitude dos hazard ratios detectáveis.
 
 **METABRIC** (*Molecular Taxonomy of Breast Cancer International Consortium*; N=1.978; cBioPortal) [@Curtis2012]: microarranjo Illumina HT-12 com uma das maiores séries de seguimento de longo prazo disponíveis publicamente. Desfecho **primário**: sobrevida doença-específica (SDE; 646 eventos). Óbitos por outras causas foram censurados no momento do óbito. A SG foi avaliada como análise de sensibilidade. Mediana de seguimento: 159 meses nos censurados.
 
@@ -563,7 +563,7 @@ R versão 4.5.2. Pacotes principais: `glmnet` (*elastic-net*), `survival`/`survm
 
 # RESULTADOS
 
-Os resultados estão organizados na sequência lógica do estudo: primeiro, a derivação do painel na SCAN-B (quantos genes são necessários?); depois, a validação prognóstica em coortes externas (o modelo funciona em pacientes que não foram usadas para construí-lo?); em seguida, a síntese por meta-análise (qual é o efeito global combinado?); e, por fim, a análise secundária de predição de resposta patológica completa (o modelo também prediz resposta à quimioterapia?).
+Os resultados estão organizados na sequência lógica do estudo (@fig-design): primeiro, a derivação do painel na SCAN-B (quantos genes são necessários?); depois, a validação prognóstica em coortes externas (o modelo funciona em pacientes que não foram usadas para construí-lo?); em seguida, a síntese por meta-análise (qual é o efeito global combinado?); e, por fim, a análise secundária de predição de resposta patológica completa (o modelo também prediz resposta à quimioterapia?).
 
 \newpage
 
@@ -830,7 +830,7 @@ if (!is.null(f)) knitr::include_graphics(f)
 
 ## Meta-análise de sobrevida
 
-A síntese quantitativa dos achados das coortes de validação é essencial para estimar a magnitude global do efeito e avaliar a consistência entre estudos. Utilizou-se meta-análise de efeitos aleatórios (DerSimonian-Laird, método REML), conforme descrito na metodologia.
+A síntese quantitativa dos achados das coortes de validação é essencial para estimar a magnitude global do efeito e avaliar a consistência entre estudos. Utilizou-se meta-análise de efeitos aleatórios (estimador REML), conforme descrito na metodologia.
 
 A meta-análise das coortes de validação (K=`r if(!is.null(re_row) && nrow(re_row)>0) re_row$n_cohorts[[1]] else 4`) produziu HR agrupado de `r if(!is.null(re_row) && nrow(re_row)>0) sprintf("**%.2f** (IC95%% %.2f–%.2f; p=%s)", re_row$meta_HR[[1]], re_row$meta_HR_lo95[[1]], re_row$meta_HR_hi95[[1]], fmt_p(re_row$p_value[[1]])) else "**1,37**"` (@fig-forest-meta; @tbl-meta). Em termos clínicos, esse resultado significa que cada aumento de 1 desvio-padrão no escore CorePAM associa-se a um incremento de aproximadamente `r if(!is.null(re_row) && nrow(re_row)>0) sprintf("%.0f", (re_row$meta_HR[[1]]-1)*100) else "37"`% no risco relativo.
 
@@ -1108,7 +1108,7 @@ if (!is.null(f)) knitr::include_graphics(f)
 
 A contextualização do desempenho do CorePAM em relação a assinaturas genômicas estabelecidas é fundamental para avaliar sua relevância clínica. A comparação direta com os ensaios comerciais (Prosigna, Oncotype DX) não foi possível, pois não se dispõe dos resultados desses ensaios para as mesmas pacientes. Entretanto, implementações de pesquisa dos algoritmos ROR-S (baseado no PAM50) e Oncotype DX-RS, disponíveis no pacote *genefu* [@HaibeKains2012], permitiram comparação indicativa.
 
-Os C-index do CorePAM foram comparáveis ou superiores aos do ROR-S e OncotypeDX-RS em três das quatro coortes (@tbl-comparacao-cindex). Os *hazard ratios* univariados foram igualmente consistentes entre as três assinaturas (@tbl-comparacao-hr). A correlação entre os escores CorePAM (24 genes) e PAM50-*full* (50 genes) foi superior a 0,95 em todas as coortes (@fig-comparacao-scatter), demonstrando que os 24 genes retidos capturam a quase totalidade da variância do escore completo. Os *hazard ratios* foram semelhantes entre CorePAM e PAM50-*full* (@fig-comparacao-hr), confirmando a não-inferioridade prática.
+Os C-index do CorePAM foram comparáveis ou superiores aos do ROR-S e OncotypeDX-RS em três das quatro coortes (@tbl-comparacao-cindex). Os *hazard ratios* univariados foram igualmente consistentes entre as três assinaturas (@tbl-comparacao-hr). A correlação de Spearman entre os escores CorePAM (24 genes) e PAM50-*full* (50 genes) variou de 0,77 a 0,90 nas quatro coortes (@fig-comparacao-scatter), demonstrando que os 24 genes retidos preservam a ordenação relativa do escore completo. Os *hazard ratios* foram semelhantes entre CorePAM e PAM50-*full* (@fig-comparacao-hr), confirmando a não-inferioridade prática.
 
 A distribuição dos escores brutos (antes da padronização intra-coorte) nas quatro coortes (@fig-rawscore) evidencia as diferenças de escala entre plataformas de RNA-seq e microarranjo, justificando a necessidade da padronização *z-score* intra-coorte.
 
@@ -1142,7 +1142,7 @@ if (!is.null(genefu_df)) {
 
 ```{r fig-comparacao-scatter}
 #| label: fig-comparacao-scatter
-#| fig-cap: "Gráfico de dispersão dos escores CorePAM (24 genes) versus PAM50-*full* (50 genes) em cada coorte. A correlação elevada (r > 0,95) indica que os 24 genes retidos capturam a quase totalidade da variância do escore completo de 50 genes, confirmando que os 26 genes excluídos são funcionalmente redundantes."
+#| fig-cap: "Gráfico de dispersão dos escores CorePAM (24 genes) versus PAM50-*full* (50 genes) em cada coorte. A correlação de Spearman ($\\rho$ = 0,77--0,90) indica que os 24 genes retidos preservam a ordenação relativa do escore completo de 50 genes."
 #| out-width: "100%"
 #| fig-align: center
 f <- fig_pt(file.path(ROOT, "figures/supp/pt/png/FigS_CorePAM_vs_PAM50full_PT.png"),
@@ -1346,7 +1346,7 @@ O CorePAM foi validado em quatro coortes externas completamente independentes, a
 
 - **TCGA-BRCA:** coorte norte-americana de RNA-seq (N=1.072), com seguimento relativamente curto (mediana de 32 meses). Apesar do seguimento limitado, o escore associou-se significativamente com sobrevida.
 
-- **METABRIC:** coorte europeia de microarranjo Illumina (N=1.978), com o mais longo seguimento disponível publicamente (mediana de 159 meses em censurados). A coorte com maior poder estatístico e com o desfecho mais robusto (sobrevida doença-específica), produzindo o hazard ratio mais expressivo.
+- **METABRIC:** coorte europeia de microarranjo Illumina (N=1.978), com o mais longo seguimento disponível publicamente (mediana de 159 meses em censurados). A coorte com maior poder estatístico e com o desfecho mais robusto (sobrevida doença-específica).
 
 - **GSE20685:** coorte taiwanesa de microarranjo Affymetrix (N=327), plataforma com cobertura gênica de 22/24 genes. Mesmo com dois genes faltantes e uma amostra menor, o sinal prognóstico foi significativo.
 
@@ -1360,7 +1360,7 @@ O I$^2$ moderado observado na meta-análise de sobrevida merece uma discussão c
 
 **Divergência de desfecho.** O METABRIC utiliza sobrevida doença-específica (SDE) como desfecho primário, enquanto TCGA-BRCA e GSE20685 utilizam sobrevida global (SG). A diferença é significativa: a SDE conta apenas óbitos por câncer de mama (censurando mortes por infarto, AVC, acidentes, etc.), enquanto a SG conta todos os óbitos. Como um escore genômico de câncer de mama prevê *mortalidade por câncer de mama*, é esperado que o HR seja maior na SDE --- afinal, as mortes não-oncológicas "diluem" o efeito na SG. Numa coorte de seguimento longo como o METABRIC (mediana >13 anos), a proporção de óbitos não-relacionados ao câncer é substancial.
 
-**Seguimento diferencial.** O TCGA-BRCA tem mediana de seguimento de apenas 32 meses, versus 113--159 meses nas demais coortes. Com seguimento curto, muitas recorrências --- especialmente as tardias, típicas de tumores luminais de baixo grau --- ainda não aconteceram. A limitação do tempo de observação reduz o poder estatístico para detectar diferenças que se manifestam tardiamente, particularmente em tumores luminais com padrão de recorrência prolongado.
+**Seguimento diferencial.** O TCGA-BRCA tem mediana de seguimento de apenas 32 meses, versus 91--159 meses nas demais coortes. Com seguimento curto, muitas recorrências --- especialmente as tardias, típicas de tumores luminais de baixo grau --- ainda não aconteceram. A limitação do tempo de observação reduz o poder estatístico para detectar diferenças que se manifestam tardiamente, particularmente em tumores luminais com padrão de recorrência prolongado.
 
 A análise de sensibilidade com SG harmonizada (utilizando SG para todas as coortes) reduziu o I$^2$ substancialmente, confirmando que a heterogeneidade é explicável pelas diferenças estruturais entre coortes, e não por inconsistência do sinal prognóstico. Em outras palavras: o escore funciona de forma consistente; são os contextos que diferem.
 
@@ -1438,7 +1438,7 @@ Na prática clínica, o cenário relevante é a comparação com a IHQ convencio
 
 Um aspecto que requer discussão é o potencial confundimento por regime terapêutico na análise de pCR. As coortes neoadjuvantes incluídas utilizam esquemas quimioterápicos heterogêneos: antraciclina + taxano (GSE25066), esquemas variados (GSE20194, GSE32646, I-SPY1) e múltiplos braços experimentais (I-SPY2). A associação entre escore CorePAM e pCR pode, em princípio, ser confundida pelo tipo de regime administrado.
 
-Três argumentos atenuam essa preocupação. Primeiro, o I$^2$ = 0% na meta-análise de pCR indica ausência de heterogeneidade detectável entre coortes, apesar da diversidade de regimes --- o que seria improvável se o confundimento fosse substancial. Segundo, na coorte I-SPY2, a análise restrita ao braço controle (paclitaxel) produziu OR semelhante ao da análise completa (OR=1,44 vs. 1,69), sugerindo que o sinal preditivo é independente do regime específico. Terceiro, a base biológica da associação --- tumores altamente proliferativos são mais sensíveis à quimioterapia, independentemente do esquema --- oferece mecanismo plausível para a consistência do sinal entre regimes. Não obstante, a análise formal da interação escore × regime terapêutico requer coortes com randomização estratificada, o que constitui uma limitação do presente estudo.
+Três argumentos atenuam essa preocupação. Primeiro, o I$^2$ = 0% na meta-análise de pCR indica ausência de heterogeneidade detectável entre coortes, apesar da diversidade de regimes --- o que seria improvável se o confundimento fosse substancial. Segundo, na coorte I-SPY2, a análise restrita ao braço controle (paclitaxel) produziu OR semelhante ao da análise univariada completa (OR=1,44 vs. 1,68), sugerindo que o sinal preditivo é independente do regime específico. Terceiro, a base biológica da associação --- tumores altamente proliferativos são mais sensíveis à quimioterapia, independentemente do esquema --- oferece mecanismo plausível para a consistência do sinal entre regimes. Não obstante, a análise formal da interação escore × regime terapêutico requer coortes com randomização estratificada, o que constitui uma limitação do presente estudo.
 
 ## Transparência e ciência aberta
 
@@ -1454,7 +1454,7 @@ Todos os dados utilizados neste estudo são publicamente disponíveis em reposit
 
 4. **Dupla validação de desfechos:** sobrevida e pCR em coortes completamente independentes da derivação. O fato de que o escore funciona para dois desfechos biologicamente distintos fortalece a evidência de que captura um sinal biológico real.
 
-5. **Escala amostral expressiva:** mais de 6.600 pacientes no total (3.069 treino + 3.536 validação OS + 1.683 pCR), conferindo poder estatístico robusto para detectar associações clinicamente relevantes.
+5. **Escala amostral expressiva:** mais de 8.200 pacientes no total (3.069 treino + 3.536 validação OS + 1.683 pCR), conferindo poder estatístico robusto para detectar associações clinicamente relevantes.
 
 6. **Transparência total:** dados públicos, código aberto, rastreabilidade de artefatos por SHA-256. Todo o estudo é reproduzível a partir de dados de acesso aberto.
 
@@ -1514,7 +1514,7 @@ O **CorePAM** --- uma redução de `r n_genes` genes derivada do painel PAM50, s
 
 1. **Desempenho prognóstico não-inferior** ao modelo completo de 50 genes, com C-index *out-of-fold* de `r if(!is.null(card)) round(card$selected$c_adj, 3) else "0,670"` e diferença de apenas `r if(!is.null(card)) round(card$selected$gap, 3) else "0,009"` em relação ao máximo. Vinte e seis genes foram eliminados sem comprometimento mensurável da discriminação prognóstica.
 
-2. **Associação significativa e independente com sobrevida** em todas as quatro coortes de validação externa, com HR agrupado de `r if(!is.null(re_row) && nrow(re_row)>0) sprintf("%.2f (IC95%% %.2f-%.2f)", re_row$meta_HR[[1]], re_row$meta_HR_lo95[[1]], re_row$meta_HR_hi95[[1]]) else "1,47"` na meta-análise de efeitos aleatórios. Cada aumento de 1 desvio-padrão no escore associou-se a incremento de aproximadamente 47% no risco de óbito.
+2. **Associação significativa e independente com sobrevida** em todas as quatro coortes de validação externa, com HR agrupado de `r if(!is.null(re_row) && nrow(re_row)>0) sprintf("%.2f (IC95%% %.2f-%.2f)", re_row$meta_HR[[1]], re_row$meta_HR_lo95[[1]], re_row$meta_HR_hi95[[1]]) else "1,37"` na meta-análise de efeitos aleatórios. Cada aumento de 1 desvio-padrão no escore associou-se a incremento de aproximadamente `r if(!is.null(re_row) && nrow(re_row)>0) sprintf("%.0f", (re_row$meta_HR[[1]]-1)*100) else "37"`% no risco de óbito.
 
 3. **Valor incremental** sobre preditores clínicos convencionais (idade e receptor de estrogênio) em todas as coortes avaliadas, demonstrando que o escore genômico agrega informação prognóstica além daquela fornecida pelos parâmetros clínico-patológicos isoladamente.
 

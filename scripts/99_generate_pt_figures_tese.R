@@ -1255,8 +1255,72 @@ tryCatch({
 })
 
 # ==========================================================================
+# FIGURE 16: Fig2_KM_GSE1456_OS_PT (KM Stockholm validation)
+# ==========================================================================
+message(sprintf("[%s] === 16/16: KM GSE1456 (PT) ===", SCRIPT_NAME))
+
+tryCatch({
+  df_gse1456 <- strict_parquet(file.path(proc_cohort("GSE1456"), "analysis_ready.parquet"))
+  df_gse1456 <- df_gse1456[!is.na(df_gse1456$os_time_months) & df_gse1456$os_time_months > 0 &
+                              !is.na(df_gse1456$os_event) & !is.na(df_gse1456$score_z), ]
+
+  # Cox for HR annotation
+  cox_uni <- coxph(Surv(os_time_months, os_event) ~ score_z, data = df_gse1456)
+  sm_uni  <- summary(cox_uni)
+  hr_uni  <- sm_uni$conf.int[1, "exp(coef)"]
+  lo_uni  <- sm_uni$conf.int[1, "lower .95"]
+  hi_uni  <- sm_uni$conf.int[1, "upper .95"]
+  p_uni   <- sm_uni$coefficients[1, "Pr(>|z|)"]
+
+  # KM median split
+  km_cutpoint <- median(df_gse1456$score_z, na.rm = TRUE)
+  df_gse1456$risk_group_median <- ifelse(df_gse1456$score_z >= km_cutpoint, "Alto", "Baixo")
+
+  old_warn <- getOption("warn"); options(warn = 0)
+  km_fit <- survfit(Surv(os_time_months, os_event) ~ risk_group_median, data = df_gse1456)
+
+  km_plot <- ggsurvplot(
+    km_fit,
+    data          = df_gse1456,
+    risk.table    = TRUE,
+    pval          = TRUE,
+    conf.int      = TRUE,
+    palette       = c("#E74C3C", "#2980B9"),
+    title         = sprintf("KM CorePAM \u2014 GSE1456 (Stockholm) | OS | N=%d", nrow(df_gse1456)),
+    xlab          = "Tempo (meses)",
+    ylab          = "Sobrevida global",
+    legend.labs   = c("Alto", "Baixo"),
+    risk.table.title = "N\u00famero em risco",
+    ggtheme       = theme_classic()
+  )
+
+  km_hr_lbl <- sprintf("HR = %.2f (IC: %.2f\u2013%.2f), p = %s",
+                        hr_uni, lo_uni, hi_uni,
+                        formatC(p_uni, format = "e", digits = 1))
+  subt_lbl <- "Ponto de corte: mediana intracoorte (pr\u00e9-especificado, n\u00e3o otimizado)"
+  km_plot$plot <- km_plot$plot +
+    ggplot2::labs(subtitle = subt_lbl) +
+    ggplot2::annotate("text",
+                      x = 5, y = 0.10,
+                      label = km_hr_lbl,
+                      hjust = 0, size = 3.0, colour = "grey20")
+  options(warn = old_warn)
+
+  pdf_path <- file.path(PATHS$figures$main_pt_pdf, "Fig2_KM_GSE1456_OS_PT.pdf")
+  png_path <- file.path(PATHS$figures$main_pt_png, "Fig2_KM_GSE1456_OS_PT.png")
+
+  old_warn <- getOption("warn"); options(warn = 0)
+  pdf(pdf_path, width = 8, height = 6); print(km_plot); dev.off()
+  png(png_path, width = 2400, height = 1800, res = 300); print(km_plot); dev.off()
+  options(warn = old_warn)
+  message(sprintf("[%s] Saved: %s", SCRIPT_NAME, png_path))
+}, error = function(e) {
+  message(sprintf("[%s] ERROR Fig2 KM GSE1456 PT: %s", SCRIPT_NAME, e$message))
+})
+
+# ==========================================================================
 # DONE
 # ==========================================================================
-message(sprintf("[%s] === ALL 15 PT FIGURES COMPLETED ===", SCRIPT_NAME))
+message(sprintf("[%s] === ALL 16 PT FIGURES COMPLETED ===", SCRIPT_NAME))
 message(sprintf("[%s] Main PT figures: %s", SCRIPT_NAME, PATHS$figures$main_pt_png))
 message(sprintf("[%s] Supp PT figures: %s", SCRIPT_NAME, PATHS$figures$supp_pt_png))
