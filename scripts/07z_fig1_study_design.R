@@ -90,6 +90,12 @@ make_fig1 <- function(lang = "EN") {
     gse_ev      = "Events = 83 (25.4%)",
     gse_fu      = "FU: 110.4 mo",
     gse_ep      = "OS",
+    stk_name    = "GSE1456",
+    stk_plat    = "Microarray (Affymetrix)",
+    stk_n       = "N = 159",
+    stk_ev      = "Events = 40 (25.2%)",
+    stk_fu      = "FU: 91.1 mo",
+    stk_ep      = "OS",
     # pCR
     pcr_title   = "SECONDARY ANALYSIS \u2014 pCR (Chemotherapy Response)",
     pcr_ep      = "Endpoint: pathological complete response (pCR)",
@@ -148,6 +154,12 @@ make_fig1 <- function(lang = "EN") {
     gse_ev      = "Eventos = 83 (25,4%)",
     gse_fu      = "FU: 110,4 m",
     gse_ep      = "OS",
+    stk_name    = "GSE1456",
+    stk_plat    = "Microarray (Affymetrix)",
+    stk_n       = "N = 159",
+    stk_ev      = "Eventos = 40 (25,2%)",
+    stk_fu      = "FU: 91,1 m",
+    stk_ep      = "OS",
     pcr_title   = "AN\u00c1LISE SECUND\u00c1RIA \u2014 pCR (Resposta \u00e0 Quimioterapia)",
     pcr_ep      = "Desfecho: resposta patol\u00f3gica completa (pCR)",
     gse25_name  = "GSE25066",
@@ -284,50 +296,65 @@ make_fig1 <- function(lang = "EN") {
     annotate("text", x = 50, y = 59.2, label = tr$val_ep,
              size = 3, fontface = "italic", color = COL_VAL)
 
-  # TCGA-BRCA (x 5-34)
+  # TCGA-BRCA (x 4-26)
   p <- p +
-    annotate("rect", xmin = 5, xmax = 34, ymin = 43.5, ymax = 57.5,
+    annotate("rect", xmin = 4, xmax = 26, ymin = 43.5, ymax = 57.5,
              fill = COL_VAL, color = NA, alpha = 0.82) +
-    annotate("text", x = 19.5, y = 56, label = tr$tcga_name,
-             size = 3.8, fontface = "bold", color = "white") +
-    annotate("text", x = 19.5, y = 53.5, label = tr$tcga_plat,
-             size = 2.8, color = "#FFCDD2") +
-    annotate("text", x = 19.5, y = 51.5, label = tr$tcga_n,
-             size = 3, color = "white") +
-    annotate("text", x = 19.5, y = 49.5, label = tr$tcga_ev,
+    annotate("text", x = 15, y = 56, label = tr$tcga_name,
+             size = 3.3, fontface = "bold", color = "white") +
+    annotate("text", x = 15, y = 53.5, label = tr$tcga_plat,
+             size = 2.5, color = "#FFCDD2") +
+    annotate("text", x = 15, y = 51.5, label = tr$tcga_n,
              size = 2.8, color = "white") +
-    annotate("text", x = 19.5, y = 47.5, label = paste(tr$tcga_fu, " | ", tr$tcga_ep),
-             size = 2.6, color = "#FFCDD2")
+    annotate("text", x = 15, y = 49.5, label = tr$tcga_ev,
+             size = 2.5, color = "white") +
+    annotate("text", x = 15, y = 47.5, label = paste(tr$tcga_fu, " | ", tr$tcga_ep),
+             size = 2.3, color = "#FFCDD2")
 
-  # METABRIC (x 36-65)
+  # METABRIC (x 27.5-50.5)
   p <- p +
-    annotate("rect", xmin = 36, xmax = 65, ymin = 43.5, ymax = 57.5,
+    annotate("rect", xmin = 27.5, xmax = 50.5, ymin = 43.5, ymax = 57.5,
              fill = COL_VAL, color = NA, alpha = 0.82) +
-    annotate("text", x = 50.5, y = 56, label = tr$metab_name,
-             size = 3.8, fontface = "bold", color = "white") +
-    annotate("text", x = 50.5, y = 53.5, label = tr$metab_plat,
-             size = 2.8, color = "#FFCDD2") +
-    annotate("text", x = 50.5, y = 51.5, label = tr$metab_n,
-             size = 3, color = "white") +
-    annotate("text", x = 50.5, y = 49.5, label = tr$metab_ev,
+    annotate("text", x = 39, y = 56, label = tr$metab_name,
+             size = 3.3, fontface = "bold", color = "white") +
+    annotate("text", x = 39, y = 53.5, label = tr$metab_plat,
+             size = 2.5, color = "#FFCDD2") +
+    annotate("text", x = 39, y = 51.5, label = tr$metab_n,
              size = 2.8, color = "white") +
-    annotate("text", x = 50.5, y = 47.5, label = paste(tr$metab_fu, " | ", tr$metab_ep),
-             size = 2.6, color = "#FFCDD2")
+    annotate("text", x = 39, y = 49.5, label = tr$metab_ev,
+             size = 2.5, color = "white") +
+    annotate("text", x = 39, y = 47.5, label = paste(tr$metab_fu, " | ", tr$metab_ep),
+             size = 2.3, color = "#FFCDD2")
 
-  # GSE20685 (x 67-96)
+  # GSE20685 (x 52-74)
   p <- p +
-    annotate("rect", xmin = 67, xmax = 96, ymin = 43.5, ymax = 57.5,
+    annotate("rect", xmin = 52, xmax = 74, ymin = 43.5, ymax = 57.5,
              fill = COL_VAL, color = NA, alpha = 0.82) +
-    annotate("text", x = 81.5, y = 56, label = tr$gse_name,
-             size = 3.8, fontface = "bold", color = "white") +
-    annotate("text", x = 81.5, y = 53.5, label = tr$gse_plat,
-             size = 2.8, color = "#FFCDD2") +
-    annotate("text", x = 81.5, y = 51.5, label = tr$gse_n,
-             size = 3, color = "white") +
-    annotate("text", x = 81.5, y = 49.5, label = tr$gse_ev,
+    annotate("text", x = 63, y = 56, label = tr$gse_name,
+             size = 3.3, fontface = "bold", color = "white") +
+    annotate("text", x = 63, y = 53.5, label = tr$gse_plat,
+             size = 2.5, color = "#FFCDD2") +
+    annotate("text", x = 63, y = 51.5, label = tr$gse_n,
              size = 2.8, color = "white") +
-    annotate("text", x = 81.5, y = 47.5, label = paste(tr$gse_fu, " | ", tr$gse_ep),
-             size = 2.6, color = "#FFCDD2")
+    annotate("text", x = 63, y = 49.5, label = tr$gse_ev,
+             size = 2.5, color = "white") +
+    annotate("text", x = 63, y = 47.5, label = paste(tr$gse_fu, " | ", tr$gse_ep),
+             size = 2.3, color = "#FFCDD2")
+
+  # GSE1456 (x 75.5-97)
+  p <- p +
+    annotate("rect", xmin = 75.5, xmax = 97, ymin = 43.5, ymax = 57.5,
+             fill = COL_VAL, color = NA, alpha = 0.82) +
+    annotate("text", x = 86.25, y = 56, label = tr$stk_name,
+             size = 3.3, fontface = "bold", color = "white") +
+    annotate("text", x = 86.25, y = 53.5, label = tr$stk_plat,
+             size = 2.5, color = "#FFCDD2") +
+    annotate("text", x = 86.25, y = 51.5, label = tr$stk_n,
+             size = 2.8, color = "white") +
+    annotate("text", x = 86.25, y = 49.5, label = tr$stk_ev,
+             size = 2.5, color = "white") +
+    annotate("text", x = 86.25, y = 47.5, label = paste(tr$stk_fu, " | ", tr$stk_ep),
+             size = 2.3, color = "#FFCDD2")
 
   # ============================================================
   # ARROW from validation to pCR
@@ -422,21 +449,29 @@ dir.create("figures/main/en/png", showWarnings = FALSE, recursive = TRUE)
 dir.create("figures/main/pt/pdf", showWarnings = FALSE, recursive = TRUE)
 dir.create("figures/main/pt/png", showWarnings = FALSE, recursive = TRUE)
 
+# Use cairo_pdf/png directly (avoids ggplot2/S7 ggsave layer bugs with 70+ annotates)
+save_fig1 <- function(lang, w_mm, h_mm) {
+  p <- make_fig1(lang)
+  prefix <- if (lang == "EN") "en" else "pt"
+  pdf_f <- sprintf("figures/main/%s/pdf/Fig1_StudyDesign_%s.pdf", prefix, lang)
+  png_f <- sprintf("figures/main/%s/png/Fig1_StudyDesign_%s.png", prefix, lang)
+  # PDF
+  cairo_pdf(pdf_f, width = w_mm / 25.4, height = h_mm / 25.4)
+  print(p)
+  dev.off()
+  # PNG
+  png(png_f, width = w_mm, height = h_mm, units = "mm", res = 300, bg = "white")
+  print(p)
+  dev.off()
+  rm(p); gc(verbose = FALSE)
+  message(sprintf("[%s] %s saved", SCRIPT_NAME, lang))
+}
+
 message(sprintf("[%s] Generating Fig1 EN...", SCRIPT_NAME))
-p_en <- make_fig1("EN")
-ggsave("figures/main/en/pdf/Fig1_StudyDesign_EN.pdf", p_en,
-       width = FIG_W, height = FIG_H, units = "mm", device = cairo_pdf)
-ggsave("figures/main/en/png/Fig1_StudyDesign_EN.png", p_en,
-       width = FIG_W, height = FIG_H, units = "mm", dpi = 300, bg = "white")
-message(sprintf("[%s] EN saved", SCRIPT_NAME))
+save_fig1("EN", FIG_W, FIG_H)
 
 message(sprintf("[%s] Generating Fig1 PT...", SCRIPT_NAME))
-p_pt <- make_fig1("PT")
-ggsave("figures/main/pt/pdf/Fig1_StudyDesign_PT.pdf", p_pt,
-       width = FIG_W, height = FIG_H, units = "mm", device = cairo_pdf)
-ggsave("figures/main/pt/png/Fig1_StudyDesign_PT.png", p_pt,
-       width = FIG_W, height = FIG_H, units = "mm", dpi = 300, bg = "white")
-message(sprintf("[%s] PT saved", SCRIPT_NAME))
+save_fig1("PT", FIG_W, FIG_H)
 
 # Registry
 for (f in c("figures/main/en/pdf/Fig1_StudyDesign_EN.pdf",
