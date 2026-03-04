@@ -333,6 +333,7 @@ plot_df <- val_res %>%
     label = sprintf("%s (n=%d, ev=%d)", cohort,
                     ifelse("n_samples" %in% names(val_res), n_samples, NA_integer_),
                     ifelse("n_events" %in% names(val_res), n_events, NA_integer_)),
+    hr_label = sprintf("%.2f (%.2f\u2013%.2f)", hr_uni, hr_uni_lo95, hr_uni_hi95),
     cohort_f = factor(cohort, levels = rev(VALIDATION_COHORTS))
   )
 
@@ -344,8 +345,10 @@ meta_row <- tibble(
   hr_uni_hi95 = exp(meta_uni$ci.ub),
   n_samples = NA_integer_,
   n_events  = NA_integer_,
-  label     = sprintf("Meta RE (K=%d, I2=%.0f%%, tau2=%.3f)",
+  label     = sprintf("Meta RE (K=%d, I\u00b2=%.0f%%, \u03c4\u00b2=%.3f)",
                       nrow(val_res), meta_uni$I2, meta_uni$tau2),
+  hr_label  = sprintf("%.2f (%.2f\u2013%.2f)",
+                       exp(meta_uni$b[1]), exp(meta_uni$ci.lb), exp(meta_uni$ci.ub)),
   cohort_f  = factor("Meta (RE)", levels = c(rev(VALIDATION_COHORTS), "Meta (RE)"))
 )
 
@@ -362,28 +365,35 @@ fp <- ggplot(fp_data, aes(x = hr_uni, y = cohort_f)) +
   geom_point(aes(shape = ifelse(cohort == "Meta (RE)", 18L, 15L),
                  size  = ifelse(cohort == "Meta (RE)", 5, 3),
                  color = ifelse(cohort == "Meta (RE)", "Meta (RE)", "Cohort"))) +
+  geom_text(aes(x = max(fp_data$hr_uni_hi95, na.rm = TRUE) * 1.15,
+                label = hr_label),
+            hjust = 0, size = 3.0, color = "grey30") +
   scale_shape_identity() +
   scale_size_identity() +
   scale_color_manual(values = c("Cohort" = "#2980B9", "Meta (RE)" = "#E74C3C"),
                      name = NULL) +
-  scale_x_log10(breaks = c(0.5, 1, 2, 3, 4)) +
+  scale_x_log10(breaks = c(0.5, 0.75, 1, 1.25, 1.5, 2, 3)) +
+  coord_cartesian(xlim = c(0.5, max(fp_data$hr_uni_hi95, na.rm = TRUE) * 2.5)) +
   labs(
-    title = "CorePAM Meta-analysis: HR per 1 SD (random-effects)",
-    x     = "HR per 1 SD of score (log scale)",
-    y     = NULL
+    title    = "CorePAM Meta-analysis: HR per 1 SD (random-effects)",
+    subtitle = sprintf("I\u00b2=%.1f%%, \u03c4\u00b2=%.4f, p_het=%.3g",
+                        meta_uni$I2, meta_uni$tau2, meta_uni$QEp),
+    x        = "HR per 1 SD of score (log scale)",
+    y        = NULL
   ) +
   theme_classic(base_size = 12) +
   theme(
-    plot.title  = element_text(face = "bold", size = 13),
-    axis.text.y = element_text(size = 10),
+    plot.title    = element_text(face = "bold", size = 13),
+    plot.subtitle = element_text(size = 10, color = "grey40"),
+    axis.text.y   = element_text(size = 10),
     legend.position = "bottom"
   )
 
 old_warn <- getOption("warn"); options(warn = 0)
-pdf(fp_pdf, width = 9, height = 5)
+pdf(fp_pdf, width = 10, height = 5)
 print(fp)
 dev.off()
-png(fp_png, width = 900, height = 500, res = 100)
+png(fp_png, width = 1000, height = 500, res = 100)
 print(fp)
 dev.off()
 options(warn = old_warn)

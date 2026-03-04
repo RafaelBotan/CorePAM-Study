@@ -1,9 +1,9 @@
 check,status,detail,source,timestamp
-SCANB_hr_positive,PASS,hr_uni = 1.9226,survival_results_SCANB.csv,2026-02-28 21:34:43
-SCANB_cindex_range,PASS,c_index = 0.6978,survival_results_SCANB.csv,2026-02-28 21:34:43
-TCGA_BRCA_hr_positive,PASS,hr_uni = 1.2042,survival_results_TCGA_BRCA.csv,2026-02-28 21:34:43
-TCGA_BRCA_cindex_range,PASS,c_index = 0.6238,survival_results_TCGA_BRCA.csv,2026-02-28 21:34:43
-METABRIC_hr_positive,PASS,hr_uni = 1.4123,survival_results_METABRIC.csv,2026-02-28 21:34:43
-METABRIC_cindex_range,PASS,c_index = 0.6376,survival_results_METABRIC.csv,2026-02-28 21:34:43
-GSE20685_hr_positive,PASS,hr_uni = 1.4007,survival_results_GSE20685.csv,2026-02-28 21:34:43
-GSE20685_cindex_range,PASS,c_index = 0.6231,survival_results_GSE20685.csv,2026-02-28 21:34:43
+SCANB_hr_positive,PASS,hr_uni = 1.9226,survival_results_SCANB.csv,2026-03-04 09:05:10
+SCANB_cindex_range,PASS,c_index = 0.6978,survival_results_SCANB.csv,2026-03-04 09:05:10
+TCGA_BRCA_hr_positive,PASS,hr_uni = 1.2042,survival_results_TCGA_BRCA.csv,2026-03-04 09:05:11
+TCGA_BRCA_cindex_range,PASS,c_index = 0.6238,survival_results_TCGA_BRCA.csv,2026-03-04 09:05:11
+METABRIC_hr_positive,PASS,hr_uni = 1.4123,survival_results_METABRIC.csv,2026-03-04 09:05:11
+METABRIC_cindex_range,PASS,c_index = 0.6376,survival_results_METABRIC.csv,2026-03-04 09:05:11
+GSE20685_hr_positive,PASS,hr_uni = 1.4007,survival_results_GSE20685.csv,2026-03-04 09:05:11
+GSE20685_cindex_range,PASS,c_index = 0.6231,survival_results_GSE20685.csv,2026-03-04 09:05:11

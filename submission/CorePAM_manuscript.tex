@@ -151,7 +151,7 @@ where $z_i$ is the intra-cohort z-score of gene $i$ and $w_i$ is its weight from
 
 \textbf{Multivariate Cox (CORE-A model):} score\_z adjusted for age (continuous) and ER status (binary), when ER was available in harmonised clinical data. CORE-A covariates by cohort: SCAN-B---age + ER status; METABRIC---age + ER status; TCGA-BRCA---age alone (ER status was not recoverable from the GDC-harmonised clinical file); GSE20685---age alone (ER status absent from the GSE Series Matrix clinical annotation). CORE-A denotes the clinical-only model (age $\pm$ ER).
 
-\textbf{C-index:} Harrell's C-index~\cite{harrell1982} with 95\% bootstrap CI ($B = 1{,}000$).
+\textbf{C-index:} Harrell's C-index~\cite{harrell1982} with 95\% bootstrap CI ($B = 1{,}000$). Uno's C-statistic (IPCW)~\cite{uno2011} was computed as a sensitivity analysis to address heterogeneous censoring; time-dependent AUC at fixed horizons (60 months; 24 months for TCGA-BRCA) was estimated via the timeROC package~\cite{blanche2013}.
 
 \textbf{Kaplan--Meier:} dichotomised at the intra-cohort median; log-rank test. Quartile sensitivity analysis.
 
@@ -163,6 +163,12 @@ where $z_i$ is the intra-cohort z-score of gene $i$ and $w_i$ is its weight from
 
 \textbf{Meta-analysis:} Random-effects model using REML estimator for the OS/DSS block; DerSimonian--Laird~\cite{dersimonian1986} for the pCR block (metafor package~\cite{viechtbauer2010}). Heterogeneity was quantified using $I^2$~\cite{higgins2003}. Four independent validation cohorts were included (K = 4: TCGA-BRCA, METABRIC, GSE20685, GSE1456); SCAN-B excluded as training cohort. Hartung--Knapp adjustment~\cite{hartung2001} applied as sensitivity analysis.
 
+\textbf{Calibration:} Formal calibration was assessed via logistic recalibration at the cohort-specific time horizon. Calibration intercept ($\alpha$; ideal = 0) and slope ($\beta$; ideal = 1) were obtained by regressing the binary outcome indicator $Y_H$ (event before horizon $H$) on the logit of the Cox-predicted risk at $H$. The expected-to-observed (E/O) ratio and Brier score were also computed.
+
+\textbf{Frozen z-score sensitivity:} As a sensitivity analysis addressing single-sample scoring feasibility, the mean and standard deviation per gene were frozen from the SCAN-B training cohort and applied to all external validation cohorts instead of computing intra-cohort z-scores. No cohort-level re-standardisation (i.e.\ no \texttt{scale()}) was applied to the composite score, ensuring that each patient's score depends only on their own expression values and the frozen SCAN-B reference---as would occur in clinical deployment with a single specimen. Cox HR and C-index were compared between frozen and intra-cohort approaches on the same raw-score scale.
+
+\textbf{Subgroup analysis:} ER-stratified analyses were performed in SCAN-B (ER status available in 94\% of samples). Cox HR and C-index were computed separately for ER-positive and ER-negative subgroups, with an interaction test (score $\times$ ER status).
+
 \textbf{Decision curve analysis (DCA)~\cite{vickers2006}:} Net benefit at clinically relevant probability thresholds using dcurves::dca (OS: 60-month horizon for SCAN-B, METABRIC, GSE20685; 24 months for TCGA-BRCA).
 
 \textbf{Clinical baseline model scope:} CORE-A was pre-specified as the minimum clinical baseline (age and ER status) for consistency across cohorts, avoiding post-hoc covariate selection decisions. T-stage and nodal status were reserved for exploratory sensitivity analyses (Additional file~12: Table~S2), as their harmonisation quality varied across public data sources and their inclusion in the primary model would have introduced cohort-specific modelling decisions incompatible with a uniform validation framework.
@@ -173,7 +179,7 @@ Logistic regression: pCR $\sim$ score\_z (univariate); adjusted for age and ER/H
 
 \subsection{Quality control}\label{subsec:quality-control}
 
-Comprehensive QC comprised: (i) off-diagonal score correlation between cohorts via percentile-based Spearman $\rho$; (ii) forensic PCA of METABRIC expression for batch effects and outliers; (iii) schema/range hard-checks on all analysis-ready files; (iv) automated anti-hardcoding assertions verifying all reported values against source CSV/JSON files.
+Comprehensive QC comprised: (i) off-diagonal score correlation between cohorts via percentile-based Pearson $r$; (ii) forensic PCA of METABRIC expression for batch effects and outliers; (iii) schema/range hard-checks on all analysis-ready files; (iv) automated anti-hardcoding assertions verifying all reported values against source CSV/JSON files.
 
 \subsection{Data and code availability}\label{subsec:data-code}
 
@@ -185,7 +191,7 @@ A large language model (Claude, Anthropic) was used as a coding assistant for di
 
 \subsection{Statistical software}\label{subsec:statistical-software}
 
-R version 4.5.2. Key packages: glmnet~\cite{friedman2010} (elastic-net), survival~\cite{therneau2000}/survminer (Cox, KM), metafor~\cite{viechtbauer2010} (meta-analysis), dcurves (DCA), edgeR~\cite{robinson2010} (RNA-seq normalisation), genefu~\cite{gendoo2016} (signature comparison).
+R version 4.5.2. Key packages: glmnet~\cite{friedman2010} (elastic-net), survival~\cite{therneau2000}/survminer (Cox, KM), metafor~\cite{viechtbauer2010} (meta-analysis), dcurves (DCA), edgeR~\cite{robinson2010} (RNA-seq normalisation), genefu~\cite{gendoo2016} (signature comparison), survC1 (Uno's C-statistic), timeROC~\cite{blanche2013} (time-dependent AUC).
 
 %% ============================================================
 %%  RESULTS
@@ -219,7 +225,7 @@ SCAN-B\footnotemark[1] & OS & 3,069 & 322 & 55.7 & 1.92 (1.74--2.13), $p<$0.001 
 TCGA-BRCA & OS & 1,072 & 150 & 32.0 & 1.20 (1.04--1.40), $p=$0.016 & 0.624 (0.572--0.678) \\
 METABRIC & DSS & 1,978 & 646 & 159 & 1.41 (1.31--1.52), $p<$0.001 & 0.638 (0.615--0.659) \\
 GSE20685 & OS & 327 & 83 & 112.8 & 1.40 (1.12--1.76), $p=$0.003 & 0.623 (0.562--0.683) \\
-GSE1456 & OS & 159 & 40 & 91.0 & 1.71 (1.23--2.38), $p=$0.001 & 0.661 (0.582--0.741) \\
+GSE1456 & OS & 159 & 40 & 91.1 & 1.71 (1.23--2.38), $p=$0.001 & 0.661 (0.582--0.741) \\
 \midrule
  & & & & & \textit{Adjusted HR (95\% CI)\footnotemark[2]} & \\
 \midrule
@@ -323,9 +329,19 @@ GSE20685 & age & 327 & 0.536 & 0.628 & +0.093 (0.021--0.175) \\
 \caption{Calibration curves at 60 months (24 months for TCGA-BRCA).}\label{fig:calibration}
 \end{figure}
 
+\subsection{Sensitivity analyses}\label{subsec:results-sensitivity}
+
+\textbf{Frozen z-score (single-sample scoring feasibility).} When the SCAN-B training cohort mean and standard deviation per gene were frozen and applied to external validation cohorts---without any cohort-level re-standardisation---the C-index was preserved in RNA-seq and array cohorts sharing a similar dynamic range: TCGA-BRCA $\Delta$C = +0.0002 (Pearson $r$ = 0.999); METABRIC $\Delta$C = +0.0007 ($r$ = 0.958). In GSE20685, an Affymetrix U133 Plus~2 cohort with a markedly different intensity distribution, discrimination was attenuated ($\Delta$C = $-$0.042; $r$ = 0.921; frozen HR = 1.61, 95\% CI 0.87--2.96, $p$ = 0.13). The consistent preservation in RNA-seq and partial degradation in smaller microarray cohorts confirm that frozen single-sample scoring is feasible provided the assay platform is compatible with the training reference (Additional file~14: Table~S4).
+
+\textbf{Uno's C-statistic and time-dependent AUC.} IPCW-based discrimination metrics confirmed the Harrell's C-index findings: Uno's C ranged from 0.663 (GSE20685) to 0.681 (METABRIC); time-dependent AUC at the cohort-specific horizon ranged from 0.671 (GSE20685, 60m) to 0.695 (METABRIC, 60m). These concordance estimates are robust to heterogeneous censoring (Additional file~15: Table~S5).
+
+\textbf{Formal calibration.} Logistic recalibration at the cohort-specific horizon yielded calibration slopes ranging from 0.96 (SCAN-B, near-ideal) to 2.74 (TCGA-BRCA), with corresponding intercepts of 0.56 (SCAN-B) to 5.40 (TCGA-BRCA). The training cohort showed near-perfect calibration ($\beta$ = 0.96, $\alpha$ = 0.56). External validation cohorts showed miscalibration that was mild in METABRIC ($\beta$ = 1.77) and GSE20685 ($\beta$ = 1.58) but substantial in TCGA-BRCA ($\beta$ = 2.74), the latter consistent with its short follow-up and low event rate at the 24-month horizon (Additional file~16: Table~S6).
+
+\textbf{ER-stratified subgroup analysis.} In SCAN-B (N = 2,870 with ER status), CorePAM was significantly associated with OS in both ER-positive (HR = 1.92; 95\% CI 1.69--2.17; $p < 0.001$; N = 2,646) and ER-negative (HR = 2.53; 95\% CI 1.51--4.25; $p < 0.001$; N = 224) subgroups. The interaction test was not significant ($p$ = 0.25), indicating that the CorePAM prognostic effect does not differ significantly by ER status.
+
 \subsection{Independence from anatomical staging}\label{subsec:results-staging}
 
-To address whether CorePAM retains prognostic value after adjustment for standard clinical-pathological variables, we fitted expanded multivariable Cox models adjusting for age, ER status (where available), pathological T-stage, and nodal status. T-stage and nodal status were available in 96--100\% of samples across the four cohorts with clinical covariates (SCAN-B, TCGA-BRCA, METABRIC, GSE20685). CorePAM remained independently significant in all four (all $p < 0.002$; Additional file~12: Table~S2), with HR attenuation of less than 10\% compared to the primary CORE-A baseline. Adding CorePAM to the expanded clinical model increased the C-index by +0.022 to +0.027.
+To address whether CorePAM retains prognostic value after adjustment for standard clinical-pathological variables, we fitted expanded multivariable Cox models adjusting for age, ER status (where available), pathological T-stage, and nodal status. T-stage and nodal status were available in 96--100\% of samples across the four cohorts with clinical covariates (SCAN-B, TCGA-BRCA, METABRIC, GSE20685). CorePAM remained independently significant in all four (all $p < 0.002$; Additional file~12: Table~S2), with HR change of less than 10\% compared to the primary CORE-A baseline. Adding CorePAM to the expanded clinical model increased the C-index by +0.022 to +0.027.
 
 \subsection{Pathologic complete response (secondary analysis)}\label{subsec:results-pcr}
 
@@ -375,15 +391,21 @@ We demonstrate that CorePAM---a 24-gene data-driven reduction of the PAM50 panel
 
 \textbf{Cross-platform consistency in pCR prediction.} The pCR block showed no heterogeneity ($I^2$ = 0\% across four cohorts), consistent with the biological basis of the signal: the retained proliferation genes are directly targeted by standard neoadjuvant regimens~\cite{prat2015}.
 
-\textbf{Calibration and clinical utility.} Calibration at clinically relevant horizons (60 months for SCAN-B, METABRIC, GSE20685; 24 months for TCGA-BRCA) showed adequate concordance between predicted and observed event rates in the training cohort (Figure~\ref{fig:calibration}). In external validation cohorts, the observed risk stratification exceeded the predicted range, consistent with model under-confidence when applying scores cross-platform without recalibration---a structural property of intra-cohort z-scoring. Decision curve analysis confirmed positive net benefit across a range of probability thresholds in all cohorts (Additional file~7: Figure~S7).
+\textbf{Calibration and clinical utility.} Calibration at clinically relevant horizons (60 months for SCAN-B, METABRIC, GSE20685; 24 months for TCGA-BRCA) showed adequate concordance between predicted and observed event rates in the training cohort (Figure~\ref{fig:calibration}). Formal logistic recalibration confirmed near-ideal calibration in the training cohort (slope $\beta$ = 0.96) with moderate miscalibration in external cohorts (slopes 1.58--2.74), consistent with model under-confidence when applying scores cross-platform without recalibration---a structural property of intra-cohort z-scoring. Decision curve analysis confirmed positive net benefit across a range of probability thresholds in all cohorts (Additional file~7: Figure~S7).
 
-\textbf{Independence from anatomical staging.} An exploratory sensitivity analysis adjusting for pathological T-stage and nodal status---the key clinical-pathological confounders not included in the primary CORE-A baseline---confirmed that CorePAM retains independent prognostic value in all four cohorts (Additional file~12: Table~S2). The HR attenuation was less than 10\%, and the incremental C-index remained positive (+0.022 to +0.027). This does not alter the primary endpoint or replace the main analyses; it corroborates robustness against pathological confounding.
+\textbf{Frozen z-score supports clinical translation.} A key reviewer concern was whether the intra-cohort z-score normalisation---appropriate for retrospective multi-cohort validation---could support single-sample scoring. Our frozen z-score sensitivity analysis applied SCAN-B reference mean/SD per gene to each external cohort without any cohort-level re-standardisation, ensuring that each patient's score depends only on their own expression values and the frozen reference. Discrimination was preserved in TCGA-BRCA ($\Delta$C = +0.0002; $r$ = 0.999) and METABRIC ($\Delta$C = +0.0007; $r$ = 0.958). In GSE20685 (Affymetrix U133 Plus~2), frozen scoring showed measurable degradation ($\Delta$C = $-$0.042; $r$ = 0.921), consistent with the larger distributional gap between RNA-seq and this microarray platform. These results confirm that a fixed normalisation reference can support single-sample scoring when the assay platform is compatible with the training reference.
+
+\textbf{Uno's C-statistic confirms robustness to censoring.} IPCW-based concordance metrics (Uno's C, time-dependent AUC) yielded estimates consistent with Harrell's C-index, confirming that the observed discrimination is not an artefact of heterogeneous censoring distributions across cohorts.
+
+\textbf{ER subgroup analysis.} CorePAM was significantly associated with OS in both ER-positive and ER-negative subgroups in SCAN-B, with no significant interaction ($p$ = 0.25). The numerically higher HR in ER-negative patients (2.53 vs 1.92) likely reflects the stronger contribution of proliferation and basal genes in triple-negative biology. However, the small ER-negative sample (N = 224, 35 events) limits the precision of this estimate. Full ER-stratified analysis across all cohorts was not feasible because TCGA-BRCA and GSE20685 lack harmonised ER status.
+
+\textbf{Independence from anatomical staging.} An exploratory sensitivity analysis adjusting for pathological T-stage and nodal status---the key clinical-pathological confounders not included in the primary CORE-A baseline---confirmed that CorePAM retains independent prognostic value in all four cohorts (Additional file~12: Table~S2). The absolute HR change was less than 10\% in all cohorts, and the incremental C-index remained positive (+0.022 to +0.027). This does not alter the primary endpoint or replace the main analyses; it corroborates robustness against pathological confounding.
 
 \textbf{Comparison with established signatures.} An exploratory head-to-head comparison against research-based implementations (genefu R package~\cite{gendoo2016}) of the PAM50-derived Risk of Recurrence score (ROR-S, 50 genes) and the OncotypeDX Recurrence Score (ODX-RS, 21 genes) showed that CorePAM (24 genes) performs competitively (Additional file~13: Table~S3). CorePAM showed advantages in the RNA-seq cohorts (its training domain) and small deficits ($\Delta$C $< 0.03$) in the microarray cohorts (the development domain of those signatures). This comparison involves research-based score implementations---not commercial assays---and should be interpreted as evidence of competitive performance, not clinical equivalence.
 
 \textbf{Clinical implications.} A 24-gene panel can be measured by a variety of RT-PCR, NanoString nCounter, or targeted RNA-seq platforms that are unable to reliably quantify all 50 PAM50 genes. If validated in prospective cohorts, CorePAM could extend the reach of molecular stratification to resource-limited settings.
 
-\textbf{Limitations.} This is a retrospective study using public data. TCGA-BRCA has structurally short follow-up (median 32 months), attenuating the detectable HR; the 24-month sensitivity analysis (Additional file~6: Figure~S6) partially mitigates this. METABRIC uses DSS as the primary endpoint, following established precedent for that dataset. Two CorePAM genes are absent from the Affymetrix HGU133A platform used in GSE20685 (22/24 = 91.7\% coverage); gene dropout sensitivity analysis confirmed minimal impact (Additional file~9: Figure~S9). The primary CORE-A clinical baseline was restricted to age and ER status---the two variables consistently available in harmonised form---although expanded models including T-stage and nodal status confirmed independent prognostic value (Additional file~12: Table~S2). ER status was unavailable in TCGA-BRCA and GSE20685, restricting CORE-A to age alone in those cohorts. Comparisons with ROR-S and ODX-RS used research-based implementations, not commercial assays. No prospective validation was performed. The current score formulation relies on intra-cohort z-score normalisation, which is appropriate for retrospective multi-cohort validation but does not directly support single-sample scoring in a clinical setting; clinical translation would require a fixed normalisation reference (e.g., platform-specific reference distributions or housekeeping-gene calibration), which is the subject of future technical validation work.
+\textbf{Limitations.} This is a retrospective study using public data. TCGA-BRCA has structurally short follow-up (median 32 months), attenuating the detectable HR; the 24-month sensitivity analysis (Additional file~6: Figure~S6) partially mitigates this. METABRIC uses DSS as the primary endpoint, following established precedent for that dataset. Two CorePAM genes are absent from the Affymetrix HGU133A platform used in GSE20685 (22/24 = 91.7\% coverage); gene dropout sensitivity analysis confirmed minimal impact (Additional file~9: Figure~S9). The primary CORE-A clinical baseline was restricted to age and ER status---the two variables consistently available in harmonised form---although expanded models including T-stage and nodal status confirmed independent prognostic value (Additional file~12: Table~S2). ER status was unavailable in TCGA-BRCA and GSE20685, restricting CORE-A to age alone in those cohorts. Comparisons with ROR-S and ODX-RS used research-based implementations, not commercial assays. No prospective validation was performed. The primary score formulation uses intra-cohort z-score normalisation; however, a frozen z-score sensitivity analysis (using SCAN-B reference parameters without cohort-level re-standardisation) demonstrated preserved discrimination in RNA-seq and Illumina array cohorts ($\Delta$C $<$ 0.001) and honest degradation in the Affymetrix cohort ($\Delta$C = $-$0.042), supporting the feasibility of single-sample scoring with a fixed reference for compatible platforms. Full clinical translation would additionally require platform-specific housekeeping-gene calibration, which is the subject of future technical validation work. HER2 status was not available in sufficient cohorts to permit HER2-stratified subgroup analysis.
 
 %% ============================================================
 %%  CONCLUSIONS
@@ -432,7 +454,7 @@ TMM: Trimmed mean of M-values.
 
 \bmhead{Supplementary information}
 
-Additional files 1--13 are available as supplementary material. See the Additional files section at the end of this article for descriptions.
+Additional files 1--16 are available as supplementary material. See the Additional files section at the end of this article for descriptions.
 
 \bmhead{Acknowledgements}
 
@@ -458,7 +480,7 @@ The authors thank the SCAN-B, TCGA, METABRIC, I-SPY, and Stockholm (GSE1456) con
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{additional_files/Additional_file_01_FigS1_Pareto.png}
-\caption{\textbf{Additional file~1: Figure~S1.} Pareto frontier: gene count vs.\ OOF C-index. Each point represents a unique df level along the glmnet regularisation path. Dashed red line: non-inferiority boundary ($C_{\text{max}}$ minus 0.010).}\label{fig:s1-pareto}
+\caption{\textbf{Additional file~1: Figure~S1.} Pareto frontier: gene count vs.\ OOF C-index. Each point represents a unique df level along the glmnet regularisation path. Dashed red line: non-inferiority boundary ($C_{\text{max}} - \Delta C$; $\Delta C = 0.010$).}\label{fig:s1-pareto}
 \end{figure}
 
 %% --- Figure S2 ---
@@ -472,14 +494,14 @@ The authors thank the SCAN-B, TCGA, METABRIC, I-SPY, and Stockholm (GSE1456) con
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{additional_files/Additional_file_03_FigS3_Correlation.png}
-\caption{\textbf{Additional file~3: Figure~S3.} Off-diagonal CorePAM score correlations between cohorts. Spearman $\rho$ computed on paired percentiles.}\label{fig:s3-correlation}
+\caption{\textbf{Additional file~3: Figure~S3.} Off-diagonal CorePAM score correlations between cohorts. Pearson $r$ computed on paired quantile values.}\label{fig:s3-correlation}
 \end{figure}
 
 %% --- Figure S4 ---
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{additional_files/Additional_file_04_FigS4_PCA.png}
-\caption{\textbf{Additional file~4: Figure~S4.} Forensic PCA of METABRIC expression matrix. Principal component analysis coloured by batch/platform annotation.}\label{fig:s4-pca}
+\caption{\textbf{Additional file~4: Figure~S4.} Forensic PCA of METABRIC expression matrix. Principal component analysis coloured by ER status.}\label{fig:s4-pca}
 \end{figure}
 
 %% --- Figure S5 ---
@@ -574,7 +596,7 @@ GSE20685 & 327 & age+T+N & 1.47 (1.15--1.86) & 0.002 & 0.697 & 0.722 & +0.025 \\
 \end{tabular}
 \end{table}
 
-%% --- Table S4: Genefu comparison ---
+%% --- Table S3: Genefu comparison ---
 \begin{table}[h]
 \caption{\textbf{Additional file~13: Table~S3.} Head-to-head C-index comparison: CorePAM (24 genes) vs research-based ROR-S (50 genes) and OncotypeDX-RS (21 genes). All scores per 1~SD.}\label{tab:s3-genefu}
 \begin{tabular}{@{}lrcccccc@{}}
@@ -585,6 +607,53 @@ SCAN-B & 3,069 & 0.698 & 0.641 & 0.607 & 1.92 & 1.56 & 1.40 \\
 TCGA-BRCA & 1,072 & 0.624 & 0.602 & 0.586 & 1.20 & 1.25 & 1.13 \\
 METABRIC & 1,978 & 0.638 & 0.643 & 0.665 & 1.41 & 1.53 & 1.51 \\
 GSE20685 & 327 & 0.623 & 0.647 & 0.648 & 1.40 & 1.57 & 1.59 \\
+\botrule
+\end{tabular}
+\end{table}
+
+%% --- Table S4: Frozen z-score sensitivity ---
+\begin{table}[h]
+\caption{\textbf{Additional file~14: Table~S4.} Frozen z-score sensitivity analysis. HR and C-index using SCAN-B reference mean/SD (frozen) vs intra-cohort z-score (original).}\label{tab:s4-frozen}
+\small
+\begin{tabular}{@{}lrcccccc@{}}
+\toprule
+Cohort & N & Platform & HR frozen & C frozen & HR intra & C intra & $r$ \\
+\midrule
+SCAN-B & 3,069 & RNA-seq & 8.74 & 0.698 & 8.74 & 0.698 & 1.000 \\
+TCGA-BRCA & 1,072 & RNA-seq & 1.68 & 0.624 & 1.88 & 0.624 & 0.999 \\
+METABRIC & 1,978 & Microarray & 4.03 & 0.638 & 3.00 & 0.638 & 0.958 \\
+GSE20685 & 327 & Microarray & 1.61 & 0.581 & 3.22 & 0.623 & 0.921 \\
+\botrule
+\end{tabular}
+\footnotetext{HR per unit of raw weighted score (no cohort-level re-standardisation). $r$: Pearson correlation between frozen and intra-cohort scores. C-index is rank-invariant.}
+\end{table}
+
+%% --- Table S5: Uno's C + tdAUC ---
+\begin{table}[h]
+\caption{\textbf{Additional file~15: Table~S5.} Uno's C-statistic (IPCW) and time-dependent AUC at cohort-specific horizons.}\label{tab:s5-unoc}
+\begin{tabular}{@{}lrrccc@{}}
+\toprule
+Cohort & N & Horizon & Uno's C & tdAUC (95\% CI) & Harrell's C \\
+\midrule
+SCAN-B & 3,069 & 60m & 0.674 & 0.679 (0.643--0.715) & 0.698 \\
+TCGA-BRCA & 1,072 & 24m & 0.669 & 0.673 (0.598--0.748) & 0.624 \\
+METABRIC & 1,978 & 60m & 0.681 & 0.695 (0.665--0.725) & 0.638 \\
+GSE20685 & 327 & 60m & 0.663 & 0.671 (0.592--0.750) & 0.623 \\
+\botrule
+\end{tabular}
+\end{table}
+
+%% --- Table S6: Formal calibration ---
+\begin{table}[h]
+\caption{\textbf{Additional file~16: Table~S6.} Formal calibration: logistic recalibration intercept ($\alpha$) and slope ($\beta$) at cohort-specific horizons. Ideal: $\alpha = 0$, $\beta = 1$.}\label{tab:s6-calibration}
+\begin{tabular}{@{}lrrcccc@{}}
+\toprule
+Cohort & N & Horizon & $\alpha$ (SE) & $\beta$ (SE) & E/O & Brier \\
+\midrule
+SCAN-B & 3,069 & 60m & 0.56 (0.18) & 0.96 (0.09) & 0.61 & 0.158 \\
+TCGA-BRCA & 1,072 & 24m & 5.40 (2.29) & 2.74 (0.79) & 0.74 & 0.061 \\
+METABRIC & 1,978 & 60m & 1.15 (0.25) & 1.77 (0.17) & 0.97 & 0.143 \\
+GSE20685 & 327 & 60m & 0.96 (0.75) & 1.58 (0.46) & 0.98 & 0.130 \\
 \botrule
 \end{tabular}
 \end{table}

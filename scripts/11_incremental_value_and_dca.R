@@ -151,7 +151,7 @@ for (coh in COHORTS) {
     next
   }
 
-  df         <- strict_parquet(ready_path)
+  df         <- as.data.frame(strict_parquet(ready_path))
   ep         <- ENDPOINT_MAP[[coh]]
   time_col   <- ep$time
   event_col  <- ep$event
@@ -174,8 +174,9 @@ for (coh in COHORTS) {
   # CORE-A: age and/or ER (only include if ≥80% non-NA)
   corea_vars  <- c("age", "er_status")
   corea_avail <- intersect(corea_vars, names(df))
-  corea_avail <- corea_avail[sapply(corea_avail,
-                                    function(v) mean(!is.na(df[[v]])) >= 0.8)]
+  corea_avail <- corea_avail[vapply(corea_avail,
+                                    function(v) mean(!is.na(as.vector(df[[v]]))) >= 0.8,
+                                    logical(1))]
 
   c_base <- c_full <- delta <- ci_lo <- ci_hi <- NA_real_
   corea_used <- if (length(corea_avail) > 0) paste(corea_avail, collapse = "+") else "none"
@@ -249,8 +250,9 @@ for (coh in COHORTS) {
     "node_positive", "her2_status"            # binary staging proxies
   )
   staging_avail <- intersect(staging_candidates, names(df))
-  staging_avail <- staging_avail[sapply(staging_avail,
-                                        function(v) mean(!is.na(df[[v]])) >= 0.8)]
+  staging_avail <- staging_avail[vapply(staging_avail,
+                                        function(v) mean(!is.na(as.vector(df[[v]]))) >= 0.8,
+                                        logical(1))]
 
   c_base_plus <- c_full_plus <- delta_plus <- ci_lo_plus <- ci_hi_plus <- NA_real_
   corea_plus_used <- NA_character_
@@ -367,11 +369,21 @@ if (nrow(df_plot) > 0) {
   )
   df_plot$y_label <- sprintf("%s\n(%s)", df_plot$cohort, df_plot$corea_label)
 
+  # Add formatted numeric labels
+  df_plot$dc_label <- sprintf("+%.3f (%.3f\u2013%.3f)",
+                               df_plot$delta_cindex,
+                               df_plot$delta_ci_lo95,
+                               df_plot$delta_ci_hi95)
+
   p_delta <- ggplot(df_plot, aes(x = delta_cindex, y = reorder(y_label, delta_cindex))) +
     geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
     geom_errorbar(aes(xmin = delta_ci_lo95, xmax = delta_ci_hi95),
                   orientation = "y", width = 0.3, linewidth = 0.8, color = "#2980B9") +
     geom_point(size = 4, color = "#2980B9") +
+    geom_text(aes(x = max(delta_ci_hi95, na.rm = TRUE) + 0.005, label = dc_label),
+              hjust = 0, size = 3.0, color = "grey30") +
+    coord_cartesian(xlim = c(min(df_plot$delta_ci_lo95, 0) - 0.005,
+                              max(df_plot$delta_ci_hi95, na.rm = TRUE) + 0.06)) +
     labs(
       title    = "CorePAM Incremental Value: Delta C-index",
       subtitle = "CORE-A + CorePAM vs CORE-A alone | Bootstrap 1,000 iterations | SCANB=age+ER; others=age only",

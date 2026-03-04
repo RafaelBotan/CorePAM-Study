@@ -110,6 +110,8 @@ make_forest_pcr <- function(lang = "EN") {
     dplyr::mutate(
       label        = sprintf("%s  N=%d, pCR=%d (%.0f%%)",
                              cohort, n_total, n_pcr1, 100 * n_pcr1 / n_total),
+      or_label     = sprintf("%.2f (%.2f\u2013%.2f)",
+                              or_uni, or_lo95, or_hi95),
       y_pos        = rev(seq_len(nrow(cohort_wt))),
       color_cat    = cohort,
       is_pooled_re = FALSE,
@@ -120,6 +122,7 @@ make_forest_pcr <- function(lang = "EN") {
   pooled_row_re <- tibble(
     cohort = "Pooled RE", label = re_lbl, y_pos = 0,
     or_uni = re_OR, or_lo95 = re_lo, or_hi95 = re_hi,
+    or_label = sprintf("%.2f (%.2f\u2013%.2f)", re_OR, re_lo, re_hi),
     n_total = NA, n_pcr1 = NA, p_uni = re_p, weight_re_pct = NA,
     color_cat = "Pooled RE", is_pooled_re = TRUE, is_pooled_fe = FALSE,
     size_pt = 5
@@ -127,6 +130,7 @@ make_forest_pcr <- function(lang = "EN") {
   pooled_row_fe <- tibble(
     cohort = "Pooled FE", label = fe_lbl, y_pos = -1,
     or_uni = fe_OR, or_lo95 = fe_lo, or_hi95 = fe_hi,
+    or_label = sprintf("%.2f (%.2f\u2013%.2f)", fe_OR, fe_lo, fe_hi),
     n_total = NA, n_pcr1 = NA, p_uni = fe_row$p_pooled, weight_re_pct = NA,
     color_cat = "Pooled FE", is_pooled_re = FALSE, is_pooled_fe = TRUE,
     size_pt = 5
@@ -146,11 +150,15 @@ make_forest_pcr <- function(lang = "EN") {
     geom_point(aes(size = ifelse(is_pooled_re | is_pooled_fe, 5, size_pt),
                    shape = ifelse(is_pooled_re, "diamond", "circle")),
                stroke = 1.1) +
+    geom_text(aes(x = max(forest_all$or_hi95, na.rm = TRUE) * 1.15,
+                  label = or_label),
+              hjust = 0, size = 2.8, color = "grey30", show.legend = FALSE) +
     scale_shape_identity() +
     scale_size_identity() +
     scale_colour_manual(values = color_map, guide = "none") +
     scale_x_log10(breaks = c(0.5, 0.75, 1, 1.25, 1.5, 2, 3),
                   labels = c("0.5", "0.75", "1", "1.25", "1.5", "2", "3")) +
+    coord_cartesian(xlim = c(0.3, max(forest_all$or_hi95, na.rm = TRUE) * 2.5)) +
     scale_y_continuous(breaks = forest_all$y_pos, labels = forest_all$label) +
     geom_hline(yintercept = 0.5, linetype = "solid",
                colour = COL$grey_mid, linewidth = 0.4) +
@@ -471,7 +479,8 @@ if (length(pr_list) > 0) {
 # --------------------------------------------------------------------------
 # Artifact hash manifest
 # --------------------------------------------------------------------------
-fig_files <- list.files(fig_pcr, pattern = "Fig_pCR.*\\.(pdf|png)$",
+fig_pcr_dir <- PATHS$figures$pcr_en_pdf
+fig_files <- list.files(fig_pcr_dir, pattern = "Fig_pCR.*\\.(pdf|png)$",
                         full.names = TRUE)
 if (length(fig_files) > 0) {
   manifest_df <- tibble(
@@ -489,4 +498,4 @@ if (length(fig_files) > 0) {
 }
 
 message(sprintf("[%s] COMPLETED — pCR figures: Fig_pCR1-4 saved to %s",
-                SCRIPT_NAME, fig_pcr))
+                SCRIPT_NAME, fig_pcr_dir))

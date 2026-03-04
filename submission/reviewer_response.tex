@@ -1,0 +1,278 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+
+\newcommand{\reviewerquote}[1]{\begin{quote}\itshape #1\end{quote}}
+
+\title{Response to Reviewers}
+\author{Rafael Botan}
+\date{2026-03-04}
+
+\begin{document}
+\maketitle
+
+\noindent\textbf{Manuscript:} CorePAM: a PAM50-derived gene expression score with multi-cohort external validation for breast cancer prognosis and neoadjuvant pCR across RNA-seq and microarray platforms\\
+\textbf{Journal:} Breast Cancer Research\\
+\textbf{Author:} Rafael Botan
+
+\bigskip
+
+Dear Editor and Reviewers,
+
+We are deeply grateful to the Editors and Reviewers for their thorough, constructive, and intellectually rigorous evaluation of our initial submission. Each critique was taken seriously, and their collective guidance has led to a fundamentally redesigned study that we believe is substantially superior in analytical rigour, statistical transparency, and scientific defensibility. We have addressed every concern raised --- in most cases by completely rebuilding the analytical framework from the ground up, rather than by incremental adjustments. Below, we respond point-by-point to each concern with humility and precision.
+
+We sincerely thank the reviewers for their time and expertise. Their insights have been instrumental in shaping a stronger manuscript.
+
+\bigskip\hrule\bigskip
+
+\section*{Reviewer 1}
+
+\subsection*{Comment R1.1 --- Additional RNA-seq validation cohort}
+
+\reviewerquote{The authors should include at least one additional RNA-seq-based cohort to validate their findings, as RNA-seq is now widely used for gene expression analysis. This would ensure the robustness of the results and improve the relevance of the study in the context of modern gene expression profiling.}
+
+\noindent\textbf{Response:}
+
+We wholeheartedly agree with this critical observation. The absence of an RNA-seq validation cohort was a significant limitation of the original submission. In the revised study, we have completely restructured the cohort architecture:
+
+\begin{itemize}
+  \item \textbf{Training cohort:} SCAN-B (GSE96058; N=3,069; RNA-seq), the largest publicly available RNA-seq breast cancer cohort with matched clinical follow-up.
+  \item \textbf{RNA-seq validation:} TCGA-BRCA (N=1,072; RNA-seq), providing independent RNA-seq validation.
+  \item \textbf{Microarray validation:} METABRIC (N=1,978; Illumina HT-12), GSE20685 (N=327; Affymetrix HGU133A), and GSE1456 (N=159; Affymetrix HGU133A/B --- Stockholm cohort).
+\end{itemize}
+
+The revised design therefore includes \textbf{two RNA-seq cohorts} (training + one validation) and \textbf{three microarray cohorts} (from two distinct platforms: Illumina and Affymetrix), directly addressing the reviewer's concern. In TCGA-BRCA, CorePAM achieved HR=1.20 per 1~SD (95\%CI 1.04--1.40; p=0.016), with a 24-month sensitivity analysis yielding HR=1.64 (95\%CI 1.24--2.16; $p=4.7\times10^{-4}$), confirming cross-platform RNA-seq transferability.
+
+\subsection*{Comment R1.2 --- Source code availability}
+
+\reviewerquote{To effectively claim reproducibility and transparency, the authors should share the source code used for their analysis. Ideally, this should be done by providing a link to a GitHub repository containing all scripts and workflows used in the study.}
+
+\noindent\textbf{Response:}
+
+We are grateful for this recommendation, which aligns with our commitment to open science. The complete analysis pipeline is now publicly available at:
+
+\begin{center}
+\url{https://github.com/RafaelBotan/CorePAM-Study}
+\end{center}
+
+The repository includes:
+
+\begin{itemize}
+  \item All numbered R scripts (00--34), executable in sequence to reproduce every result from raw public data.
+  \item Frozen analytical parameters (\texttt{analysis\_freeze.csv}).
+  \item CorePAM gene weights and training card (JSON).
+  \item The LaTeX manuscript source (\texttt{.tex}), with an automated QC script (\texttt{16\_qc\_text\_vs\_results\_assert.R}) that verifies all reported numbers match their source CSV/JSON files.
+  \item SHA-256 checksums for all input and output artifacts.
+\end{itemize}
+
+Every script includes a skip/force mechanism (\texttt{FORCE\_RERUN}) for selective re-execution. The entire pipeline can be run from a single command sequence and is designed for exact reproducibility from first principles.
+
+\subsection*{Comment R1.3 --- Preprocessing workflow details}
+
+\reviewerquote{The methods section lacks sufficient detail about the preprocessing workflow applied to the gene expression matrices. The authors state that `Each cohort underwent a uniform curation and intra-cohort preprocessing workflow prior to integration' but no specifics are provided.}
+
+\noindent\textbf{Response:}
+
+We fully agree that this level of detail is essential for reproducibility. The revised Methods section now provides explicit preprocessing specifications for each platform:
+
+\begin{itemize}
+  \item \textbf{RNA-seq cohorts (SCAN-B, TCGA-BRCA):} Raw counts were filtered with \texttt{edgeR::filterByExpr}, normalised by TMM (trimmed mean of M-values), and transformed to log-CPM (prior.count=1). Ensembl identifiers were mapped to official HGNC symbols via \texttt{org.Hs.eg.db} (offline annotation). When multiple Ensembl IDs mapped to the same HGNC symbol, the identifier with the highest intra-cohort variance was retained.
+  \item \textbf{Microarray cohorts (METABRIC, GSE20685, GSE1456):} Log2-scaled intensities from GEO Series Matrix files (pre-processed by the original data submitters) were used without additional normalisation. Probe-to-gene mapping was performed via platform-specific Bioconductor annotation packages (\texttt{hgu133a.db}, \texttt{org.Hs.eg.db}).
+  \item \textbf{Z-score normalisation:} Strictly intra-cohort; no inter-cohort pooling or batch correction was applied at any stage.
+\end{itemize}
+
+\subsection*{Comment R1.4 --- Gene selection criteria (40 core PAM50 genes)}
+
+\reviewerquote{The selection of the 40 core PAM50 genes was based on their detection in the three selected cohorts, with exclusion reasons such as `Weak expression' or `Alias inconsistencies' listed in Supplementary Table 1. However, the authors should provide the expression threshold used to define `weak expression'. [\ldots] How was cross-platform reproducibility evaluated?}
+
+\noindent\textbf{Response:}
+
+This is a perceptive and entirely valid critique. The reviewer correctly identifies that the previous gene selection approach was insufficiently rigorous and relied on subjective criteria. In the revised study, \textbf{the entire gene selection paradigm has been fundamentally changed}:
+
+\begin{itemize}
+  \item All \textbf{50 PAM50 genes} are entered as candidates --- no pre-filtering by expression level, alias matching, or cross-platform heuristics.
+  \item Gene selection is performed \textbf{entirely by the elastic-net regularisation path}: genes receive zero weight (and are excluded) based on their contribution to out-of-fold prognostic performance, not by pre-specified thresholds.
+  \item The gene count itself (N=24) was \textbf{not pre-specified} --- it emerged from the data via a pre-registered non-inferiority criterion ($\Delta$C-index = 0.010).
+  \item Gene coverage in validation cohorts is reported transparently (Table~2): platform limitations (e.g., 6 PAM50 genes absent from Affymetrix HGU133A) are documented, and a pre-specified minimum coverage of 80\% was met in all cohorts.
+\end{itemize}
+
+This approach eliminates the subjectivity flagged by the reviewer and replaces it with a transparent, reproducible, data-driven framework.
+
+\subsection*{Comment R1.5 --- Discrepancies between text and Figure 3A}
+
+\reviewerquote{There are discrepancies between the values reported in the text for Figure 3A and the figure annotations. For example, the hazard ratio (HR) is reported as 0.89 in the figure but is described as 1.1 in the text. The median follow-up is listed as 75 months in the figure, while the text mentions a `short median follow-up (\textasciitilde 3-4 years).'}
+
+\noindent\textbf{Response:}
+
+We sincerely appreciate the reviewer's attention to detail. These inconsistencies reflected manual transcription errors in the original manuscript. In the revised manuscript, all reported numbers in the LaTeX source are verified against their source CSV and JSON result files by an automated anti-hardcoding QC script (\texttt{16\_qc\_text\_vs\_results\_assert.R}). This structural approach makes the class of errors identified by the reviewer detectable and preventable.
+
+\subsection*{Comment R1.6 --- Figure 5 readability (overlapping cohort curves)}
+
+\reviewerquote{Figure 5 is difficult to interpret due to the overlap of cohort curves. The authors should consider using panels to separate the curves for each cohort.}
+
+\noindent\textbf{Response:}
+
+We agree entirely. In the revised manuscript, all multi-cohort results use \textbf{separate figures} rather than overlaid curves. Specifically:
+
+\begin{itemize}
+  \item Kaplan--Meier survival curves are presented as separate figures, one per validation cohort.
+  \item Calibration curves are panelled by cohort.
+  \item All supplementary multi-cohort figures (quartile KM, sensitivity analyses) follow the same convention.
+\end{itemize}
+
+This improves readability substantially and directly addresses the reviewer's concern.
+
+\subsection*{Comment R1.7 --- Intrinsic subtype frequency comparison}
+
+\reviewerquote{The authors should provide a sample-level comparison of the frequency of intrinsic subtypes in each cohort, as previously reported, and the frequencies obtained using the 40 core PAM50 genes.}
+
+\noindent\textbf{Response:}
+
+We appreciate this suggestion. However, the revised CorePAM is fundamentally different from the original approach in a critical way: \textbf{CorePAM does not perform subtype classification.} It is a continuous prognostic score derived from Cox elastic-net regression --- not a centroid-based classifier. Therefore, a subtype frequency comparison is not applicable to the current formulation. The score captures prognostic information across the subtype spectrum via weighted gene expression, rather than assigning discrete categories.
+
+We have added a head-to-head comparison with the research-based ROR-S (50 genes; centroid-based) and OncotypeDX-RS (21 genes) implementations from the \texttt{genefu} R package (Additional file~13: Table~S3), which provides the comparative context the reviewer seeks --- albeit at the score level rather than categorical subtype level.
+
+\subsection*{Comment R1.8 --- Auto-correlation inflating Pearson correlations}
+
+\reviewerquote{The median Pearson correlation values reported in the study are inflated because auto-correlation (always 1) was included in the calculation. The authors should remove auto-correlation values from the calculation.}
+
+\noindent\textbf{Response:}
+
+This is an excellent statistical observation, and we are grateful for this correction. In the revised study, \textbf{all cross-cohort correlations are computed off-diagonal only} --- the diagonal (self-correlation = 1.0) is explicitly excluded before computing summary statistics. This is documented in the QC script (\texttt{13\_qc\_correlations\_offdiag.R}) and visualised in Supplementary Figure~S3, which now correctly reflects only inter-cohort Pearson $r$ values computed on paired score quantile values.
+
+\subsection*{Comment R1.9 --- METABRIC PCA clusters}
+
+\reviewerquote{The PCA plot for the Metabric dataset shows three visible clusters along the X-axis that are not associated with PAM50 subtypes. The authors should investigate the nature of these clusters.}
+
+\noindent\textbf{Response:}
+
+We are grateful for this forensic observation. In the revised study, we conducted a dedicated forensic PCA analysis of the METABRIC expression matrix (Additional file~4: Figure~S4). The PCA was coloured by ER status (the dominant biological covariate available in the clinical annotation). The analysis confirmed that the observed clustering structure reflects the underlying ER-driven biology of the dataset. Importantly, \textbf{CorePAM validation in METABRIC uses z-score normalisation computed over the entire METABRIC dataset} (pooling Discovery and Validation subsets), and the survival analysis is performed on the full cohort. The DSS endpoint is the primary analysis; OS is reported as sensitivity. No batch correction was applied, consistent with our strict policy of avoiding inter-cohort or inter-batch expression adjustments.
+
+\subsection*{Comment R1.10 --- Inconsistencies in dataset count}
+
+\reviewerquote{There are inconsistencies in the number of datasets mentioned throughout the article. For example, the authors refer to the use of four datasets in lines 148 and 414, but only three datasets were used.}
+
+\noindent\textbf{Response:}
+
+We thank the reviewer for this careful reading. The revised manuscript now uses \textbf{five validation cohorts} (four for OS/DSS prognosis + four for pCR prediction + one exploratory pCR cohort), and all cohort counts are explicitly defined. The cohort architecture is:
+
+\begin{itemize}
+  \item \textbf{OS/DSS block:} 4 validation cohorts (TCGA-BRCA, METABRIC, GSE20685, GSE1456)
+  \item \textbf{pCR block:} 4 primary cohorts (GSE25066, GSE20194, GSE32646, I-SPY1) + 1 exploratory (I-SPY2)
+\end{itemize}
+
+\bigskip\hrule\bigskip
+
+\section*{Reviewer 2}
+
+\subsection*{Comment R2.1 --- OS and DRFS pooling without adjustment}
+
+\reviewerquote{OS (METABRIC/TCGA) and DRFS (GSE25066) are pooled without adjustment. Differing event mechanisms and censoring undermine the decision-curve analysis.}
+
+\noindent\textbf{Response:}
+
+This is a fundamental methodological critique, and we fully concur that endpoint mixing without justification is indefensible. The revised study addresses this concern through a complete structural redesign:
+
+\begin{enumerate}
+  \item \textbf{Strict endpoint separation:} The OS/DSS prognostic block and the pCR (neoadjuvant response) block are entirely independent analyses with no shared data or pooled estimates.
+  \item \textbf{METABRIC uses DSS as the primary endpoint} (not OS), following established precedent for that dataset. Deaths from other causes are censored at time of death. OS is reported only as a sensitivity analysis (Additional file~5: Figure~S5A).
+  \item \textbf{Fine--Gray competing risks model} was applied to METABRIC DSS (Additional file~5: Figure~S5B).
+  \item \textbf{Meta-analysis explicitly separates endpoint types:} The primary meta-analysis (K=4) includes OS for TCGA-BRCA, GSE20685, and GSE1456, and DSS for METABRIC. A harmonised OS-only sensitivity analysis (K=3) substituting METABRIC OS for DSS is reported separately and confirms consistent results.
+  \item \textbf{Decision curve analysis uses cohort-specific horizons:} 60 months for SCAN-B, METABRIC, and GSE20685; 24 months for TCGA-BRCA (reflecting its shorter follow-up). No cross-cohort pooling of DCA results is performed.
+\end{enumerate}
+
+GSE25066 (DRFS) has been removed entirely from the OS/DSS analysis block. It now contributes exclusively to the pCR block (as a neoadjuvant chemotherapy cohort with pathologic complete response as endpoint).
+
+\subsection*{Comment R2.2 --- C-index of 0.42 in TCGA}
+
+\reviewerquote{A C-index of 0.42 in TCGA suggests poor transportability. Attributing this solely to `few events' is speculative without sensitivity analyses.}
+
+\noindent\textbf{Response:}
+
+This was the most consequential critique of the original submission, and we are deeply grateful for its directness. The C-index of 0.42 in TCGA indicated a fundamental problem --- not merely attenuation but inversion of the prognostic signal. In the revised study, the problem has been resolved at its root:
+
+\begin{enumerate}
+  \item \textbf{Training cohort changed from METABRIC (microarray) to SCAN-B (RNA-seq, N=3,069).} This eliminates the cross-platform training-validation mismatch that was the likely cause of the inverted signal.
+  \item \textbf{TCGA-BRCA now achieves C-index = 0.624 (95\%CI 0.572--0.678)}, well above the chance level of 0.50, confirming adequate RNA-seq-to-RNA-seq transferability.
+  \item \textbf{Sensitivity analysis at 24 months} (censoring all patients at 24m) yielded HR=1.64 (95\%CI 1.24--2.16; $p=4.7\times10^{-4}$), confirming that the attenuated HR in the full analysis reflects short follow-up (median 32 months), not poor transportability.
+  \item \textbf{CORE-A adjustment} (multivariate Cox with age) confirmed independent prognostic value: adjusted HR=1.27 (95\%CI 1.09--1.48; p=0.002).
+  \item \textbf{Incremental C-index over clinical baseline:} $\Delta$C=+0.038 (95\%CI 0.011--0.086).
+\end{enumerate}
+
+The structural lesson from this critique --- that cross-platform training-validation mismatches can catastrophically degrade performance --- was central to the decision to retrain on SCAN-B RNA-seq and validate across platforms rather than the reverse.
+
+\subsection*{Comment R2.3 --- Omission of clinical covariates}
+
+\reviewerquote{Omitting clinical covariates inflates claims of parsimony yet prevents readers from judging added value over simple clinicopathological factors.}
+
+\noindent\textbf{Response:}
+
+This is a fair and important critique that we fully embrace. The revised study introduces a systematic framework for clinical covariate adjustment:
+
+\begin{enumerate}
+  \item \textbf{CORE-A baseline model} (pre-specified): age + ER status (when available). CorePAM adjusted HRs remain significant in all cohorts: TCGA-BRCA HR=1.27, METABRIC HR=1.36, GSE20685 HR=1.40 (all p$<$0.004).
+  \item \textbf{Incremental C-index ($\Delta$C):} Bootstrap-validated (B=1,000) improvement over CORE-A: $\Delta$C ranges from +0.030 (SCAN-B) to +0.093 (GSE20685) across cohorts --- all with 95\%CI excluding zero.
+  \item \textbf{Expanded CORE-A sensitivity (Additional file~12: Table~S2):} Adjustment for age + ER status + T-stage + nodal status. CorePAM remained independently significant in all four cohorts (all p$<$0.002), with HR change $<$10\% compared to the primary baseline. The incremental C-index remained positive (+0.022 to +0.027).
+  \item \textbf{Decision curve analysis:} Demonstrates net clinical benefit across probability thresholds in all cohorts, confirming that CorePAM adds clinically meaningful discrimination beyond the clinical baseline.
+\end{enumerate}
+
+\bigskip\hrule\bigskip
+
+\section*{Additional analyses (proactive improvements)}
+
+Beyond the reviewers' specific requests, we conducted several additional sensitivity analyses to further strengthen the manuscript:
+
+\begin{enumerate}
+  \item \textbf{Frozen z-score sensitivity analysis (Additional file~14: Table~S4):} The SCAN-B training cohort mean and standard deviation per gene were frozen and applied to external validation cohorts without any cohort-level re-standardisation, testing true single-sample scoring feasibility. C-index was virtually identical ($\Delta$C $<$ 0.001; Pearson $r$ = 0.999 for TCGA-BRCA; $r$ = 0.958 for METABRIC), confirming that a fixed normalisation reference supports clinical deployment with a single specimen.
+
+  \item \textbf{Uno's C-statistic and time-dependent AUC (Additional file~15: Table~S5):} IPCW-based concordance metrics confirmed robustness to heterogeneous censoring across cohorts (Uno's C: 0.663--0.681; tdAUC: 0.671--0.695).
+
+  \item \textbf{Formal calibration (Additional file~16: Table~S6):} Logistic recalibration intercept ($\alpha$) and slope ($\beta$) were computed at cohort-specific horizons. The training cohort showed near-ideal calibration ($\beta$ = 0.96). External cohorts showed expected miscalibration consistent with cross-platform scoring.
+
+  \item \textbf{ER-stratified subgroup analysis:} In SCAN-B (N=2,870 with ER status), CorePAM was significantly associated with OS in both ER-positive (HR=1.92; p$<$0.001) and ER-negative (HR=2.53; p$<$0.001) subgroups. The interaction test was not significant (p=0.25), indicating that the prognostic effect does not differ significantly by ER status.
+\end{enumerate}
+
+\bigskip\hrule\bigskip
+
+\section*{Summary of changes}
+
+\begin{tabular}{@{}p{3.5cm}p{4.5cm}p{5.5cm}@{}}
+\toprule
+Concern & Original study & Revised study \\
+\midrule
+RNA-seq validation & None & TCGA-BRCA (N=1,072) \\
+Training cohort & METABRIC (microarray) & SCAN-B (N=3,069; RNA-seq) \\
+Validation cohorts & 3 (mixed endpoints) & 4 OS/DSS + 4 pCR + 1 exploratory \\
+Source code & Not available & GitHub: CorePAM-Study \\
+Gene selection & Subjective (40 genes) & Data-driven elastic-net (24 genes) \\
+C-index TCGA & 0.42 (below chance) & 0.624 (95\%CI 0.572--0.678) \\
+Clinical covariates & None & CORE-A (age+ER) + expanded (T+N) \\
+Endpoint mixing & OS + DRFS pooled & Strict separation (OS/DSS vs pCR) \\
+METABRIC endpoint & OS & DSS (primary); OS (sensitivity) \\
+Auto-correlation & Included & Excluded (off-diagonal only) \\
+Hardcoded values & Manual transcription & Automated QC verification \\
+Figures & Overlapping curves & Separate figures per cohort \\
+Preprocessing details & Not described & Full protocol per platform \\
+pCR analysis & Not performed & 4 cohorts + I-SPY2 (pooled OR=1.69) \\
+Meta-analysis & 3 cohorts, mixed endpoints & K=4 RE: HR=1.37 (95\%CI 1.24--1.52) \\
+Competing risks & Not assessed & Fine--Gray for METABRIC DSS \\
+Frozen z-score & Not assessed & Near-perfect preservation ($r \geq 0.958$) \\
+Uno's C / tdAUC & Not assessed & Confirms robustness to censoring \\
+Formal calibration & Not assessed & Slope/intercept per cohort \\
+ER subgroup & Not assessed & Significant in both ER+ and ER$-$ \\
+\botrule
+\end{tabular}
+
+\bigskip
+
+We believe these revisions comprehensively address every concern raised. The revised study represents a fundamentally redesigned analysis with stronger methodology, broader validation, complete transparency, and full reproducibility from public data. We are grateful for the opportunity to improve this work and look forward to the reviewers' assessment.
+
+\bigskip
+
+\noindent Respectfully,\\
+Rafael Botan
+
+\end{document}

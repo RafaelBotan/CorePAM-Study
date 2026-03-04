@@ -1,45 +1,45 @@
 cohort,check,status,detail,timestamp
-GLOBAL,weights_schema,PASS,,2026-02-28 21:34:25
-GLOBAL,weights_nonzero_count,PASS,24 non-zero weights,2026-02-28 21:34:25
-GLOBAL,weights_no_na,PASS,,2026-02-28 21:34:25
-SCANB,file_exists,PASS,,2026-02-28 21:34:25
-SCANB,file_loads,PASS,3069 rows x 11 cols,2026-02-28 21:34:25
-SCANB,required_columns,PASS,,2026-02-28 21:34:25
-SCANB,no_duplicate_samples,PASS,,2026-02-28 21:34:25
-SCANB,score_z_na_fraction,PASS,0.00%,2026-02-28 21:34:25
-SCANB,time_positive,PASS,,2026-02-28 21:34:25
-SCANB,time_unit_months,PASS,Median = 53.0 months,2026-02-28 21:34:25
-SCANB,event_binary,PASS,,2026-02-28 21:34:25
-SCANB,score_direction_valid,PASS,direction = original,2026-02-28 21:34:25
-SCANB,min_sample_size,PASS,3069 complete cases,2026-02-28 21:34:25
-TCGA_BRCA,file_exists,PASS,,2026-02-28 21:34:25
-TCGA_BRCA,file_loads,PASS,1072 rows x 12 cols,2026-02-28 21:34:26
-TCGA_BRCA,required_columns,PASS,,2026-02-28 21:34:26
-TCGA_BRCA,no_duplicate_samples,PASS,,2026-02-28 21:34:26
-TCGA_BRCA,score_z_na_fraction,PASS,0.00%,2026-02-28 21:34:26
-TCGA_BRCA,time_positive,PASS,,2026-02-28 21:34:26
-TCGA_BRCA,time_unit_months,PASS,Median = 28.3 months,2026-02-28 21:34:26
-TCGA_BRCA,event_binary,PASS,,2026-02-28 21:34:26
-TCGA_BRCA,score_direction_valid,PASS,direction = original,2026-02-28 21:34:26
-TCGA_BRCA,min_sample_size,PASS,1072 complete cases,2026-02-28 21:34:26
-METABRIC,file_exists,PASS,,2026-02-28 21:34:26
-METABRIC,file_loads,PASS,1979 rows x 14 cols,2026-02-28 21:34:26
-METABRIC,required_columns,PASS,,2026-02-28 21:34:26
-METABRIC,no_duplicate_samples,PASS,,2026-02-28 21:34:26
-METABRIC,score_z_na_fraction,PASS,0.00%,2026-02-28 21:34:26
-METABRIC,time_positive,PASS,,2026-02-28 21:34:26
-METABRIC,time_unit_months,PASS,Median = 116.5 months,2026-02-28 21:34:26
-METABRIC,event_binary,PASS,,2026-02-28 21:34:26
-METABRIC,metabric_dss_present,PASS,,2026-02-28 21:34:26
-METABRIC,score_direction_valid,PASS,direction = original,2026-02-28 21:34:26
-METABRIC,min_sample_size,PASS,1978 complete cases,2026-02-28 21:34:26
-GSE20685,file_exists,PASS,,2026-02-28 21:34:26
-GSE20685,file_loads,PASS,327 rows x 11 cols,2026-02-28 21:34:26
-GSE20685,required_columns,PASS,,2026-02-28 21:34:26
-GSE20685,no_duplicate_samples,PASS,,2026-02-28 21:34:26
-GSE20685,score_z_na_fraction,PASS,0.00%,2026-02-28 21:34:26
-GSE20685,time_positive,PASS,,2026-02-28 21:34:26
-GSE20685,time_unit_months,PASS,Median = 97.2 months,2026-02-28 21:34:26
-GSE20685,event_binary,PASS,,2026-02-28 21:34:26
-GSE20685,score_direction_valid,PASS,direction = original,2026-02-28 21:34:26
-GSE20685,min_sample_size,PASS,327 complete cases,2026-02-28 21:34:26
+GLOBAL,weights_schema,PASS,,2026-03-04 07:53:23
+GLOBAL,weights_nonzero_count,PASS,24 non-zero weights,2026-03-04 07:53:23
+GLOBAL,weights_no_na,PASS,,2026-03-04 07:53:23
+SCANB,file_exists,PASS,,2026-03-04 07:53:23
+SCANB,file_loads,PASS,3069 rows x 11 cols,2026-03-04 07:53:23
+SCANB,required_columns,PASS,,2026-03-04 07:53:23
+SCANB,no_duplicate_samples,PASS,,2026-03-04 07:53:23
+SCANB,score_z_na_fraction,PASS,0.00%,2026-03-04 07:53:23
+SCANB,time_positive,PASS,,2026-03-04 07:53:23
+SCANB,time_unit_months,PASS,Median = 53.0 months,2026-03-04 07:53:23
+SCANB,event_binary,PASS,,2026-03-04 07:53:23
+SCANB,score_direction_valid,PASS,direction = original,2026-03-04 07:53:23
+SCANB,min_sample_size,PASS,3069 complete cases,2026-03-04 07:53:23
+TCGA_BRCA,file_exists,PASS,,2026-03-04 07:53:23
+TCGA_BRCA,file_loads,PASS,1072 rows x 12 cols,2026-03-04 07:53:23
+TCGA_BRCA,required_columns,PASS,,2026-03-04 07:53:23
+TCGA_BRCA,no_duplicate_samples,PASS,,2026-03-04 07:53:23
+TCGA_BRCA,score_z_na_fraction,PASS,0.00%,2026-03-04 07:53:23
+TCGA_BRCA,time_positive,PASS,,2026-03-04 07:53:23
+TCGA_BRCA,time_unit_months,PASS,Median = 28.3 months,2026-03-04 07:53:23
+TCGA_BRCA,event_binary,PASS,,2026-03-04 07:53:23
+TCGA_BRCA,score_direction_valid,PASS,direction = original,2026-03-04 07:53:23
+TCGA_BRCA,min_sample_size,PASS,1072 complete cases,2026-03-04 07:53:23
+METABRIC,file_exists,PASS,,2026-03-04 07:53:23
+METABRIC,file_loads,PASS,1979 rows x 14 cols,2026-03-04 07:53:23
+METABRIC,required_columns,PASS,,2026-03-04 07:53:23
+METABRIC,no_duplicate_samples,PASS,,2026-03-04 07:53:23
+METABRIC,score_z_na_fraction,PASS,0.00%,2026-03-04 07:53:23
+METABRIC,time_positive,PASS,,2026-03-04 07:53:23
+METABRIC,time_unit_months,PASS,Median = 116.5 months,2026-03-04 07:53:23
+METABRIC,event_binary,PASS,,2026-03-04 07:53:23
+METABRIC,metabric_dss_present,PASS,,2026-03-04 07:53:23
+METABRIC,score_direction_valid,PASS,direction = original,2026-03-04 07:53:23
+METABRIC,min_sample_size,PASS,1978 complete cases,2026-03-04 07:53:23
+GSE20685,file_exists,PASS,,2026-03-04 07:53:23
+GSE20685,file_loads,PASS,327 rows x 11 cols,2026-03-04 07:53:23
+GSE20685,required_columns,PASS,,2026-03-04 07:53:23
+GSE20685,no_duplicate_samples,PASS,,2026-03-04 07:53:23
+GSE20685,score_z_na_fraction,PASS,0.00%,2026-03-04 07:53:23
+GSE20685,time_positive,PASS,,2026-03-04 07:53:23
+GSE20685,time_unit_months,PASS,Median = 97.2 months,2026-03-04 07:53:23
+GSE20685,event_binary,PASS,,2026-03-04 07:53:23
+GSE20685,score_direction_valid,PASS,direction = original,2026-03-04 07:53:23
+GSE20685,min_sample_size,PASS,327 complete cases,2026-03-04 07:53:23

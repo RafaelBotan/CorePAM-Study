@@ -73,7 +73,7 @@ for (coh in cohort_names) {
   options(warn = old_warn)
 }
 
-# Spearman correlation matrix between cohort percentiles
+# Pearson correlation matrix between cohort percentiles
 cor_mat <- matrix(NA_real_, nrow = n_coh, ncol = n_coh,
                   dimnames = list(cohort_names, cohort_names))
 
@@ -117,14 +117,14 @@ registry_append("ALL", "qc_correlations_offdiag", cor_path, h_cor, "ok", SCRIPT_
 # --------------------------------------------------------------------------
 # Convert to long format for ggplot
 cor_long <- reshape2::melt(cor_mat, varnames = c("Cohort_A", "Cohort_B"),
-                            value.name = "Spearman_rho", na.rm = TRUE)
+                            value.name = "Pearson_r", na.rm = TRUE)
 
 # Ensure reshape2 is available
 if (!requireNamespace("reshape2", quietly = TRUE)) {
   cor_long <- do.call(rbind, lapply(cohort_names, function(i) {
     do.call(rbind, lapply(cohort_names, function(j) {
       if (i != j) {
-        data.frame(Cohort_A = i, Cohort_B = j, Spearman_rho = cor_mat[i, j],
+        data.frame(Cohort_A = i, Cohort_B = j, Pearson_r = cor_mat[i, j],
                    stringsAsFactors = FALSE)
       }
     }))
@@ -133,9 +133,9 @@ if (!requireNamespace("reshape2", quietly = TRUE)) {
 
 # figure dirs created by 00_setup.R
 
-p_cor <- ggplot(cor_long, aes(x = Cohort_A, y = Cohort_B, fill = Spearman_rho)) +
+p_cor <- ggplot(cor_long, aes(x = Cohort_A, y = Cohort_B, fill = Pearson_r)) +
   geom_tile(color = "white", linewidth = 0.5) +
-  geom_text(aes(label = sprintf("%.3f", Spearman_rho)),
+  geom_text(aes(label = sprintf("%.3f", Pearson_r)),
             color = "black", size = 3.5, na.rm = TRUE) +
   scale_fill_gradient2(
     low  = "#2166AC", mid = "white", high = "#D6604D",

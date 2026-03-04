@@ -1,5 +1,5 @@
-cohort,corea_vars_used,n,c_corea,c_corea_score,delta_cindex,delta_ci_lo95,delta_ci_hi95,cal60_note
-SCANB,age+er_status,3069,0.7504,0.78,0.0296,0.014,0.0487,calibration_60m_ok
-TCGA_BRCA,age,1072,0.6379,0.6758,0.0379,0.0106,0.0859,calibration_24m_ok
-METABRIC,age+er_status,1978,0.6025,0.6457,0.0432,0.0246,0.0655,calibration_60m_ok
-GSE20685,age,327,0.5356,0.6284,0.0928,0.0213,0.1745,calibration_60m_ok
+cohort,corea_vars_used,corea_plus_vars,n,c_corea,c_corea_score,delta_cindex,delta_ci_lo95,delta_ci_hi95,c_corea_plus,c_corea_plus_score,delta_cindex_plus,delta_ci_lo95_plus,delta_ci_hi95_plus,cal60_note
+SCANB,age+er_status,NA,3069,0.7504,0.78,0.0296,0.014,0.0487,NA,NA,NA,NA,NA,calibration_60m_ok
+TCGA_BRCA,age,NA,1072,0.6379,0.6758,0.0379,0.0106,0.0859,NA,NA,NA,NA,NA,calibration_24m_ok
+METABRIC,age+er_status,NA,1978,0.6025,0.6457,0.0432,0.0246,0.0655,NA,NA,NA,NA,NA,calibration_60m_ok
+GSE20685,age,NA,327,0.5356,0.6284,0.0928,0.0213,0.1745,NA,NA,NA,NA,NA,calibration_60m_ok
