@@ -46,9 +46,9 @@
 %% ============================================================
 \section{Background}\label{sec:background}
 
-The PAM50 intrinsic subtype gene expression test classifies breast tumours into five molecular subtypes---Luminal~A, Luminal~B, HER2-enriched, Basal-like, and Normal-like---and underpins the Prosigna prognostic assay~\cite{parker2009}. Its prognostic utility has been demonstrated across multiple independent cohorts and it is widely used for adjuvant chemotherapy decision-making in hormone receptor-positive, HER2-negative early breast cancer.
+The PAM50 intrinsic subtype gene expression test classifies breast tumours into five molecular subtypes---Luminal~A, Luminal~B, HER2-enriched, Basal-like, and Normal-like~\cite{perou2000,sorlie2001}---and underpins the Prosigna prognostic assay~\cite{parker2009}. Its prognostic utility has been demonstrated across multiple independent cohorts and it is widely used for adjuvant chemotherapy decision-making in hormone receptor-positive, HER2-negative early breast cancer~\cite{cardoso2016,sparano2018}.
 
-Despite its clinical validation, PAM50 requires simultaneous measurement of all 50 genes with calibrated reference samples. Its commercial implementation (Prosigna assay) is analytically validated exclusively on the NanoString nCounter platform~\cite{nielsen2014}, with substantial per-sample costs. These requirements create barriers in settings where RNA quality is limited (e.g., formalin-fixed paraffin-embedded tissue), platforms are unavailable, or per-sample costs are prohibitive. A reduced panel measurable by targeted RT-PCR or small targeted RNA-seq assays could extend the reach of molecular stratification to resource-limited settings.
+Despite its clinical validation, PAM50 requires simultaneous measurement of all 50 genes with calibrated reference samples. Its commercial implementation (Prosigna assay) is analytically validated exclusively on the NanoString nCounter platform~\cite{nielsen2014}, with substantial per-sample costs. These requirements create barriers in settings where RNA quality is limited (e.g., formalin-fixed paraffin-embedded tissue), platforms are unavailable, or per-sample costs are prohibitive. A reduced panel measurable by targeted RT-PCR or small targeted RNA-seq assays could extend the reach of molecular stratification to resource-limited settings. Existing reduced-gene assays such as the OncotypeDX Recurrence Score (21 genes)~\cite{paik2004} and the MammaPrint 70-gene signature~\cite{vantveer2002} were developed with different gene pools and endpoints; a PAM50-specific reduction has not been systematically attempted with modern penalised regression.
 
 Previous attempts to reduce gene panels have typically pre-specified the target gene count before analysis, selected genes by threshold on univariate statistics, or used cohorts that mixed RNA-seq and microarray expression without platform-specific preprocessing. These approaches either introduce analytical circularity (optimising for the assumed answer) or ignore the multi-platform generalizability that clinical deployment demands.
 
@@ -61,7 +61,7 @@ We present CorePAM, a data-driven reduction of the PAM50 gene set derived from t
 
 \subsection{Study design}\label{subsec:study-design}
 
-This is a retrospective multicohort study exclusively using publicly available de-identified data. No new data were collected. All analytical parameters were pre-specified and frozen before any analysis (see Analytical Freeze).
+This is a retrospective multicohort study exclusively using publicly available de-identified data, reported following the TRIPOD guideline~\cite{moons2015}. No new data were collected. All analytical parameters were pre-specified and frozen before any analysis (see Analytical Freeze). External validation followed established principles for prognostic model assessment~\cite{royston2004}.
 
 \subsection{Cohorts}\label{subsec:cohorts}
 
@@ -110,7 +110,7 @@ Gene count & Not pre-specified (derived from data) \\
 
 All preprocessing was performed independently per cohort with no inter-cohort pooling or batch correction.
 
-\textit{RNA-seq cohorts (SCAN-B, TCGA-BRCA):} Raw counts were filtered with edgeR::filterByExpr, normalised by TMM, and transformed to log-CPM (prior.count = 1). Ensembl identifiers were mapped to official HGNC symbols via org.Hs.eg.db (offline annotation). In the case of multiple Ensembl IDs mapping to the same HGNC symbol, the identifier with the highest intra-cohort variance was retained.
+\textit{RNA-seq cohorts (SCAN-B, TCGA-BRCA):} Raw counts were filtered with edgeR::filterByExpr~\cite{robinson2010}, normalised by TMM, and transformed to log-CPM (prior.count = 1). Ensembl identifiers were mapped to official HGNC symbols via org.Hs.eg.db (offline annotation). In the case of multiple Ensembl IDs mapping to the same HGNC symbol, the identifier with the highest intra-cohort variance was retained.
 
 \textit{Microarray cohorts (METABRIC, GSE20685, GSE1456):} Log2-scaled intensities from GEO Series Matrix files (pre-processed by the original data submitters) were used without additional normalisation. METABRIC identifiers were mapped via org.Hs.eg.db; GSE20685 and GSE1456 (Affymetrix HGU133A/B) via hgu133a.db. Six PAM50 genes lack probes on HGU133A (platform ceiling: 44/50 = 88\%, above the 80\% minimum); of these, two belong to the CorePAM panel in GSE20685 (GPR160, CXXC5; 22/24 = 91.7\%) and three in GSE1456 (GPR160, CXXC5, KRT17; 21/24 = 87.5\%), both above the 80\% minimum. METABRIC ER status was obtained from the cBioPortal clinical file (ER\_IHC column).
 
@@ -133,7 +133,7 @@ GSE1456 & Affymetrix HGU133A/B & 21/24 & 87.5 & GPR160, CXXC5, KRT17 \\
 
 \subsection{CorePAM derivation}\label{subsec:corepam-derivation}
 
-Cox elastic-net regression ($\alpha = 0.5$~\cite{zou2005}; glmnet package) was fitted in SCAN-B using a 10-fold cross-validation scheme. Fold assignment was \textit{deterministic}, based on the first eight hexadecimal digits of the SHA-256 hash of each patient identifier, with event-stratification. This deterministic fold assignment ensures exact reproducibility from first principles without dependence on a random seed as driver of gene selection.
+Cox elastic-net regression ($\alpha = 0.5$~\cite{zou2005,tibshirani1997}; glmnet package~\cite{friedman2010,simon2011}) was fitted in SCAN-B using a 10-fold cross-validation scheme. Fold assignment was \textit{deterministic}, based on the first eight hexadecimal digits of the SHA-256 hash of each patient identifier, with event-stratification. This deterministic fold assignment ensures exact reproducibility from first principles without dependence on a random seed as driver of gene selection.
 
 Out-of-fold (OOF) C-index was computed for each degree-of-freedom level (df = number of non-zero genes) along the regularisation path. CorePAM was defined as the \textit{smallest df} satisfying: $C_{\text{adj}}(\text{df}) \geq C_{\text{adj,max}} - 0.010$. The non-inferiority margin of 0.010 was chosen because it is less than half of one approximate standard error of the OOF C-index in the training cohort (SE $\approx$ 0.026 for N = 3,069 with 322 events), representing a clinically negligible loss in discrimination. Sensitivity analysis confirmed robustness: margins of 0.005, 0.015, and 0.020 would have selected 31, 18, and 16 genes respectively, demonstrating that the selected panel is not brittle to the choice of margin. Final model coefficients were extracted from the full-data path at the selected $\lambda$.
 
@@ -155,13 +155,15 @@ where $z_i$ is the intra-cohort z-score of gene $i$ and $w_i$ is its weight from
 
 \textbf{Kaplan--Meier:} dichotomised at the intra-cohort median; log-rank test. Quartile sensitivity analysis.
 
-\textbf{Fine--Gray competing risks:} applied to METABRIC DSS (deaths from other causes as competing event).
+\textbf{Proportional hazards assumption:} The proportional hazards assumption was assessed graphically via scaled Schoenfeld residual plots and formally tested using the Grambsch--Therneau global test~\cite{grambsch1994} for each cohort. No significant departures were detected in SCAN-B, GSE20685, or GSE1456 (all global $p > 0.05$). METABRIC DSS showed marginal non-proportionality ($p = 0.04$), expected given its 159-month follow-up; the Fine--Gray competing-risks analysis and the concordance-based C-index (which does not assume proportional hazards) mitigate this concern.
+
+\textbf{Fine--Gray competing risks~\cite{fine1999}:} applied to METABRIC DSS (deaths from other causes as competing event).
 
 \textbf{Incremental value:} $\Delta$C-index = C(CORE-A + score\_z) $-$ C(CORE-A); bootstrap 95\% CI ($B = 1{,}000$).
 
-\textbf{Meta-analysis:} Random-effects model using REML estimator for the OS/DSS block; DerSimonian--Laird for the pCR block (metafor package~\cite{viechtbauer2010}). Four independent validation cohorts were included (K = 4: TCGA-BRCA, METABRIC, GSE20685, GSE1456); SCAN-B excluded as training cohort. Hartung--Knapp adjustment~\cite{hartung2001} applied as sensitivity analysis.
+\textbf{Meta-analysis:} Random-effects model using REML estimator for the OS/DSS block; DerSimonian--Laird~\cite{dersimonian1986} for the pCR block (metafor package~\cite{viechtbauer2010}). Heterogeneity was quantified using $I^2$~\cite{higgins2003}. Four independent validation cohorts were included (K = 4: TCGA-BRCA, METABRIC, GSE20685, GSE1456); SCAN-B excluded as training cohort. Hartung--Knapp adjustment~\cite{hartung2001} applied as sensitivity analysis.
 
-\textbf{Decision curve analysis (DCA):} Net benefit at clinically relevant probability thresholds using dcurves::dca (OS: 60-month horizon for SCAN-B, METABRIC, GSE20685; 24 months for TCGA-BRCA).
+\textbf{Decision curve analysis (DCA)~\cite{vickers2006}:} Net benefit at clinically relevant probability thresholds using dcurves::dca (OS: 60-month horizon for SCAN-B, METABRIC, GSE20685; 24 months for TCGA-BRCA).
 
 \textbf{Clinical baseline model scope:} CORE-A was pre-specified as the minimum clinical baseline (age and ER status) for consistency across cohorts, avoiding post-hoc covariate selection decisions. T-stage and nodal status were reserved for exploratory sensitivity analyses (Additional file~12: Table~S2), as their harmonisation quality varied across public data sources and their inclusion in the primary model would have introduced cohort-specific modelling decisions incompatible with a uniform validation framework.
 
@@ -183,7 +185,7 @@ A large language model (Claude, Anthropic) was used as a coding assistant for di
 
 \subsection{Statistical software}\label{subsec:statistical-software}
 
-R version 4.5.2. Key packages: glmnet (elastic-net), survival/survminer (Cox, KM), metafor (meta-analysis), dcurves (DCA), edgeR (RNA-seq normalisation).
+R version 4.5.2. Key packages: glmnet~\cite{friedman2010} (elastic-net), survival~\cite{therneau2000}/survminer (Cox, KM), metafor~\cite{viechtbauer2010} (meta-analysis), dcurves (DCA), edgeR~\cite{robinson2010} (RNA-seq normalisation), genefu~\cite{gendoo2016} (signature comparison).
 
 %% ============================================================
 %%  RESULTS
@@ -361,13 +363,13 @@ We demonstrate that CorePAM---a 24-gene data-driven reduction of the PAM50 panel
 
 \textbf{Biological coherence.} The retained genes recapitulate core PAM50 biology: luminal differentiation (ESR1, PGR, BCL2, NAT1), proliferation (MYBL2, PTTG1, EXO1, MYC), basal phenotype (KRT5, KRT17, FOXC1), and HER2-enriched markers (ERBB2, GRB7). The proliferation genes also explain the pCR signal, as these pathways are targeted by anthracycline-taxane regimens. The 26 excluded genes received zero weight at the selected $\lambda$, consistent with functional redundancy under the elastic-net grouping property.
 
-\textbf{Cross-platform consistency in pCR prediction.} The pCR block showed no heterogeneity ($I^2$ = 0\% across four cohorts), consistent with the biological basis of the signal: the retained proliferation genes are directly targeted by standard neoadjuvant regimens.
+\textbf{Cross-platform consistency in pCR prediction.} The pCR block showed no heterogeneity ($I^2$ = 0\% across four cohorts), consistent with the biological basis of the signal: the retained proliferation genes are directly targeted by standard neoadjuvant regimens~\cite{prat2015}.
 
 \textbf{Calibration and clinical utility.} Calibration at clinically relevant horizons (60 months for SCAN-B, METABRIC, GSE20685; 24 months for TCGA-BRCA) showed adequate concordance between predicted and observed event rates in the training cohort (Figure~\ref{fig:calibration}). In external validation cohorts, the observed risk stratification exceeded the predicted range, consistent with model under-confidence when applying scores cross-platform without recalibration---a structural property of intra-cohort z-scoring. Decision curve analysis confirmed positive net benefit across a range of probability thresholds in all cohorts (Additional file~7: Figure~S7).
 
 \textbf{Independence from anatomical staging.} An exploratory sensitivity analysis adjusting for pathological T-stage and nodal status---the key clinical-pathological confounders not included in the primary CORE-A baseline---confirmed that CorePAM retains independent prognostic value in all four cohorts (Additional file~12: Table~S2). The HR attenuation was less than 10\%, and the incremental C-index remained positive (+0.022 to +0.027). This does not alter the primary endpoint or replace the main analyses; it corroborates robustness against pathological confounding.
 
-\textbf{Comparison with established signatures.} An exploratory head-to-head comparison against research-based implementations (genefu R package) of the PAM50-derived Risk of Recurrence score (ROR-S, 50 genes) and the OncotypeDX Recurrence Score (ODX-RS, 21 genes) showed that CorePAM (24 genes) performs competitively (Additional file~13: Table~S3). CorePAM showed advantages in the RNA-seq cohorts (its training domain) and small deficits ($\Delta$C $< 0.03$) in the microarray cohorts (the development domain of those signatures). This comparison involves research-based score implementations---not commercial assays---and should be interpreted as evidence of competitive performance, not clinical equivalence.
+\textbf{Comparison with established signatures.} An exploratory head-to-head comparison against research-based implementations (genefu R package~\cite{gendoo2016}) of the PAM50-derived Risk of Recurrence score (ROR-S, 50 genes) and the OncotypeDX Recurrence Score (ODX-RS, 21 genes) showed that CorePAM (24 genes) performs competitively (Additional file~13: Table~S3). CorePAM showed advantages in the RNA-seq cohorts (its training domain) and small deficits ($\Delta$C $< 0.03$) in the microarray cohorts (the development domain of those signatures). This comparison involves research-based score implementations---not commercial assays---and should be interpreted as evidence of competitive performance, not clinical equivalence.
 
 \textbf{Clinical implications.} A 24-gene panel can be measured by a variety of RT-PCR, NanoString nCounter, or targeted RNA-seq platforms that are unable to reliably quantify all 50 PAM50 genes. If validated in prospective cohorts, CorePAM could extend the reach of molecular stratification to resource-limited settings.
 
@@ -442,33 +444,140 @@ The authors thank the SCAN-B, TCGA, METABRIC, I-SPY, and Stockholm (GSE1456) con
 %% ============================================================
 \section*{Additional files}
 
-\textbf{Additional file~1: Figure~S1.} Pareto frontier: gene count vs.\ OOF C-index. Each point represents a unique df level along the glmnet regularisation path. Dashed red line: non-inferiority boundary ($C_{\text{max}}$ minus 0.010). (PNG)
+%% --- Figure S1 ---
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_01_FigS1_Pareto.png}
+\caption{\textbf{Additional file~1: Figure~S1.} Pareto frontier: gene count vs.\ OOF C-index. Each point represents a unique df level along the glmnet regularisation path. Dashed red line: non-inferiority boundary ($C_{\text{max}}$ minus 0.010).}\label{fig:s1-pareto}
+\end{figure}
 
-\textbf{Additional file~2: Figure~S2.} CorePAM gene weights (lollipop plot). Elastic-net Cox regression coefficients. Positive weights (red): higher expression associated with worse survival. (PNG)
+%% --- Figure S2 ---
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_02_FigS2_Weights.png}
+\caption{\textbf{Additional file~2: Figure~S2.} CorePAM gene weights (lollipop plot). Elastic-net Cox regression coefficients. Positive weights (red): higher expression associated with worse survival.}\label{fig:s2-weights}
+\end{figure}
 
-\textbf{Additional file~3: Figure~S3.} Off-diagonal CorePAM score correlations between cohorts. Spearman $\rho$ computed on paired percentiles. (PNG)
+%% --- Figure S3 ---
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_03_FigS3_Correlation.png}
+\caption{\textbf{Additional file~3: Figure~S3.} Off-diagonal CorePAM score correlations between cohorts. Spearman $\rho$ computed on paired percentiles.}\label{fig:s3-correlation}
+\end{figure}
 
-\textbf{Additional file~4: Figure~S4.} Forensic PCA of METABRIC expression matrix. Principal component analysis coloured by batch/platform annotation. (PNG)
+%% --- Figure S4 ---
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_04_FigS4_PCA.png}
+\caption{\textbf{Additional file~4: Figure~S4.} Forensic PCA of METABRIC expression matrix. Principal component analysis coloured by batch/platform annotation.}\label{fig:s4-pca}
+\end{figure}
 
-\textbf{Additional file~5: Figure~S5.} METABRIC sensitivity analyses. A: OS endpoint. B: Fine--Gray competing risks model. C: Quartile Kaplan--Meier (DSS). (PNG)
+%% --- Figure S5 ---
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{additional_files/Additional_file_05_FigS5_METABRIC_Sensitivity.png}
+\caption{\textbf{Additional file~5: Figure~S5.} METABRIC sensitivity analyses. A: OS endpoint. B: Fine--Gray competing risks model. C: Quartile Kaplan--Meier (DSS).}\label{fig:s5-metabric-sens}
+\end{figure}
 
-\textbf{Additional file~6: Figure~S6.} TCGA-BRCA 24-month sensitivity analysis. (PNG)
+%% --- Figure S6 ---
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_06_FigS6_TCGA_24m.png}
+\caption{\textbf{Additional file~6: Figure~S6.} TCGA-BRCA 24-month sensitivity analysis.}\label{fig:s6-tcga-24m}
+\end{figure}
 
-\textbf{Additional file~7: Figure~S7.} Decision curve analysis (OS). Net benefit versus treat-all and treat-none strategies. Horizons: 60 months (SCAN-B, METABRIC, GSE20685) and 24 months (TCGA-BRCA). (PNG)
+%% --- Figure S7 ---
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{additional_files/Additional_file_07_FigS7_DCA_OS.png}
+\caption{\textbf{Additional file~7: Figure~S7.} Decision curve analysis (OS). Net benefit versus treat-all and treat-none strategies. Horizons: 60 months (SCAN-B, METABRIC, GSE20685) and 24 months (TCGA-BRCA).}\label{fig:s7-dca}
+\end{figure}
 
-\textbf{Additional file~8: Figure~S8.} Bootstrap stability of CorePAM gene selection ($B = 200$). Frequency of each PAM50 gene across 200 bootstrap refits. (PNG)
+%% --- Figure S8 ---
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_08_FigS8_Bootstrap.png}
+\caption{\textbf{Additional file~8: Figure~S8.} Bootstrap stability of CorePAM gene selection ($B = 200$). Frequency of each PAM50 gene across 200 bootstrap refits.}\label{fig:s8-bootstrap}
+\end{figure}
 
-\textbf{Additional file~9: Figure~S9.} Leave-one-gene-out sensitivity analysis. Change in C-index when each CorePAM gene is individually removed. (PNG)
+%% --- Figure S9 ---
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_09_FigS9_GeneDropout.png}
+\caption{\textbf{Additional file~9: Figure~S9.} Leave-one-gene-out sensitivity analysis. Change in C-index when each CorePAM gene is individually removed.}\label{fig:s9-dropout}
+\end{figure}
 
-\textbf{Additional file~10: Figure~S10.} CORE-A baseline sensitivity analysis. Forest plot comparing CorePAM adjusted HR under different clinical baselines. (PNG)
+%% --- Figure S10 ---
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_10_FigS10_COREA_Sensitivity.png}
+\caption{\textbf{Additional file~10: Figure~S10.} CORE-A baseline sensitivity analysis. Forest plot comparing CorePAM adjusted HR under different clinical baselines.}\label{fig:s10-corea-sens}
+\end{figure}
 
-\textbf{Additional file~11: Table~S1.} CorePAM gene list with elastic-net weights (24 genes). (CSV)
+%% --- Table S1: Gene weights ---
+\begin{table}[h]
+\caption{\textbf{Additional file~11: Table~S1.} CorePAM gene list with elastic-net Cox regression weights (24 genes). Positive weights: higher expression associated with worse survival; negative weights: protective association.}\label{tab:s1-weights}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+Gene & Weight & Direction \\
+\midrule
+EXO1 & 0.2174 & Risk (+) \\
+NAT1 & $-$0.2052 & Protective ($-$) \\
+BLVRA & $-$0.1848 & Protective ($-$) \\
+ACTR3B & $-$0.1405 & Protective ($-$) \\
+MIA & $-$0.1193 & Protective ($-$) \\
+MYBL2 & $-$0.1183 & Protective ($-$) \\
+PTTG1 & 0.1140 & Risk (+) \\
+MDM2 & $-$0.1074 & Protective ($-$) \\
+SFRP1 & $-$0.0907 & Protective ($-$) \\
+GPR160 & $-$0.0841 & Protective ($-$) \\
+FOXC1 & 0.0717 & Risk (+) \\
+PHGDH & 0.0620 & Risk (+) \\
+MYC & $-$0.0424 & Protective ($-$) \\
+ESR1 & 0.0396 & Risk (+) \\
+KRT5 & $-$0.0277 & Protective ($-$) \\
+CXXC5 & 0.0266 & Risk (+) \\
+PGR & $-$0.0262 & Protective ($-$) \\
+KRT17 & $-$0.0163 & Protective ($-$) \\
+CENPF & 0.0150 & Risk (+) \\
+FGFR4 & 0.0110 & Risk (+) \\
+BCL2 & $-$0.0105 & Protective ($-$) \\
+MLPH & $-$0.0099 & Protective ($-$) \\
+ERBB2 & $-$0.0082 & Protective ($-$) \\
+GRB7 & $-$0.0053 & Protective ($-$) \\
+\botrule
+\end{tabular}
+\end{table}
 
-\textbf{Additional file~12: Table~S2.} Gene coverage details by cohort and platform. (CSV)
+%% --- Table S2: Expanded CORE-A ---
+\begin{table}[h]
+\caption{\textbf{Additional file~12: Table~S2.} Expanded CORE-A analysis: CorePAM independence from anatomical staging (T-stage, nodal status). HR per 1~SD CorePAM score from multivariable Cox regression.}\label{tab:s2-expanded}
+\begin{tabular}{@{}lrlllrrr@{}}
+\toprule
+Cohort & N & Covariates & HR (95\% CI) & $p$ & C clin & C clin+score & $\Delta$C \\
+\midrule
+SCAN-B & 2,948 & age+ER+T+N & 1.79 (1.57--2.05) & $<$0.001 & 0.766 & 0.788 & +0.022 \\
+TCGA-BRCA & 1,054 & age+T+N & 1.35 (1.15--1.58) & $<$0.001 & 0.719 & 0.746 & +0.027 \\
+METABRIC & 1,883 & age+ER+T+N & 1.34 (1.23--1.46) & $<$0.001 & 0.663 & 0.688 & +0.026 \\
+GSE20685 & 327 & age+T+N & 1.47 (1.15--1.86) & 0.002 & 0.697 & 0.722 & +0.025 \\
+\botrule
+\end{tabular}
+\end{table}
 
-\textbf{Additional file~12: Table~S2.} Expanded CORE-A analysis: CorePAM independence from anatomical staging (T-stage, nodal status). (CSV)
-
-\textbf{Additional file~13: Table~S3.} Head-to-head C-index comparison: CorePAM vs research-based ROR-S and OncotypeDX-RS. (CSV)
+%% --- Table S4: Genefu comparison ---
+\begin{table}[h]
+\caption{\textbf{Additional file~13: Table~S3.} Head-to-head C-index comparison: CorePAM (24 genes) vs research-based ROR-S (50 genes) and OncotypeDX-RS (21 genes). All scores per 1~SD.}\label{tab:s3-genefu}
+\begin{tabular}{@{}lrcccccc@{}}
+\toprule
+Cohort & N & CorePAM C & ROR-S C & ODX-RS C & CorePAM HR & ROR-S HR & ODX-RS HR \\
+\midrule
+SCAN-B & 3,069 & 0.698 & 0.641 & 0.607 & 1.92 & 1.56 & 1.40 \\
+TCGA-BRCA & 1,072 & 0.624 & 0.602 & 0.586 & 1.20 & 1.25 & 1.13 \\
+METABRIC & 1,978 & 0.638 & 0.643 & 0.665 & 1.41 & 1.53 & 1.51 \\
+GSE20685 & 327 & 0.623 & 0.647 & 0.648 & 1.40 & 1.57 & 1.59 \\
+\botrule
+\end{tabular}
+\end{table}
 
 %% ============================================================
 %%  REFERENCES
