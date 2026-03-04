@@ -33,7 +33,7 @@ Projeto de doutorado de Rafael Botan. Redução do painel PAM50 para um núcleo 
 ## Estrutura de diretórios
 
 ```
-Y:/Phd-Genomic-claude/          ← ROOT_REPO (working directory)
+./                              ← ROOT_REPO (working directory)
 ├── scripts/                    ← todos os scripts R numerados
 ├── 01_docs/
 │   ├── registry/               ← analysis_freeze.csv, manifests, audit reports
@@ -227,7 +227,7 @@ Se HR(score) < 1 → inverter sinal; registrar `score_direction = -1`.
 
 ## Git
 
-- **Repo:** https://github.com/RafaelBotan/Phd-Genomic.git (privado)
+- **Repo:** https://github.com/RafaelBotan/CorePAM-Study.git (público)
 - **Branch de trabalho:** `dev`
 - **Milestones:** merge para `main` + tag `freeze-corepam-YYYYMMDD`
 - **R:** `C:/Program Files/R/R-4.5.2/bin/Rscript.exe`
@@ -236,9 +236,6 @@ Se HR(score) < 1 → inverter sinal; registrar `score_direction = -1`.
 ## Referências dos documentos de governança
 
 - `Memorial_v6_1_CorePAM.md` — protocolo completo (fonte da verdade)
-- `CHECKLIST_MASTER_v6_1_CorePAM.md` — checklist operacional
-- `FIGURES_TABLES_PLAN_v6_1_CorePAM.md` — plano de figuras e tabelas
-- `SCRIPTS_PLAN_v6_1_CorePAM.md` — scripts e artefatos
 - `COREPAM_REPRO_RUNBOOK_v2.md` — runbook Git, data lake, sealed step ritual
 - `01_docs/registry/analysis_freeze.csv` — parâmetros congelados
 - `01_docs/registry/artifact_inventory.md` — inventário de artefatos

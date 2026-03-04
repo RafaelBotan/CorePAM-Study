@@ -17,7 +17,7 @@ suppressPackageStartupMessages({
   library(survminer)
   library(ggplot2)
 })
-source("Y:/Phd-Genomic-claude/scripts/00_colors.R")
+source("scripts/00_colors.R")
 
 set.seed(FREEZE$seed_folds)
 message(sprintf("[%s] Starting survival analysis %s | %s", SCRIPT_NAME, COHORT, ENDPOINT))

@@ -138,8 +138,7 @@ Validar o **Core-PAM Risk Score** em coortes independentes, demonstrando:
 - `results/corepam/pareto_df_cindex_oof.csv`
 - `results/corepam/CorePAM_weights.csv`
 - `results/corepam/CorePAM_model.rds` (usar `cv_full$glmnet.fit` no λ escolhido)
-- `results/corepam/selected_CorePAM_summary.json` (inclui df final, λ, ΔC, folds, hashes)
-  *(nota: referido como `CorePAM_training_card.json` em versões anteriores do memorial; nome real do arquivo gerado é `selected_CorePAM_summary.json`)*
+- `results/corepam/CorePAM_training_card.json` (inclui df final, λ, ΔC, folds, hashes)
 - `results/corepam/artifact_hashes.csv`
 
 ### 5.5 Regra de direção do score (congelada)

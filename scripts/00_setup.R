@@ -16,7 +16,7 @@ suppressPackageStartupMessages({
 # --------------------------------------------------------------------------
 # 1) PATHS — single source of truth (adjust ROOT_REPO once)
 # --------------------------------------------------------------------------
-ROOT_REPO <- normalizePath("Y:/Phd-Genomic-claude", mustWork = TRUE)
+ROOT_REPO <- normalizePath(".", mustWork = TRUE)
 DATA_LAKE <- file.path(ROOT_REPO, "01_Base_Pura_CorePAM")
 
 PATHS <- list(

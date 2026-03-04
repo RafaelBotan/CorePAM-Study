@@ -10,7 +10,7 @@ abstract: >
 version: "v6.1-freeze"
 date-released: "2026-03-01"
 license: MIT
-repository-code: "https://github.com/RafaelBotan/Phd-Genomic"
+repository-code: "https://github.com/RafaelBotan/CorePAM-Study"
 authors:
   - family-names: Botan
     given-names: Rafael

@@ -25,7 +25,6 @@ suppressPackageStartupMessages({
   library(patchwork)
 })
 
-setwd("Y:/Phd-Genomic-claude")
 source("scripts/00_setup.R")
 SCRIPT_NAME <- "07y_pam50full_comparison.R"
 

@@ -227,7 +227,7 @@ supp_dir <- PATHS$results$supp
 dir.create(supp_dir, showWarnings = FALSE, recursive = TRUE)
 
 # Read OOF C-index from model selection summary (derived in script 05)
-oof_json_path <- file.path(PATHS$results$corepam, "selected_CorePAM_summary.json")
+oof_json_path <- file.path(PATHS$results$corepam, "CorePAM_training_card.json")
 c_oof <- c_oof_pam50full <- c_oof_gap <- NA_real_
 if (file.exists(oof_json_path)) {
   old_warn <- getOption("warn"); options(warn = 0)

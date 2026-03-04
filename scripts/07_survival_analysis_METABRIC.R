@@ -18,7 +18,7 @@ suppressPackageStartupMessages({
   library(survminer)
   library(ggplot2)
 })
-source("Y:/Phd-Genomic-claude/scripts/00_colors.R")
+source("scripts/00_colors.R")
 
 # cmprsk for Fine-Gray (sensitivity) — load with warning suppression
 old_warn <- getOption("warn"); options(warn = 0)

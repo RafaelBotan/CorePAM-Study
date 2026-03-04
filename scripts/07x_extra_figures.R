@@ -21,7 +21,7 @@ suppressPackageStartupMessages({
   library(patchwork)
   library(ggrepel)
 })
-source("Y:/Phd-Genomic-claude/scripts/00_colors.R")
+source("scripts/00_colors.R")
 
 # Default dirs (English; all subdirs created by 00_setup.R)
 fig_main <- PATHS$figures$main_en_pdf   # kept for backward compat in section headers
@@ -656,7 +656,7 @@ if (file.exists(pareto_path)) {
   delta_c <- FREEZE$delta_c
   thresh  <- c_max - delta_c
 
-  sel_df  <- fromJSON(file.path(PATHS$results$corepam, "selected_CorePAM_summary.json"))
+  sel_df  <- fromJSON(file.path(PATHS$results$corepam, "CorePAM_training_card.json"))
   n_sel   <- sel_df$selected$df
 
   for (lang in c("EN", "PT")) {

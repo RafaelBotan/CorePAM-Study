@@ -1,0 +1,5 @@
+"cohort","n","n_pam50_genes","n_odx_genes","c_corepam","hr_corepam","p_corepam","c_ror_s","hr_ror_s","p_ror_s","c_odx_rs","hr_odx_rs","p_odx_rs","pam50_subtypes"
+"SCANB",3069,47,20,0.6978,1.9226,3.561e-36,0.6414,1.5566,1.039e-15,0.6066,1.4049,4.392e-11,"Basal,Her2,LumA,LumB,Normal"
+"TCGA_BRCA",1072,46,18,0.6238,1.2042,0.01578,0.6023,1.2466,0.00736,0.5857,1.1326,0.1234,"Basal,Her2,LumA,LumB,Normal"
+"METABRIC",1978,47,20,0.6376,1.4123,3.447e-19,0.6434,1.5274,1.968e-23,0.6648,1.5116,6.441e-31,"Basal,Her2,LumA,LumB,Normal"
+"GSE20685",327,42,20,0.6231,1.4007,0.003419,0.6466,1.572,0.0001019,0.6477,1.5857,5.662e-05,"Basal,Her2,LumA,LumB,Normal"

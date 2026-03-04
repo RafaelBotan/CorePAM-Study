@@ -19,7 +19,7 @@
 #
 # OUTPUTS:
 #   results/corepam/pareto_df_cindex_oof.csv
-#   results/corepam/selected_CorePAM_summary.json
+#   results/corepam/CorePAM_training_card.json
 #   results/corepam/CorePAM_weights.csv
 #   results/corepam/CorePAM_model.rds
 #   results/corepam/artifact_hashes.csv
@@ -387,7 +387,7 @@ summary_json <- list(
   timestamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
 )
 
-out_json <- file.path(PATHS$results$corepam, "selected_CorePAM_summary.json")
+out_json <- file.path(PATHS$results$corepam, "CorePAM_training_card.json")
 jsonlite::write_json(summary_json, out_json, pretty = TRUE, auto_unbox = TRUE)
 message("[05] Training card saved: ", basename(out_json))
 

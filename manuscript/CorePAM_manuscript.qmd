@@ -53,10 +53,10 @@ library(knitr)
 library(jsonlite)
 
 # ── Load all results dynamically (no hardcoding) ──────────────────────────────
-ROOT <- "Y:/Phd-Genomic-claude"
+ROOT <- normalizePath("..", mustWork = TRUE)
 
 # CorePAM summary JSON
-card_path <- file.path(ROOT, "results/corepam/selected_CorePAM_summary.json")
+card_path <- file.path(ROOT, "results/corepam/CorePAM_training_card.json")
 card <- if (file.exists(card_path)) fromJSON(card_path) else NULL
 
 # Gene weights
@@ -101,11 +101,11 @@ gcov_path <- file.path(ROOT, "results/supp/gene_coverage_by_cohort.csv")
 gcov <- if (file.exists(gcov_path)) read_csv(gcov_path, show_col_types = FALSE) else NULL
 
 # CORE-A expanded (exploratory: age+ER+T+N)
-corea_exp_path <- file.path(ROOT, "tech_validation/exploratory/EXP_corea_expanded_results.csv")
+corea_exp_path <- file.path(ROOT, "results/supp/EXP_corea_expanded_results.csv")
 corea_exp <- if (file.exists(corea_exp_path)) read_csv(corea_exp_path, show_col_types = FALSE) else NULL
 
 # Genefu comparison (research-based ROR-S and ODX-RS)
-genefu_path <- file.path(ROOT, "tech_validation/exploratory/EXP_genefu_comparison.csv")
+genefu_path <- file.path(ROOT, "results/supp/EXP_genefu_comparison.csv")
 genefu_df <- if (file.exists(genefu_path)) read_csv(genefu_path, show_col_types = FALSE) else NULL
 
 # Survival by cohort (supp)
@@ -258,7 +258,7 @@ Comprehensive QC comprised: (i) off-diagonal score correlation between cohorts v
 
 ### Data and code availability
 
-All raw data are publicly available (GEO, GDC, cBioPortal). Analysis code is available at <https://github.com/RafaelBotan/Phd-Genomic/tree/main>. All results are reproducible from the repository.
+All raw data are publicly available (GEO, GDC, cBioPortal). Analysis code is available at <https://github.com/RafaelBotan/CorePAM-Study>. All results are reproducible from the repository.
 
 ### Statistical software
 
@@ -625,7 +625,7 @@ if (!is.null(genefu_df)) {
 
 **Acknowledgements:** The author thanks the SCAN-B, TCGA, METABRIC, and I-SPY consortia for making their data publicly available.
 
-**Data availability:** All raw data are available through GEO (GSE96058, GSE25066, GSE20194, GSE32646, GSE22226, GSE194040), GDC (TCGA-BRCA), and cBioPortal (METABRIC). Analysis code and processed results are available at <https://github.com/RafaelBotan/Phd-Genomic/tree/main>.
+**Data availability:** All raw data are available through GEO (GSE96058, GSE25066, GSE20194, GSE32646, GSE22226, GSE194040), GDC (TCGA-BRCA), and cBioPortal (METABRIC). Analysis code and processed results are available at <https://github.com/RafaelBotan/CorePAM-Study>.
 
 ## References
 

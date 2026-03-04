@@ -1,7 +1,7 @@
 ---
 title: "Core-PAM — Reproducibility Runbook & Repo Operations (v2)"
 date: "2026-02-28"
-repo: "RafaelBotan/Phd-Genomic (Private)"
+repo: "RafaelBotan/CorePAM-Study"
 project: "Core-PAM (PAM50 → Core-PAM reduced panel; gene-count is derived)"
 ---
 
@@ -66,7 +66,7 @@ git push
 
 ## 1.5 Core rule: gene-count must never be encoded in filenames
 - Prohibited: `PAM29_weights.csv`, `PAM32_model.rds`, etc. *(use neutral names)*
-- Allowed: `CorePAM_weights.csv`, `CorePAM_model.rds`, `selected_CorePAM_summary.json`
+- Allowed: `CorePAM_weights.csv`, `CorePAM_model.rds`, `CorePAM_training_card.json`
 
 # 2) Local data lake (raw/processed separation)
 
@@ -137,7 +137,7 @@ Reduce PAM50 → Core-PAM with the **smallest feasible gene-count** while mainta
 
 ## 5.4 Output contract (must exist after derivation)
 - `results/pamxx/pareto_df_cindex_oof.csv`
-- `results/pamxx/selected_CorePAM_summary.json`
+- `results/pamxx/CorePAM_training_card.json`
 - `results/pamxx/CorePAM_weights.csv`
 - `results/pamxx/CorePAM_model.rds`
 - `results/pamxx/artifact_hashes.csv`

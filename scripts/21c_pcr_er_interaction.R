@@ -20,7 +20,6 @@ suppressPackageStartupMessages({
   library(ggplot2)
 })
 
-setwd("Y:/Phd-Genomic-claude")
 source("scripts/00_setup.R")
 
 SCRIPT_NAME <- "21c_pcr_er_interaction.R"
