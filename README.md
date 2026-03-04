@@ -322,8 +322,8 @@ All data are publicly available:
 
 If you use this work, please cite:
 
-> Botan RN, Sousa JB. CorePAM: a PAM50-derived gene expression score validated across
-> RNA-seq and microarray platforms for breast cancer prognosis. *Breast Cancer Res*. 2026
+> Botan RN, Sousa JB. CorePAM: a 24-gene PAM50-derived expression score with
+> cross-platform external validation for breast cancer prognosis. *Breast Cancer Res*. 2026
 > (under review).
 
 See also [`CITATION.cff`](CITATION.cff) for machine-readable citation metadata.

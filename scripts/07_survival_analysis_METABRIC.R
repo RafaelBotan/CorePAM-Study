@@ -162,6 +162,14 @@ message(sprintf("[%s] Median follow-up (Reverse KM): %.1f months", SCRIPT_NAME, 
 km_cutpoint <- median(df$score_z, na.rm = TRUE)
 df$risk_group_median <- ifelse(df$score_z >= km_cutpoint, "High", "Low")
 
+# Cox HR for dichotomized groups (High vs Low) — used for KM annotation
+cox_km <- coxph(Surv(df[[time_col]], df[[event_col]]) ~ I(risk_group_median == "High"), data = df)
+sm_km  <- summary(cox_km)
+hr_km  <- sm_km$conf.int[1, "exp(coef)"]
+lo_km  <- sm_km$conf.int[1, "lower .95"]
+hi_km  <- sm_km$conf.int[1, "upper .95"]
+p_km   <- sm_km$coefficients[1, "Pr(>|z|)"]
+
 old_warn <- getOption("warn"); options(warn = 0)
 km_fit_med <- survfit(
   Surv(df[[time_col]], df[[event_col]]) ~ risk_group_median, data = df
@@ -179,20 +187,19 @@ for (lang in c("EN", "PT")) {
   ylb <- if (lang == "EN") "Disease-specific survival"       else "Sobrevida específica"
   lbs <- if (lang == "EN") c("High risk", "Low risk")        else c("Alto risco", "Baixo risco")
   km_p <- ggsurvplot(
-    km_fit_med, data = df, risk.table = TRUE, pval = TRUE, conf.int = TRUE,
+    km_fit_med, data = df, risk.table = TRUE, pval = FALSE, conf.int = TRUE,
     palette = c(COL$km_high, COL$km_low),
     xlab = xlb, ylab = ylb, legend.labs = lbs, legend.title = NULL,
     xlim = c(0, xlim_val), break.time.by = break_val,
-    pval.coord = c(xlim_val * 0.5, 0.15),
     ggtheme = theme_classic()
   )
-  # Add HR/CI annotation and pre-specified cutoff label
+  # Add High-vs-Low HR annotation and pre-specified cutoff label
   hr_anno_lbl <- if (lang == "EN")
-    sprintf("HR = %.2f (%.2f\u2013%.2f), p = %s",
-            hr_uni, lo_uni, hi_uni, formatC(p_uni, format = "e", digits = 1))
+    sprintf("High vs Low: HR = %.2f (%.2f\u2013%.2f), p = %s",
+            hr_km, lo_km, hi_km, formatC(p_km, format = "e", digits = 1))
   else
-    sprintf("HR = %.2f (IC: %.2f\u2013%.2f), p = %s",
-            hr_uni, lo_uni, hi_uni, formatC(p_uni, format = "e", digits = 1))
+    sprintf("Alto vs Baixo: HR = %.2f (IC: %.2f\u2013%.2f), p = %s",
+            hr_km, lo_km, hi_km, formatC(p_km, format = "e", digits = 1))
   subt_lbl <- if (lang == "EN")
     "Cutoff: intra-cohort median (pre-specified, not optimized)"
   else
@@ -309,11 +316,10 @@ if (has_dss && all(c("os_time_months", "os_event") %in% names(df))) {
       km_os_png <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_png")]],
                              sprintf("FigS5_METABRIC_Sensitivity_%s.png", lang))
       km_os_p <- ggsurvplot(
-        km_fit_os, data = df_os, risk.table = TRUE, pval = TRUE, conf.int = TRUE,
+        km_fit_os, data = df_os, risk.table = TRUE, pval = FALSE, conf.int = TRUE,
         palette = c(COL$km_high, COL$km_low),
         xlab = xlb, ylab = ylb, legend.labs = lbs, legend.title = NULL,
         xlim = c(0, xlim_os_val), break.time.by = break_os_val,
-        pval.coord = c(xlim_os_val * 0.5, 0.15),
         title = ttl,
         ggtheme = theme_classic()
       )

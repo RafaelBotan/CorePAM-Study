@@ -127,6 +127,55 @@ local function to_subscript(s)
   return result
 end
 
+-- Extract brace-balanced content starting at position pos (after opening brace)
+local function extract_braced(s, pos)
+  local depth = 1
+  local i = pos
+  while i <= #s and depth > 0 do
+    local c = s:sub(i, i)
+    if c == "{" then depth = depth + 1
+    elseif c == "}" then depth = depth - 1 end
+    i = i + 1
+  end
+  if depth == 0 then
+    return s:sub(pos, i - 2), i  -- content (without braces), next pos
+  end
+  return s:sub(pos, #s), #s + 1  -- fallback
+end
+
+-- Handle \frac with nested braces
+local function expand_frac(s)
+  local result = ""
+  local i = 1
+  while i <= #s do
+    local frac_start = s:find("\\frac%s*{", i)
+    if not frac_start then
+      result = result .. s:sub(i)
+      break
+    end
+    result = result .. s:sub(i, frac_start - 1)
+    -- Find opening brace of numerator
+    local brace1 = s:find("{", frac_start)
+    local num, next_pos = extract_braced(s, brace1 + 1)
+    -- Find opening brace of denominator
+    local brace2 = s:find("{", next_pos)
+    if brace2 then
+      local den, after = extract_braced(s, brace2 + 1)
+      result = result .. "(" .. num .. ")/(" .. den .. ")"
+      i = after
+    else
+      result = result .. num
+      i = next_pos
+    end
+  end
+  return result
+end
+
+-- Escape a string for use as a Lua pattern (% is the escape char, not \)
+local function pattern_escape(s)
+  return (s:gsub("([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1"))
+end
+
 -- Main math-to-unicode converter
 local function math_to_unicode(s)
   -- Remove \mathrm{}, \text{}, \textit{} wrappers (keep content)
@@ -136,8 +185,24 @@ local function math_to_unicode(s)
   s = s:gsub("\\mathbf%s*{([^}]*)}", "%1")
   s = s:gsub("\\boldsymbol%s*{([^}]*)}", "%1")
 
-  -- Handle \frac{a}{b} -> a/b
-  s = s:gsub("\\frac%s*{([^}]*)}{([^}]*)}", "%1/%2")
+  -- Handle \frac with nested braces -> (num)/(den)
+  s = expand_frac(s)
+
+  -- Replace symbols BEFORE sub/superscripts (so \in, \cdot etc. inside subscripts work)
+  local sorted_keys = {}
+  for k, _ in pairs(symbols) do sorted_keys[#sorted_keys + 1] = k end
+  table.sort(sorted_keys, function(a, b) return #a > #b end)
+  for _, k in ipairs(sorted_keys) do
+    s = s:gsub(pattern_escape(k), symbols[k])
+  end
+
+  -- Replace Greek letters BEFORE sub/superscripts
+  local greek_keys = {}
+  for k, _ in pairs(greek) do greek_keys[#greek_keys + 1] = k end
+  table.sort(greek_keys, function(a, b) return #a > #b end)
+  for _, k in ipairs(greek_keys) do
+    s = s:gsub(pattern_escape(k), greek[k])
+  end
 
   -- Handle superscripts: ^{...} and ^x
   s = s:gsub("%^{([^}]*)}", function(content)
@@ -155,21 +220,7 @@ local function math_to_unicode(s)
     return to_subscript(c)
   end)
 
-  -- Replace symbols (longer patterns first to avoid partial matches)
-  local sorted_keys = {}
-  for k, _ in pairs(symbols) do sorted_keys[#sorted_keys + 1] = k end
-  table.sort(sorted_keys, function(a, b) return #a > #b end)
-  for _, k in ipairs(sorted_keys) do
-    s = s:gsub(k:gsub("\\", "\\\\"), symbols[k])
-  end
-
-  -- Replace Greek letters (longer patterns first)
-  local greek_keys = {}
-  for k, _ in pairs(greek) do greek_keys[#greek_keys + 1] = k end
-  table.sort(greek_keys, function(a, b) return #a > #b end)
-  for _, k in ipairs(greek_keys) do
-    s = s:gsub(k:gsub("\\", "\\\\"), greek[k])
-  end
+  -- (symbols and Greek already replaced above, before sub/superscripts)
 
   -- Remove remaining braces
   s = s:gsub("[{}]", "")

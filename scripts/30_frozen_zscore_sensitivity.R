@@ -9,6 +9,9 @@
 #          patient's score depends ONLY on their expression + frozen SCAN-B
 #          reference. C-index comparison is rank-invariant; HR units are
 #          per-unit of raw weighted score (not per-SD).
+#          TABLE S4 reports C-index and correlation (r) as primary metrics;
+#          raw-scale HRs are retained in CSV but omitted from the manuscript
+#          table to avoid confusion with per-1-SD HRs in the main Table 3.
 # OUTPUT:
 #   results/supp/frozen_zscore_sensitivity.csv
 #   results/corepam/SCANB_reference_meanSD.csv

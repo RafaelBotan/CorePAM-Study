@@ -9,12 +9,12 @@
 
 \title{Response to Reviewers}
 \author{Rafael Botan}
-\date{2026-03-04}
+\date{\today}
 
 \begin{document}
 \maketitle
 
-\noindent\textbf{Manuscript:} CorePAM: a PAM50-derived gene expression score with multi-cohort external validation for breast cancer prognosis and neoadjuvant pCR across RNA-seq and microarray platforms\\
+\noindent\textbf{Manuscript:} CorePAM: a 24-gene PAM50-derived expression score with cross-platform external validation for breast cancer prognosis\\
 \textbf{Journal:} Breast Cancer Research\\
 \textbf{Author:} Rafael Botan
 
@@ -95,7 +95,7 @@ This is a perceptive and entirely valid critique. The reviewer correctly identif
 \begin{itemize}
   \item All \textbf{50 PAM50 genes} are entered as candidates --- no pre-filtering by expression level, alias matching, or cross-platform heuristics.
   \item Gene selection is performed \textbf{entirely by the elastic-net regularisation path}: genes receive zero weight (and are excluded) based on their contribution to out-of-fold prognostic performance, not by pre-specified thresholds.
-  \item The gene count itself (N=24) was \textbf{not pre-specified} --- it emerged from the data via a pre-registered non-inferiority criterion ($\Delta$C-index = 0.010).
+  \item The gene count itself (N=24) was \textbf{not pre-specified} --- it emerged from the data via a pre-specified (a priori) and frozen non-inferiority criterion ($\Delta$C-index = 0.010).
   \item Gene coverage in validation cohorts is reported transparently (Table~2): platform limitations (e.g., 6 PAM50 genes absent from Affymetrix HGU133A) are documented, and a pre-specified minimum coverage of 80\% was met in all cohorts.
 \end{itemize}
 
@@ -231,7 +231,7 @@ Beyond the reviewers' specific requests, we conducted several additional sensiti
 
   \item \textbf{Uno's C-statistic and time-dependent AUC (Additional file~15: Table~S5):} IPCW-based concordance metrics confirmed robustness to heterogeneous censoring across cohorts (Uno's C: 0.663--0.681; tdAUC: 0.671--0.695).
 
-  \item \textbf{Formal calibration (Additional file~16: Table~S6):} Logistic recalibration intercept ($\alpha$) and slope ($\beta$) were computed at cohort-specific horizons. The training cohort showed near-ideal calibration ($\beta$ = 0.96). External cohorts showed expected miscalibration consistent with cross-platform scoring.
+  \item \textbf{Formal calibration (Additional file~16: Table~S6):} Logistic recalibration intercept ($\alpha$) and slope ($\beta$) were computed at cohort-specific horizons. The training cohort showed a near-ideal calibration slope ($\beta$ = 0.96; intercept $\alpha$ = 0.56, indicating moderate underprediction of absolute risk). External cohorts showed expected miscalibration consistent with cross-platform scoring.
 
   \item \textbf{ER-stratified subgroup analysis (added post hoc in response to reviewer feedback):} CorePAM is prognostic in unselected cohorts, with the clinically meaningful signal concentrated in ER-positive disease. In both SCAN-B and METABRIC, ER-positive HR was robust (1.92 and 1.59, respectively; both $p < 0.001$). In ER-negative patients, SCAN-B showed an apparent effect (HR = 2.53) that was not replicated in the better-powered METABRIC analysis (HR = 0.97; N = 439, 186 events; $p = 0.75$). Bootstrap analysis confirmed that the SCAN-B ER-negative estimate is highly unstable (95\% CI width = 3.44 vs 0.32 in METABRIC), consistent with its small sample (35 events). This behaviour is expected given the luminal biology of the retained genes and aligns with the established clinical use of multigene assays in ER-positive disease.
 
@@ -262,7 +262,7 @@ Preprocessing details & Not described & Full protocol per platform \\
 pCR analysis & Not performed & 4 cohorts + I-SPY2 (pooled OR=1.69) \\
 Meta-analysis & 3 cohorts, mixed endpoints & K=4 RE: HR=1.37 (95\%CI 1.24--1.52) \\
 Competing risks & Not assessed & Fine--Gray for METABRIC DSS \\
-Frozen z-score & Not assessed & Near-perfect preservation ($r \geq 0.958$) \\
+Frozen z-score & Not assessed & Preserved discrimination ($r \geq 0.958$) \\
 Uno's C / tdAUC & Not assessed & Confirms robustness to censoring \\
 Formal calibration & Not assessed & Slope/intercept per cohort \\
 ER subgroup & Not assessed & Signal concentrated in ER+ (dual-cohort) \\

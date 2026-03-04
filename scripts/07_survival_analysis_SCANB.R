@@ -134,6 +134,14 @@ message(sprintf("[%s] Median follow-up (Reverse KM): %.1f months", SCRIPT_NAME, 
 km_cutpoint <- median(df$score_z, na.rm = TRUE)
 df$risk_group_median <- ifelse(df$score_z >= km_cutpoint, "High", "Low")
 
+# Cox HR for dichotomized groups (High vs Low) — used for KM annotation
+cox_km <- coxph(Surv(df[[time_col]], df[[event_col]]) ~ I(risk_group_median == "High"), data = df)
+sm_km  <- summary(cox_km)
+hr_km  <- sm_km$conf.int[1, "exp(coef)"]
+lo_km  <- sm_km$conf.int[1, "lower .95"]
+hi_km  <- sm_km$conf.int[1, "upper .95"]
+p_km   <- sm_km$coefficients[1, "Pr(>|z|)"]
+
 old_warn <- getOption("warn"); options(warn = 0)
 km_fit_med <- survfit(
   Surv(df[[time_col]], df[[event_col]]) ~ risk_group_median,
@@ -145,20 +153,20 @@ km_plot_med <- ggsurvplot(
   km_fit_med,
   data          = df,
   risk.table    = TRUE,
-  pval          = TRUE,
+  pval          = FALSE,
   conf.int      = TRUE,
   palette       = c("#E74C3C", "#2980B9"),
   title         = sprintf("KM CorePAM — %s | %s | Intra-cohort median cutpoint (pre-specified, not optimized)", COHORT, ENDPOINT),
   xlab          = "Time (months)",
   ylab          = "Overall survival",
-  legend.labs   = c("High", "Low"),
+  legend.labs   = c("High risk", "Low risk"),
   ggtheme       = theme_classic()
 )
 
-# Add HR/CI annotation (positioned at 5 months, bottom of plot)
-km_hr_lbl <- sprintf("HR = %.2f (%.2f\u2013%.2f), p = %s",
-                     hr_uni, lo_uni, hi_uni,
-                     formatC(p_uni, format = "e", digits = 1))
+# Add High-vs-Low HR annotation (positioned at 5 months, bottom of plot)
+km_hr_lbl <- sprintf("High vs Low: HR = %.2f (%.2f\u2013%.2f), p = %s",
+                     hr_km, lo_km, hi_km,
+                     formatC(p_km, format = "e", digits = 1))
 km_plot_med$plot <- km_plot_med$plot +
   ggplot2::annotate("text",
                     x = 5, y = 0.10,

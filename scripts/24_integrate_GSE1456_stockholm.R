@@ -337,33 +337,45 @@ message("[GSE1456] Saved survival results")
 message("[GSE1456] Step 6: KM plot...")
 
 ar$score_group <- factor(
-  ifelse(ar$score_z >= median(ar$score_z), "High CorePAM", "Low CorePAM"),
-  levels = c("Low CorePAM", "High CorePAM")
+  ifelse(ar$score_z >= median(ar$score_z), "High", "Low"),
+  levels = c("High", "Low")
 )
+
+# Cox HR for dichotomized groups (High vs Low) — used for KM annotation
+cox_km <- coxph(surv_os ~ I(score_group == "High"), data = ar)
+sm_km  <- summary(cox_km)
+hr_km  <- sm_km$conf.int[1, "exp(coef)"]
+lo_km  <- sm_km$conf.int[1, "lower .95"]
+hi_km  <- sm_km$conf.int[1, "upper .95"]
+p_km   <- sm_km$coefficients[1, "Pr(>|z|)"]
 
 old_warn <- getOption("warn"); options(warn = 0)
 km_fit <- survfit(surv_os ~ score_group, data = ar)
 
-km_label <- sprintf("GSE1456 (Stockholm) — OS\nHR = %.2f (95%% CI %.2f–%.2f), p = %s\nC-index = %.3f | N = %d",
-                     hr_uni, ci_uni_lo, ci_uni_hi,
-                     if(p_uni < 0.001) sprintf("%.2e", p_uni) else sprintf("%.4f", p_uni),
-                     c_idx, nrow(ar))
+hr_anno_lbl <- sprintf("High vs Low: HR = %.2f (%.2f\u2013%.2f), p = %s",
+                        hr_km, lo_km, hi_km,
+                        formatC(p_km, format = "e", digits = 1))
 
 p_km <- ggsurvplot(
   km_fit,
   data = ar,
-  palette = c("#2166AC", "#B2182B"),
+  palette = c("#E74C3C", "#2980B9"),
   risk.table = TRUE,
   risk.table.height = 0.25,
   conf.int = TRUE,
   pval = FALSE,
   xlab = "Time (months)",
-  ylab = "Overall survival probability",
-  title = km_label,
-  legend.title = "",
-  legend.labs = c("Low CorePAM", "High CorePAM"),
-  ggtheme = theme_classic(base_size = 14)
+  ylab = "Overall survival",
+  legend.title = "strata",
+  legend.labs = c("High risk", "Low risk"),
+  ggtheme = theme_classic()
 )
+p_km$plot <- p_km$plot +
+  ggplot2::labs(subtitle = "Cutoff: intra-cohort median (pre-specified, not optimized)") +
+  ggplot2::annotate("text",
+                    x = 5, y = 0.10,
+                    label = hr_anno_lbl,
+                    hjust = 0, size = 3.0, colour = "grey20")
 options(warn = old_warn)
 
 # Save KM figure
