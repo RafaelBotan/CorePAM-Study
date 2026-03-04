@@ -377,10 +377,12 @@ kable(coortes, align = c("l","l","l","r","l"))
 
 Como análise secundária, inteiramente independente do bloco de sobrevida, avaliou-se a capacidade do CorePAM de predizer resposta patológica completa (pCR) à quimioterapia neoadjuvante em cinco coortes:
 
-- **GSE25066** (N=182) [@Hatzis2011]: coorte de quimioterapia neoadjuvante com antraciclina e taxano; microarranjo Affymetrix HGU133A.
+- **GSE25066** (N=508) [@Hatzis2011]: coorte de quimioterapia neoadjuvante com antraciclina e taxano; microarranjo Affymetrix HGU133A.
 - **GSE20194** (N=278) [@MAQCII2010]: coorte do consórcio MAQC-II; microarranjo Affymetrix HGU133Plus2.
-- **GSE32646** (N=115) [@Tabchy2010]: ensaio multicêntrico randomizado; microarranjo HGU133Plus2.
-- **I-SPY1/GSE22226** (N=122) [@Esserman2012]: ensaio neoadjuvante multicêntrico (CALGB 150007/ACRIN 6657); microarranjo Agilent 44K.
+- **GSE32646** (N=154) [@Tabchy2010]: ensaio multicêntrico randomizado; microarranjo HGU133Plus2.
+- **I-SPY1/GSE22226** (N=149) [@Esserman2012]: ensaio neoadjuvante multicêntrico (CALGB 150007/ACRIN 6657); microarranjo Agilent 44K.
+
+Após aplicação dos critérios de elegibilidade (dados de pCR disponíveis e expressão para genes CorePAM), 697 amostras foram incluídas na análise primária de pCR.
 - **I-SPY2/GSE194040** (N=986) [@Wolf2022]: coorte externa **exploratória**; ensaio neoadjuvante adaptativo multibraço; biópsias pré-tratamento; microarranjo Agilent 44K com dados em nível gênico e correção de lote pelo consórcio original.
 
 ## Parâmetros analíticos congelados
@@ -449,7 +451,7 @@ O CorePAM foi definido como o **menor número de genes** cujo desempenho se mant
 
 $$C_{\text{adj}}(\text{df}) \geq C_{\text{adj,max}} - 0{,}010$$
 
-Em linguagem clínica, esse critério equivale a aceitar no máximo 1 ponto percentual de perda na capacidade de discriminação --- uma diferença clinicamente insignificante, porém suficiente para garantir rigor metodológico. O conceito é análogo ao dos estudos clínicos de não-inferioridade, em que um tratamento novo é aceito se sua eficácia não for inferior à do tratamento padrão além de uma margem pré-definida.
+Em linguagem clínica, esse critério equivale a aceitar no máximo 1 ponto percentual de perda na capacidade de discriminação --- uma diferença clinicamente insignificante, porém suficiente para garantir rigor metodológico. O conceito é análogo ao dos estudos clínicos de não-inferioridade, em que um tratamento novo é aceito se sua eficácia não for inferior à do tratamento padrão além de uma margem pré-definida. A margem de 0,010 foi escolhida por representar menos da metade de um erro-padrão aproximado do C-index OOF na coorte de treinamento (EP ≈ 0,026 para N=3.069 com 322 eventos), constituindo uma perda clinicamente negligível na discriminação. Análise de sensibilidade confirmou a robustez: margens de 0,005, 0,015 e 0,020 teriam selecionado 31, 18 e 16 genes, respectivamente, demonstrando que o painel selecionado não é frágil à escolha da margem.
 
 A @fig-pareto ilustra a **fronteira de Pareto** entre parcimônia e desempenho: à medida que se aumenta o número de genes, o desempenho melhora até atingir um platô, a partir do qual genes adicionais não trazem ganho relevante.
 
@@ -543,7 +545,7 @@ A meta-análise dos log(OR) seguiu o modelo de efeitos aleatórios de DerSimonia
 
 A credibilidade dos resultados depende de verificações sistemáticas que confirmem a ausência de artefatos técnicos. O controle de qualidade abrangeu quatro eixos:
 
-(i) **Consistência entre plataformas:** verificou-se se os escores CorePAM calculados em coortes de RNA-seq e microarranjo apresentam distribuições semelhantes, utilizando correlação de Pearson dos valores de quantis empíricos entre coortes (100 percentis, excluindo a diagonal). Em linguagem simples: se o escore "funciona igual" em RNA-seq e microarranjo, as distribuições devem ter forma similar.
+(i) **Consistência entre plataformas:** verificou-se se os escores CorePAM calculados em coortes de RNA-seq e microarranjo apresentam distribuições semelhantes, utilizando correlação de Spearman ρ baseada em percentis pareados entre coortes (100 percentis, excluindo a diagonal). Em linguagem simples: se o escore "funciona igual" em RNA-seq e microarranjo, as distribuições devem ter forma similar.
 
 (ii) **Análise de componentes principais (PCA) forense:** a PCA reduz a complexidade de milhares de medições gênicas a poucos "eixos" que capturam a maior parte da variabilidade. Se os dois primeiros eixos separarem as amostras por lote técnico (e não por biologia tumoral), isso indicaria artefato; se separarem por subtipo molecular, confirma sinal biológico genuíno.
 
@@ -647,15 +649,15 @@ Os genes retidos recapitulam os quatro eixos biológicos centrais do PAM50: **di
 
 Uma preocupação legítima é se os genes selecionados são robustos ou se mudariam substancialmente com pequenas variações nos dados de treinamento. Para responder a essa questão, realizaram-se duas análises complementares.
 
-A análise de ***bootstrap*** (B=200 re-ajustes na SCAN-B) simulou 200 versões "virtuais" do treinamento, reamostrando pacientes com reposição, e verificou quantas vezes cada gene foi selecionado. Todos os `r n_genes` genes CorePAM foram selecionados em pelo menos 70% das reamostras (@fig-bootstrap), indicando que a composição do painel é estável e não depende de pacientes individuais.
+A análise de ***bootstrap*** (B=200 re-ajustes na SCAN-B) simulou 200 versões "virtuais" do treinamento, reamostrando pacientes com reposição, e verificou quantas vezes cada gene foi selecionado. Quinze dos 24 genes CorePAM foram selecionados em pelo menos 70% das reamostras (@fig-bootstrap), com 2 genes (ACTR3B, NAT1) selecionados em 100% e uma frequência mínima de seleção de 35,5%. Esse padrão é consistente com a propriedade de agrupamento do *elastic-net*, que distribui peso entre genes correlacionados.
 
-A análise ***leave-one-gene-out*** removeu cada gene individualmente e mediu a perda de desempenho. Nenhuma remoção isolada causou perda catastrófica (@fig-dropout), demonstrando que a informação prognóstica está distribuída entre os genes e não concentrada em um único "gene-chave". Os genes com maior impacto individual (EXO1, NAT1) ainda assim produziram perdas modestas, reforçando a robustez do painel como conjunto.
+A análise ***leave-one-gene-out*** removeu cada gene individualmente e mediu a perda de desempenho. Nenhuma remoção isolada causou perda catastrófica (máximo |ΔC| = 0,044; @fig-dropout), demonstrando que a informação prognóstica está distribuída entre os genes e não concentrada em um único "gene-chave". Os genes com maior impacto individual (EXO1, NAT1) ainda assim produziram perdas modestas, reforçando a robustez do painel como conjunto.
 
 \newpage
 
 ```{r fig-bootstrap}
 #| label: fig-bootstrap
-#| fig-cap: "Estabilidade da seleção gênica por *bootstrap* (B=200 re-ajustes). Cada barra representa a frequência com que um gene foi selecionado nas reamostras. Todos os 24 genes do CorePAM foram selecionados em pelo menos 70% das iterações, indicando que a composição do painel é robusta e não dependente de observações individuais."
+#| fig-cap: "Estabilidade da seleção gênica por *bootstrap* (B=200 re-ajustes). Cada barra representa a frequência com que um gene foi selecionado nas reamostras. Quinze dos 24 genes CorePAM foram selecionados em pelo menos 70% das iterações, com frequência mínima de 35,5%, indicando robustez do painel."
 #| out-width: "100%"
 #| fig-align: center
 f <- fig_pt(file.path(ROOT, "figures/supp/pt/png/FigS_Bootstrap_GeneFreq_PT.png"),
@@ -996,11 +998,11 @@ A transparência nos procedimentos de controle de qualidade é essencial para a 
 
 ### Consistência entre plataformas
 
-A consistência das distribuições do escore CorePAM entre coortes foi avaliada pela correlação de Pearson dos valores de quantis empíricos (100 percentis pareados, excluindo a diagonal). Todas as correlações inter-coorte superaram 0,98, indicando que a forma das distribuições dos escores é altamente preservada entre plataformas de RNA-seq e microarranjo (@fig-correlacao). Essa consistência, aliada à concordância direcional dos *hazard ratios* e C-index, confirma a robustez do sinal e sua independência da tecnologia de mensuração.
+A consistência das distribuições do escore CorePAM entre coortes foi avaliada pela correlação de Spearman ρ dos valores de percentis pareados (100 percentis, excluindo a diagonal). Todas as correlações inter-coorte superaram 0,98, indicando que a forma das distribuições dos escores é altamente preservada entre plataformas de RNA-seq e microarranjo (@fig-correlacao). Essa consistência, aliada à concordância direcional dos *hazard ratios* e C-index, confirma a robustez do sinal e sua independência da tecnologia de mensuração.
 
 ```{r fig-correlacao}
 #| label: fig-correlacao
-#| fig-cap: "Correlação de Pearson dos valores de quantis empíricos dos escores CorePAM entre coortes (100 percentis, diagonal excluída). Todas as correlações inter-coorte excedem 0,98, indicando elevada consistência das distribuições dos escores entre plataformas de RNA-seq (SCAN-B, TCGA-BRCA) e microarranjo (METABRIC, GSE20685)."
+#| fig-cap: "Correlação de Spearman ρ dos percentis pareados dos escores CorePAM entre coortes (100 percentis, diagonal excluída). Todas as correlações inter-coorte excedem 0,98, indicando elevada consistência das distribuições dos escores entre plataformas de RNA-seq (SCAN-B, TCGA-BRCA) e microarranjo (METABRIC, GSE20685)."
 #| out-width: "100%"
 #| fig-align: center
 f <- fig_pt(file.path(ROOT, "figures/supp/pt/png/FigS3_Correlation_OffDiagonal_PT.png"),
@@ -1483,6 +1485,8 @@ O reconhecimento transparente das limitações é essencial para a adequada inte
 7. **Escopo restrito do comparador.** A não-inferioridade se refere ao modelo Cox *elastic-net* de 50 genes, não ao ensaio comercial Prosigna (que usa centroides + ROR). Essa distinção é essencial e deve ser explicitamente comunicada em qualquer discussão sobre as implicações clínicas do CorePAM.
 
 8. **Populações específicas.** As coortes de validação representam predominantemente populações caucasianas e asiáticas. A generalização para populações africanas e afrodescendentes --- que apresentam distribuição de subtipos moleculares distinta, com maior prevalência de tumores *Basal-like* --- requer validação adicional.
+
+9. **Normalização *z-score* e escore de amostra única.** A formulação atual do escore baseia-se na normalização *z-score* intra-coorte, que é apropriada para validação retrospectiva multicoorte, mas não suporta diretamente a classificação de uma amostra individual na prática clínica. A tradução clínica exigiria uma referência de normalização fixa (por exemplo, distribuições de referência específicas por plataforma ou calibração por genes constitutivos), o que constitui objeto de trabalho futuro de validação técnica.
 
 ## Perspectivas futuras de investigação
 
