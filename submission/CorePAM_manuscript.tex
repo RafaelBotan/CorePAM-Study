@@ -198,7 +198,7 @@ Out-of-fold Cox elastic-net regression in SCAN-B identified 24 genes as the mini
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{figures/Fig1_StudyDesign_EN.png}
+\includegraphics[width=\textwidth]{figures/Fig1_StudyDesign_EN.png}
 \caption{Study overview showing the CorePAM derivation and validation pipeline, cohort roles, sample sizes, and frozen analytical parameters.}\label{fig:study-design}
 \end{figure}
 
@@ -210,43 +210,53 @@ The CorePAM score was independently associated with survival in all four externa
 
 \begin{table}[h]
 \caption{CorePAM prognostic performance across cohorts.}\label{tab:survival}
-\begin{tabular*}{\textwidth}{@{\extracolsep\fill}llcrrrlclcc}
+\small
+\begin{tabular*}{\textwidth}{@{\extracolsep\fill}lcrrrll}
 \toprule
-Cohort & Role & Endpoint & N & Events & FU (mo) & HR uni (95\% CI) & $p$ & C-index (95\% CI) & HR adj & $p$ adj \\
+Cohort & Endpoint & N & Events & FU (mo) & Univariate HR (95\% CI) & C-index (95\% CI) \\
 \midrule
-SCAN-B & Training\footnotemark[1] & OS & 3,069 & 322 & 55.7 & 1.92 (1.74--2.13) & $<$0.001 & 0.698 (0.668--0.729) & 1.86 (1.64--2.12) & $<$0.001 \\
-TCGA-BRCA & Validation & OS & 1,072 & 150 & 32.0 & 1.20 (1.04--1.40) & 0.016 & 0.624 (0.572--0.678) & 1.27 (1.09--1.48) & 0.002 \\
-METABRIC & Validation & DSS & 1,978 & 646 & 159 & 1.41 (1.31--1.52) & $<$0.001 & 0.638 (0.615--0.659) & 1.36 (1.24--1.48) & $<$0.001 \\
-GSE20685 & Validation & OS & 327 & 83 & 112.8 & 1.40 (1.12--1.76) & 0.003 & 0.623 (0.562--0.683) & 1.40 (1.12--1.76) & 0.003 \\
-GSE1456 & Validation & OS & 159 & 40 & 91.0 & 1.71 (1.23--2.38) & 0.001 & 0.661 (0.582--0.741) & 1.71 (1.23--2.38)\footnotemark[2] & 0.001 \\
+SCAN-B\footnotemark[1] & OS & 3,069 & 322 & 55.7 & 1.92 (1.74--2.13), $p<$0.001 & 0.698 (0.668--0.729) \\
+TCGA-BRCA & OS & 1,072 & 150 & 32.0 & 1.20 (1.04--1.40), $p=$0.016 & 0.624 (0.572--0.678) \\
+METABRIC & DSS & 1,978 & 646 & 159 & 1.41 (1.31--1.52), $p<$0.001 & 0.638 (0.615--0.659) \\
+GSE20685 & OS & 327 & 83 & 112.8 & 1.40 (1.12--1.76), $p=$0.003 & 0.623 (0.562--0.683) \\
+GSE1456 & OS & 159 & 40 & 91.0 & 1.71 (1.23--2.38), $p=$0.001 & 0.661 (0.582--0.741) \\
+\midrule
+ & & & & & \textit{Adjusted HR (95\% CI)\footnotemark[2]} & \\
+\midrule
+SCAN-B & OS & & & & 1.86 (1.64--2.12), $p<$0.001 & \\
+TCGA-BRCA & OS & & & & 1.27 (1.09--1.48), $p=$0.002 & \\
+METABRIC & DSS & & & & 1.36 (1.24--1.48), $p<$0.001 & \\
+GSE20685 & OS & & & & 1.40 (1.12--1.76), $p=$0.003 & \\
+GSE1456\footnotemark[3] & OS & & & & 1.71 (1.23--2.38), $p=$0.001 & \\
 \botrule
 \end{tabular*}
-\footnotetext[1]{C-index shown is in-sample (0.698); OOF C-index = 0.670.}
-\footnotetext[2]{CORE-A adjustment not performed (clinical covariates unavailable); univariate HR shown.}
-\footnotetext{HR: hazard ratio per 1~SD; CI: confidence interval; FU: median follow-up in censored patients; adj: adjusted for CORE-A (age $\pm$ ER status).}
+\footnotetext[1]{Training cohort. C-index shown is in-sample (0.698); OOF C-index = 0.670.}
+\footnotetext[2]{Adjusted for CORE-A: age $\pm$ ER status (SCAN-B, METABRIC: age + ER; TCGA-BRCA, GSE20685: age only).}
+\footnotetext[3]{CORE-A adjustment not performed (clinical covariates unavailable); univariate HR shown.}
+\footnotetext{HR: hazard ratio per 1~SD; FU: median follow-up in censored patients.}
 \end{table}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{figures/Fig2_KM_TCGA_BRCA_OS_EN.png}
+\includegraphics[width=\textwidth]{figures/Fig2_KM_TCGA_BRCA_OS_EN.png}
 \caption{Kaplan--Meier survival curve in TCGA-BRCA (OS) dichotomised at the intra-cohort median CorePAM score. Shading: 95\% CI.}\label{fig:km-tcga}
 \end{figure}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{figures/Fig2_KM_METABRIC_DSS_EN.png}
+\includegraphics[width=\textwidth]{figures/Fig2_KM_METABRIC_DSS_EN.png}
 \caption{Kaplan--Meier survival curve in METABRIC (DSS) dichotomised at the intra-cohort median CorePAM score. Shading: 95\% CI.}\label{fig:km-metabric}
 \end{figure}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{figures/Fig2_KM_GSE20685_OS_EN.png}
+\includegraphics[width=\textwidth]{figures/Fig2_KM_GSE20685_OS_EN.png}
 \caption{Kaplan--Meier survival curve in GSE20685 (OS) dichotomised at the intra-cohort median CorePAM score. Shading: 95\% CI.}\label{fig:km-gse20685}
 \end{figure}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{figures/Fig2_KM_GSE1456_OS_EN.png}
+\includegraphics[width=\textwidth]{figures/Fig2_KM_GSE1456_OS_EN.png}
 \caption{Kaplan--Meier survival curve in GSE1456 (OS) dichotomised at the intra-cohort median CorePAM score. Shading: 95\% CI.}\label{fig:km-gse1456}
 \end{figure}
 
@@ -256,7 +266,7 @@ Multivariate Cox regression including the CORE-A clinical model (age and ER stat
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{figures/Fig3_KM_SCANB_OS_CorePAM.png}
+\includegraphics[width=\textwidth]{figures/Fig3_KM_SCANB_OS_CorePAM.png}
 \caption{Kaplan--Meier survival curve in the SCAN-B training cohort (OS, N = 3,069) dichotomised at the intra-cohort median CorePAM score.}\label{fig:km-scanb}
 \end{figure}
 
@@ -266,7 +276,7 @@ Random-effects meta-analysis across four validation cohorts yielded a pooled HR 
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{figures/Fig4_Meta_Forest_HR_per1SD_CorePAM.png}
+\includegraphics[width=\textwidth]{figures/Fig4_Meta_Forest_HR_per1SD_CorePAM.png}
 \caption{Forest plot of random-effects meta-analysis. HR per 1~SD CorePAM score across four validation cohorts plus pooled RE estimate (K = 4; REML estimator).}\label{fig:forest-os}
 \end{figure}
 
@@ -303,13 +313,13 @@ GSE20685 & age & 327 & 0.536 & 0.628 & +0.093 (0.021--0.175) \\
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{figures/Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.png}
+\includegraphics[width=\textwidth]{figures/Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.png}
 \caption{Incremental value: $\Delta$C-index (CorePAM added to CORE-A) with 95\% bootstrap CI.}\label{fig:delta-c}
 \end{figure}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{figures/Fig5_Calibration_60m_Panels_CorePAM.png}
+\includegraphics[width=\textwidth]{figures/Fig5_Calibration_60m_Panels_CorePAM.png}
 \caption{Calibration curves at 60 months (24 months for TCGA-BRCA).}\label{fig:calibration}
 \end{figure}
 
@@ -342,7 +352,7 @@ Random-effects meta-analysis yielded a pooled OR of 1.69 (95\% CI 1.39--2.05; $I
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.9\textwidth]{figures/Fig_pCR1_Forest_OR_EN.png}
+\includegraphics[width=\textwidth]{figures/Fig_pCR1_Forest_OR_EN.png}
 \caption{Forest plot of CorePAM and pCR. OR per 1~SD CorePAM score (logistic regression) in four neoadjuvant chemotherapy cohorts, with random-effects pooled estimate (DerSimonian--Laird).}\label{fig:forest-pcr}
 \end{figure}
 
@@ -447,70 +457,70 @@ The authors thank the SCAN-B, TCGA, METABRIC, I-SPY, and Stockholm (GSE1456) con
 %% --- Figure S1 ---
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_01_FigS1_Pareto.png}
+\includegraphics[width=\textwidth]{additional_files/Additional_file_01_FigS1_Pareto.png}
 \caption{\textbf{Additional file~1: Figure~S1.} Pareto frontier: gene count vs.\ OOF C-index. Each point represents a unique df level along the glmnet regularisation path. Dashed red line: non-inferiority boundary ($C_{\text{max}}$ minus 0.010).}\label{fig:s1-pareto}
 \end{figure}
 
 %% --- Figure S2 ---
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_02_FigS2_Weights.png}
+\includegraphics[width=\textwidth]{additional_files/Additional_file_02_FigS2_Weights.png}
 \caption{\textbf{Additional file~2: Figure~S2.} CorePAM gene weights (lollipop plot). Elastic-net Cox regression coefficients. Positive weights (red): higher expression associated with worse survival.}\label{fig:s2-weights}
 \end{figure}
 
 %% --- Figure S3 ---
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_03_FigS3_Correlation.png}
+\includegraphics[width=\textwidth]{additional_files/Additional_file_03_FigS3_Correlation.png}
 \caption{\textbf{Additional file~3: Figure~S3.} Off-diagonal CorePAM score correlations between cohorts. Spearman $\rho$ computed on paired percentiles.}\label{fig:s3-correlation}
 \end{figure}
 
 %% --- Figure S4 ---
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_04_FigS4_PCA.png}
+\includegraphics[width=\textwidth]{additional_files/Additional_file_04_FigS4_PCA.png}
 \caption{\textbf{Additional file~4: Figure~S4.} Forensic PCA of METABRIC expression matrix. Principal component analysis coloured by batch/platform annotation.}\label{fig:s4-pca}
 \end{figure}
 
 %% --- Figure S5 ---
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{additional_files/Additional_file_05_FigS5_METABRIC_Sensitivity.png}
+\includegraphics[width=\textwidth]{additional_files/Additional_file_05_FigS5_METABRIC_Sensitivity.png}
 \caption{\textbf{Additional file~5: Figure~S5.} METABRIC sensitivity analyses. A: OS endpoint. B: Fine--Gray competing risks model. C: Quartile Kaplan--Meier (DSS).}\label{fig:s5-metabric-sens}
 \end{figure}
 
 %% --- Figure S6 ---
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_06_FigS6_TCGA_24m.png}
+\includegraphics[width=\textwidth]{additional_files/Additional_file_06_FigS6_TCGA_24m.png}
 \caption{\textbf{Additional file~6: Figure~S6.} TCGA-BRCA 24-month sensitivity analysis.}\label{fig:s6-tcga-24m}
 \end{figure}
 
 %% --- Figure S7 ---
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.95\textwidth]{additional_files/Additional_file_07_FigS7_DCA_OS.png}
+\includegraphics[width=\textwidth]{additional_files/Additional_file_07_FigS7_DCA_OS.png}
 \caption{\textbf{Additional file~7: Figure~S7.} Decision curve analysis (OS). Net benefit versus treat-all and treat-none strategies. Horizons: 60 months (SCAN-B, METABRIC, GSE20685) and 24 months (TCGA-BRCA).}\label{fig:s7-dca}
 \end{figure}
 
 %% --- Figure S8 ---
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_08_FigS8_Bootstrap.png}
+\includegraphics[width=\textwidth]{additional_files/Additional_file_08_FigS8_Bootstrap.png}
 \caption{\textbf{Additional file~8: Figure~S8.} Bootstrap stability of CorePAM gene selection ($B = 200$). Frequency of each PAM50 gene across 200 bootstrap refits.}\label{fig:s8-bootstrap}
 \end{figure}
 
 %% --- Figure S9 ---
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_09_FigS9_GeneDropout.png}
+\includegraphics[width=\textwidth]{additional_files/Additional_file_09_FigS9_GeneDropout.png}
 \caption{\textbf{Additional file~9: Figure~S9.} Leave-one-gene-out sensitivity analysis. Change in C-index when each CorePAM gene is individually removed.}\label{fig:s9-dropout}
 \end{figure}
 
 %% --- Figure S10 ---
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{additional_files/Additional_file_10_FigS10_COREA_Sensitivity.png}
+\includegraphics[width=\textwidth]{additional_files/Additional_file_10_FigS10_COREA_Sensitivity.png}
 \caption{\textbf{Additional file~10: Figure~S10.} CORE-A baseline sensitivity analysis. Forest plot comparing CorePAM adjusted HR under different clinical baselines.}\label{fig:s10-corea-sens}
 \end{figure}
 
