@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this work or code, please cite it using the metadata below."
 type: software
-title: "CorePAM: A PAM50-Derived Minimum Gene Expression Score for Breast Cancer Prognosis"
+title: "CorePAM: A 24-Gene PAM50-Derived Expression Score with Cross-Platform External Validation for Breast Cancer Prognosis"
 abstract: >
   Data-driven reduction of the PAM50 gene panel to a minimum non-inferior
   prognostic core (CorePAM, 24 genes) using out-of-fold Cox Elastic-Net

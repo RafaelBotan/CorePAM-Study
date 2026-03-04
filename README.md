@@ -1,4 +1,4 @@
-# CorePAM: A PAM50-Derived Minimum Gene Expression Score for Breast Cancer Prognosis
+# CorePAM: A 24-Gene PAM50-Derived Expression Score with Cross-Platform External Validation for Breast Cancer Prognosis
 
 [![DOI](https://img.shields.io/badge/status-under%20review-yellow)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
