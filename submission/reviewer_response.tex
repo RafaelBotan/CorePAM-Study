@@ -61,7 +61,7 @@ We are grateful for this recommendation, which aligns with our commitment to ope
 The repository includes:
 
 \begin{itemize}
-  \item All numbered R scripts (00--34), executable in sequence to reproduce every result from raw public data.
+  \item All numbered R scripts (00--36), executable in sequence to reproduce every result from raw public data.
   \item Frozen analytical parameters (\texttt{analysis\_freeze.csv}).
   \item CorePAM gene weights and training card (JSON).
   \item The LaTeX manuscript source (\texttt{.tex}), with an automated QC script (\texttt{16\_qc\_text\_vs\_results\_assert.R}) that verifies all reported numbers match their source CSV/JSON files.
@@ -216,6 +216,7 @@ This is a fair and important critique that we fully embrace. The revised study i
   \item \textbf{CORE-A baseline model} (pre-specified): age + ER status (when available). CorePAM adjusted HRs remain significant in all cohorts: TCGA-BRCA HR=1.27, METABRIC HR=1.36, GSE20685 HR=1.40 (all p$<$0.004).
   \item \textbf{Incremental C-index ($\Delta$C):} Bootstrap-validated (B=1,000) improvement over CORE-A: $\Delta$C ranges from +0.030 (SCAN-B) to +0.093 (GSE20685) across cohorts --- all with 95\%CI excluding zero.
   \item \textbf{Expanded CORE-A sensitivity (Additional file~12: Table~S2):} Adjustment for age + ER status + T-stage + nodal status. CorePAM remained independently significant in all four cohorts (all p$<$0.002), with HR change $<$10\% compared to the primary baseline. The incremental C-index remained positive (+0.022 to +0.027).
+  \item \textbf{Full six-variable clinical baseline (Additional file~17: Table~S7):} Adjustment for age + ER + T-stage + N-status + grade + HER2 in the two cohorts where all variables were available (SCAN-B, METABRIC). CorePAM added significant incremental value in both (LRT $p = 4.9 \times 10^{-13}$ and $6.1 \times 10^{-6}$; $\Delta$C = +0.015 to +0.017), with $\Delta$C = +0.032 in ER-positive METABRIC.
   \item \textbf{Decision curve analysis:} Demonstrates net clinical benefit across probability thresholds in all cohorts, confirming that CorePAM adds clinically meaningful discrimination beyond the clinical baseline.
 \end{enumerate}
 
@@ -226,13 +227,15 @@ This is a fair and important critique that we fully embrace. The revised study i
 Beyond the reviewers' specific requests, we conducted several additional sensitivity analyses to further strengthen the manuscript:
 
 \begin{enumerate}
-  \item \textbf{Frozen z-score sensitivity analysis (Additional file~14: Table~S4):} The SCAN-B training cohort mean and standard deviation per gene were frozen and applied to external validation cohorts without any cohort-level re-standardisation, testing true single-sample scoring feasibility. C-index was virtually identical ($\Delta$C $<$ 0.001; Pearson $r$ = 0.999 for TCGA-BRCA; $r$ = 0.958 for METABRIC), confirming that a fixed normalisation reference supports clinical deployment with a single specimen.
+  \item \textbf{Frozen z-score sensitivity analysis (Additional file~14: Table~S4):} The SCAN-B training cohort mean and standard deviation per gene were frozen and applied to external validation cohorts without any cohort-level re-standardisation, ensuring that each patient's score depends only on their own expression values and the frozen reference. C-index was preserved in TCGA-BRCA ($\Delta$C $<$ 0.001; $r$ = 0.999) and METABRIC ($\Delta$C $<$ 0.001; $r$ = 0.958). In GSE20685 (Affymetrix U133 Plus~2), frozen scoring showed measurable degradation ($\Delta$C = $-$0.042; $r$ = 0.921), consistent with the distributional gap between RNA-seq and this older microarray platform. These results confirm that single-sample scoring is feasible when the assay platform is compatible with the training reference.
 
   \item \textbf{Uno's C-statistic and time-dependent AUC (Additional file~15: Table~S5):} IPCW-based concordance metrics confirmed robustness to heterogeneous censoring across cohorts (Uno's C: 0.663--0.681; tdAUC: 0.671--0.695).
 
   \item \textbf{Formal calibration (Additional file~16: Table~S6):} Logistic recalibration intercept ($\alpha$) and slope ($\beta$) were computed at cohort-specific horizons. The training cohort showed near-ideal calibration ($\beta$ = 0.96). External cohorts showed expected miscalibration consistent with cross-platform scoring.
 
-  \item \textbf{ER-stratified subgroup analysis:} In SCAN-B (N=2,870 with ER status), CorePAM was significantly associated with OS in both ER-positive (HR=1.92; p$<$0.001) and ER-negative (HR=2.53; p$<$0.001) subgroups. The interaction test was not significant (p=0.25), indicating that the prognostic effect does not differ significantly by ER status.
+  \item \textbf{ER-stratified subgroup analysis (added post hoc in response to reviewer feedback):} CorePAM is prognostic in unselected cohorts, with the clinically meaningful signal concentrated in ER-positive disease. In both SCAN-B and METABRIC, ER-positive HR was robust (1.92 and 1.59, respectively; both $p < 0.001$). In ER-negative patients, SCAN-B showed an apparent effect (HR = 2.53) that was not replicated in the better-powered METABRIC analysis (HR = 0.97; N = 439, 186 events; $p = 0.75$). Bootstrap analysis confirmed that the SCAN-B ER-negative estimate is highly unstable (95\% CI width = 3.44 vs 0.32 in METABRIC), consistent with its small sample (35 events). This behaviour is expected given the luminal biology of the retained genes and aligns with the established clinical use of multigene assays in ER-positive disease.
+
+  \item \textbf{Full clinical baseline analysis (Additional file~17: Table~S7):} CorePAM was tested against a comprehensive six-variable clinical model (age, ER, T-stage, N-status, grade, HER2) in both SCAN-B and METABRIC. CorePAM added significant incremental value (LRT $p < 10^{-5}$ in both cohorts; $\Delta$C = +0.015 to +0.017 overall, +0.032 in ER-positive METABRIC), confirming that the molecular signal captured by CorePAM is not redundant with routine clinical-pathological assessment.
 \end{enumerate}
 
 \bigskip\hrule\bigskip
@@ -249,7 +252,7 @@ Validation cohorts & 3 (mixed endpoints) & 4 OS/DSS + 4 pCR + 1 exploratory \\
 Source code & Not available & GitHub: CorePAM-Study \\
 Gene selection & Subjective (40 genes) & Data-driven elastic-net (24 genes) \\
 C-index TCGA & 0.42 (below chance) & 0.624 (95\%CI 0.572--0.678) \\
-Clinical covariates & None & CORE-A (age+ER) + expanded (T+N) \\
+Clinical covariates & None & CORE-A (age+ER) + full baseline (6 vars) \\
 Endpoint mixing & OS + DRFS pooled & Strict separation (OS/DSS vs pCR) \\
 METABRIC endpoint & OS & DSS (primary); OS (sensitivity) \\
 Auto-correlation & Included & Excluded (off-diagonal only) \\
@@ -262,7 +265,7 @@ Competing risks & Not assessed & Fine--Gray for METABRIC DSS \\
 Frozen z-score & Not assessed & Near-perfect preservation ($r \geq 0.958$) \\
 Uno's C / tdAUC & Not assessed & Confirms robustness to censoring \\
 Formal calibration & Not assessed & Slope/intercept per cohort \\
-ER subgroup & Not assessed & Significant in both ER+ and ER$-$ \\
+ER subgroup & Not assessed & Signal concentrated in ER+ (dual-cohort) \\
 \botrule
 \end{tabular}
 

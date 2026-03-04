@@ -71,12 +71,22 @@ clinical <- data.frame(
   er_status = NA_character_,  # Not available in GSE1456
   pam50_subtype = parse_char(pd$`characteristics_ch1.6`),
   elston_grade = parse_char(pd$`characteristics_ch1.7`),
+  her2_status = NA_integer_,
   stringsAsFactors = FALSE
 )
 
 # Clean subtype field
 clinical$pam50_subtype <- sub("^SUBTYPE:\\s*", "", clinical$pam50_subtype)
 clinical$elston_grade <- sub("^ELSTON:\\s*", "", clinical$elston_grade)
+
+# Grade: from ELSTON:ch1 (values 1/2/3)
+clinical$grade <- suppressWarnings(as.integer(clinical$elston_grade))
+message(sprintf("[GSE1456] Grade: 1=%d, 2=%d, 3=%d, NA=%d",
+                sum(clinical$grade == 1L, na.rm = TRUE),
+                sum(clinical$grade == 2L, na.rm = TRUE),
+                sum(clinical$grade == 3L, na.rm = TRUE),
+                sum(is.na(clinical$grade))))
+message(sprintf("[GSE1456] HER2: all NA (not available), N=%d", nrow(clinical)))
 
 # Drop time <= 0
 n_before <- nrow(clinical)
@@ -92,7 +102,7 @@ message(sprintf("[GSE1456] Median FU (censored): %.1f months",
                 median(clinical$os_time_months[clinical$os_event == 0], na.rm=TRUE)))
 
 # Save clinical_FINAL.parquet
-clin_out <- clinical[, c("sample_id", "patient_id", "os_time_months", "os_event", "age", "er_status")]
+clin_out <- clinical[, c("sample_id", "patient_id", "os_time_months", "os_event", "age", "er_status", "grade", "her2_status")]
 write_parquet(clin_out, file.path(PROC_DIR, "clinical_FINAL.parquet"))
 
 # ==========================================================================
@@ -207,7 +217,7 @@ ar <- data.frame(
   patient_id = names(score_raw),
   stringsAsFactors = FALSE
 )
-ar <- merge(ar, clinical[, c("sample_id","os_time_months","os_event","dss_time_months","dss_event","age","er_status")],
+ar <- merge(ar, clinical[, c("sample_id","os_time_months","os_event","dss_time_months","dss_event","age","er_status","grade","her2_status")],
             by = "sample_id")
 ar$score <- score_raw[ar$sample_id]
 ar$score_z <- score_z[ar$sample_id]

@@ -104,6 +104,21 @@ clin$er_status <- dplyr::case_when(
   TRUE ~ NA_character_
 )
 
+# Grade: from "nhg:ch1" (Nottingham Histologic Grade, values G1/G2/G3)
+clin$grade <- suppressWarnings(as.integer(sub("^G", "", pheno[["nhg:ch1"]])))
+message(sprintf("[02_SCANB] Grade: 1=%d, 2=%d, 3=%d, NA=%d",
+                sum(clin$grade == 1L, na.rm = TRUE),
+                sum(clin$grade == 2L, na.rm = TRUE),
+                sum(clin$grade == 3L, na.rm = TRUE),
+                sum(is.na(clin$grade))))
+
+# HER2 status: from "her2 status:ch1" (values 0/1)
+clin$her2_status <- suppressWarnings(as.integer(pheno[["her2 status:ch1"]]))
+message(sprintf("[02_SCANB] HER2: 0=%d, 1=%d, NA=%d",
+                sum(clin$her2_status == 0L, na.rm = TRUE),
+                sum(clin$her2_status == 1L, na.rm = TRUE),
+                sum(is.na(clin$her2_status))))
+
 # =============================================================================
 # 4) FILTER: remove time <= 0 and time = NA
 # =============================================================================

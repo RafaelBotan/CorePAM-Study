@@ -60,7 +60,7 @@ pathological complete response (pCR) to neoadjuvant chemotherapy across five add
 
 ```
 .
-├── scripts/                     60 R scripts (numbered 00-29)
+├── scripts/                     R scripts (numbered 00-36)
 │   ├── 00_setup.R               Environment + frozen parameters (sourced by all)
 │   ├── 00_colors.R              Colour palette for all figures
 │   ├── 01-04_*.R                Data download, clinical harmonisation, expression preprocessing
@@ -72,6 +72,7 @@ pathological complete response (pCR) to neoadjuvant chemotherapy across five add
 │   ├── 13-16_*.R                Quality control (correlations, PCA, schema, anti-hard-code)
 │   ├── 17-18_*.R                Manuscript rendering + submission bundle
 │   ├── 19-23b_*.R               pCR analysis block (download -> analysis -> meta -> figures)
+│   ├── 30-36_*.R                Major revision analyses (frozen z-score, Uno's C, calibration, ER subgroup, full baseline)
 │   ├── 24_integrate_GSE1456_stockholm.R   4th validation cohort integration
 │   └── 25-29_*.R                Sensitivity analyses (CORE-A expanded, genefu, bootstrap, drop-gene)
 │
@@ -222,6 +223,14 @@ source("scripts/26_sensitivity_genefu_comparison.R")
 source("scripts/27_bootstrap_gene_stability.R")
 source("scripts/28_dropgene_sensitivity.R")
 source("scripts/29_corea_sensitivity_forest.R")
+
+# --- Major revision analyses ---
+source("scripts/30_frozen_zscore_sensitivity.R")
+source("scripts/31_uno_c_and_tdauc.R")
+source("scripts/32_calibration_formal.R")
+source("scripts/34_subgroup_er_stratified.R")
+source("scripts/35_er_neg_bootstrap_stability.R")
+source("scripts/36_full_clinical_baseline.R")
 ```
 
 ### Step 2 — Validate

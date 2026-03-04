@@ -167,7 +167,9 @@ where $z_i$ is the intra-cohort z-score of gene $i$ and $w_i$ is its weight from
 
 \textbf{Frozen z-score sensitivity:} As a sensitivity analysis addressing single-sample scoring feasibility, the mean and standard deviation per gene were frozen from the SCAN-B training cohort and applied to all external validation cohorts instead of computing intra-cohort z-scores. No cohort-level re-standardisation (i.e.\ no \texttt{scale()}) was applied to the composite score, ensuring that each patient's score depends only on their own expression values and the frozen SCAN-B reference---as would occur in clinical deployment with a single specimen. Cox HR and C-index were compared between frozen and intra-cohort approaches on the same raw-score scale.
 
-\textbf{Subgroup analysis:} ER-stratified analyses were performed in SCAN-B (ER status available in 94\% of samples). Cox HR and C-index were computed separately for ER-positive and ER-negative subgroups, with an interaction test (score $\times$ ER status).
+\textbf{Subgroup analysis:} ER-stratified Cox HR, C-index, and formal score$\times$ER interaction tests were performed in SCAN-B (OS; ER available in 94\%) and METABRIC (DSS; ER available in 98\%). These analyses were added post hoc in response to reviewer feedback; all other modelling choices remained frozen.
+
+\textbf{Full clinical baseline:} As a secondary analysis, CorePAM was tested for incremental value beyond a comprehensive 6-variable clinical model (age + ER status + T-stage + N-status + grade + HER2 status) in SCAN-B and METABRIC---the two cohorts where all covariates were available. Incremental value was quantified by $\Delta$C-index (bootstrap $B = 1{,}000$) and a likelihood ratio test (LRT) comparing the clinical-only versus clinical + CorePAM models. This analysis was also performed restricted to ER-positive patients.
 
 \textbf{Decision curve analysis (DCA)~\cite{vickers2006}:} Net benefit at clinically relevant probability thresholds using dcurves::dca (OS: 60-month horizon for SCAN-B, METABRIC, GSE20685; 24 months for TCGA-BRCA).
 
@@ -337,11 +339,13 @@ GSE20685 & age & 327 & 0.536 & 0.628 & +0.093 (0.021--0.175) \\
 
 \textbf{Formal calibration.} Logistic recalibration at the cohort-specific horizon yielded calibration slopes ranging from 0.96 (SCAN-B, near-ideal) to 2.74 (TCGA-BRCA), with corresponding intercepts of 0.56 (SCAN-B) to 5.40 (TCGA-BRCA). The training cohort showed near-perfect calibration ($\beta$ = 0.96, $\alpha$ = 0.56). External validation cohorts showed miscalibration that was mild in METABRIC ($\beta$ = 1.77) and GSE20685 ($\beta$ = 1.58) but substantial in TCGA-BRCA ($\beta$ = 2.74), the latter consistent with its short follow-up and low event rate at the 24-month horizon (Additional file~16: Table~S6).
 
-\textbf{ER-stratified subgroup analysis.} In SCAN-B (N = 2,870 with ER status), CorePAM was significantly associated with OS in both ER-positive (HR = 1.92; 95\% CI 1.69--2.17; $p < 0.001$; N = 2,646) and ER-negative (HR = 2.53; 95\% CI 1.51--4.25; $p < 0.001$; N = 224) subgroups. The interaction test was not significant ($p$ = 0.25), indicating that the CorePAM prognostic effect does not differ significantly by ER status.
+\textbf{ER-stratified subgroup analysis.} In SCAN-B (N = 2,870; OS), CorePAM was significantly associated with survival in both ER-positive (HR = 1.92; 95\% CI 1.69--2.17; $p < 0.001$; N = 2,646) and ER-negative (HR = 2.53; 95\% CI 1.51--4.25; $p < 0.001$; N = 224) subgroups; the interaction test was not significant ($p$ = 0.25). In METABRIC (N = 1,936; DSS), CorePAM was strongly prognostic in ER-positive patients (HR = 1.59; 95\% CI 1.44--1.76; $p < 0.001$; N = 1,497) but showed no signal in ER-negative patients (HR = 0.97; 95\% CI 0.82--1.15; $p$ = 0.75; N = 439); the interaction was significant ($p = 3.2 \times 10^{-7}$). The discrepancy in ER-negative results reflects statistical power: SCAN-B ER$-$ had only 35 events in 224 patients (bootstrap 95\% CI for HR: 1.45--4.89; width = 3.44), whereas METABRIC ER$-$ had 186 events in 439 patients (bootstrap 95\% CI: 0.83--1.15; width = 0.32; 10.8$\times$ narrower). The well-powered METABRIC estimate indicates that the clinically meaningful signal is concentrated in ER-positive disease, consistent with the luminal biology of the retained CorePAM genes.
 
-\subsection{Independence from anatomical staging}\label{subsec:results-staging}
+\subsection{Independence from clinical-pathological staging}\label{subsec:results-staging}
 
 To address whether CorePAM retains prognostic value after adjustment for standard clinical-pathological variables, we fitted expanded multivariable Cox models adjusting for age, ER status (where available), pathological T-stage, and nodal status. T-stage and nodal status were available in 96--100\% of samples across the four cohorts with clinical covariates (SCAN-B, TCGA-BRCA, METABRIC, GSE20685). CorePAM remained independently significant in all four (all $p < 0.002$; Additional file~12: Table~S2), with HR change of less than 10\% compared to the primary CORE-A baseline. Adding CorePAM to the expanded clinical model increased the C-index by +0.022 to +0.027.
+
+In a comprehensive secondary analysis including all six standard clinical-pathological variables (age, ER status, T-stage, nodal status, histological grade, and HER2 status), CorePAM retained independent significance in both SCAN-B (adjusted HR = 1.75; 95\% CI 1.51--2.03; $p = 1.6 \times 10^{-13}$; $\Delta$C = +0.017) and METABRIC (adjusted HR = 1.25; 95\% CI 1.14--1.38; $p = 5.5 \times 10^{-6}$; $\Delta$C = +0.015). Likelihood ratio tests confirmed that CorePAM adds significant information beyond the full clinical model (both $p < 10^{-5}$). In ER-positive patients, the incremental value was most pronounced in METABRIC ($\Delta$C = +0.032; 95\% CI 0.018--0.050; LRT $p = 10^{-10}$).
 
 \subsection{Pathologic complete response (secondary analysis)}\label{subsec:results-pcr}
 
@@ -397,9 +401,9 @@ We demonstrate that CorePAM---a 24-gene data-driven reduction of the PAM50 panel
 
 \textbf{Uno's C-statistic confirms robustness to censoring.} IPCW-based concordance metrics (Uno's C, time-dependent AUC) yielded estimates consistent with Harrell's C-index, confirming that the observed discrimination is not an artefact of heterogeneous censoring distributions across cohorts.
 
-\textbf{ER subgroup analysis.} CorePAM was significantly associated with OS in both ER-positive and ER-negative subgroups in SCAN-B, with no significant interaction ($p$ = 0.25). The numerically higher HR in ER-negative patients (2.53 vs 1.92) likely reflects the stronger contribution of proliferation and basal genes in triple-negative biology. However, the small ER-negative sample (N = 224, 35 events) limits the precision of this estimate. Full ER-stratified analysis across all cohorts was not feasible because TCGA-BRCA and GSE20685 lack harmonised ER status.
+\textbf{ER subgroup analysis.} CorePAM is prognostic in unselected cohorts overall, with the clinically meaningful signal concentrated in ER-positive disease. In both SCAN-B and METABRIC, the ER-positive HR was robust (1.92 and 1.59, respectively; both $p < 0.001$). In ER-negative patients, SCAN-B showed an apparent effect (HR = 2.53) that was not replicated in the better-powered METABRIC analysis (HR = 0.97; N = 439, 186 events). Bootstrap analysis confirmed that the SCAN-B ER-negative estimate is highly unstable (95\% CI width = 3.44 vs 0.32 in METABRIC), consistent with its small sample (35 events). This behaviour is consistent with luminal biology and with the clinical use of multigene prognostic assays primarily in ER-positive disease~\cite{sparano2018,dowsett2013}.
 
-\textbf{Independence from anatomical staging.} An exploratory sensitivity analysis adjusting for pathological T-stage and nodal status---the key clinical-pathological confounders not included in the primary CORE-A baseline---confirmed that CorePAM retains independent prognostic value in all four cohorts (Additional file~12: Table~S2). The absolute HR change was less than 10\% in all cohorts, and the incremental C-index remained positive (+0.022 to +0.027). This does not alter the primary endpoint or replace the main analyses; it corroborates robustness against pathological confounding.
+\textbf{Independence from clinical-pathological staging.} CorePAM retained independent prognostic value after adjustment for all six standard clinical-pathological variables (age, ER, T-stage, N-status, grade, HER2) in both SCAN-B (LRT $p = 4.9 \times 10^{-13}$) and METABRIC (LRT $p = 6.1 \times 10^{-6}$). The $\Delta$C of +0.015 to +0.017 over this comprehensive baseline---and +0.032 in ER-positive METABRIC---confirms that CorePAM captures molecular heterogeneity not accessible through routine clinical-pathological assessment.
 
 \textbf{Comparison with established signatures.} An exploratory head-to-head comparison against research-based implementations (genefu R package~\cite{gendoo2016}) of the PAM50-derived Risk of Recurrence score (ROR-S, 50 genes) and the OncotypeDX Recurrence Score (ODX-RS, 21 genes) showed that CorePAM (24 genes) performs competitively (Additional file~13: Table~S3). CorePAM showed advantages in the RNA-seq cohorts (its training domain) and small deficits ($\Delta$C $< 0.03$) in the microarray cohorts (the development domain of those signatures). This comparison involves research-based score implementations---not commercial assays---and should be interpreted as evidence of competitive performance, not clinical equivalence.
 
@@ -412,7 +416,7 @@ We demonstrate that CorePAM---a 24-gene data-driven reduction of the PAM50 panel
 %% ============================================================
 \section{Conclusions}\label{sec:conclusions}
 
-CorePAM is a 24-gene data-driven reduction of the PAM50 panel, derived without pre-specifying gene count, that achieves non-inferior prognostic discrimination relative to a full 50-gene Cox elastic-net model across four independent validation cohorts and two distinct expression platforms (RNA-seq and microarray). The score provides incremental value beyond a clinical baseline model, remains independently significant after adjustment for anatomical staging (T-stage and nodal status), and predicts pathologic complete response to neoadjuvant chemotherapy with high cross-cohort consistency ($I^2$ = 0\%). The analytical pipeline is fully reproducible from publicly available data.
+CorePAM is a 24-gene data-driven reduction of the PAM50 panel, derived without pre-specifying gene count, that achieves non-inferior prognostic discrimination relative to a full 50-gene Cox elastic-net model across four independent validation cohorts and two distinct expression platforms (RNA-seq and microarray). The score provides incremental value beyond a comprehensive six-variable clinical baseline (age, ER, T-stage, N-status, grade, HER2; LRT $p < 10^{-5}$), with the clinically meaningful signal concentrated in ER-positive disease. CorePAM also predicts pathologic complete response to neoadjuvant chemotherapy with high cross-cohort consistency ($I^2$ = 0\%). The analytical pipeline is fully reproducible from publicly available data.
 
 %% ============================================================
 %%  BACKMATTER
@@ -454,7 +458,7 @@ TMM: Trimmed mean of M-values.
 
 \bmhead{Supplementary information}
 
-Additional files 1--16 are available as supplementary material. See the Additional files section at the end of this article for descriptions.
+Additional files 1--17 are available as supplementary material. See the Additional files section at the end of this article for descriptions.
 
 \bmhead{Acknowledgements}
 
@@ -656,6 +660,23 @@ METABRIC & 1,978 & 60m & 1.15 (0.25) & 1.77 (0.17) & 0.97 & 0.143 \\
 GSE20685 & 327 & 60m & 0.96 (0.75) & 1.58 (0.46) & 0.98 & 0.130 \\
 \botrule
 \end{tabular}
+\end{table}
+
+%% --- Table S7: Full clinical baseline incremental value ---
+\begin{table}[h]
+\caption{\textbf{Additional file~17: Table~S7.} Full clinical baseline incremental value analysis. Cox regression with six clinical-pathological covariates (age, ER, T-stage, N-status, grade, HER2) $\pm$ CorePAM. LRT: likelihood ratio test for CorePAM addition.}\label{tab:s7-fullbaseline}
+\small
+\begin{tabular}{@{}llrrccccc@{}}
+\toprule
+Cohort & Endpoint & Population & N & C clinical & C clin+CorePAM & $\Delta$C & LRT $p$ & HR$_{\text{adj}}$ \\
+\midrule
+SCAN-B & OS & All & 2,649 & 0.770 & 0.787 & +0.017 & $4.9 \times 10^{-13}$ & 1.75 \\
+SCAN-B & OS & ER+ & 2,450 & 0.770 & 0.784 & +0.014 & $1.1 \times 10^{-10}$ & 1.68 \\
+METABRIC & DSS & All & 1,792 & 0.678 & 0.693 & +0.015 & $6.1 \times 10^{-6}$ & 1.25 \\
+METABRIC & DSS & ER+ & 1,377 & 0.674 & 0.707 & +0.032 & $1.0 \times 10^{-10}$ & 1.47 \\
+\botrule
+\end{tabular}
+\footnotetext{HR$_{\text{adj}}$: CorePAM HR per 1~SD adjusted for age, ER, T-stage, N-status, grade, HER2. $\Delta$C: bootstrap difference (B=1,000).}
 \end{table}
 
 %% ============================================================

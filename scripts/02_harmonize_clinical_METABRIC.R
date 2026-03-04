@@ -120,6 +120,26 @@ out$er_status <- dplyr::case_when(
 )
 out$stage <- trimws(clin_full[[STAGE_COL]])
 
+# Grade: from GRADE column in data_clinical_sample.txt (values 1/2/3)
+out$grade <- suppressWarnings(as.integer(clin_full[["GRADE"]]))
+message(sprintf("[02_METABRIC] Grade: 1=%d, 2=%d, 3=%d, NA=%d",
+                sum(out$grade == 1L, na.rm = TRUE),
+                sum(out$grade == 2L, na.rm = TRUE),
+                sum(out$grade == 3L, na.rm = TRUE),
+                sum(is.na(out$grade))))
+
+# HER2 status: from HER2_STATUS column ("Negative"→0, "Positive"/"Positve"→1)
+raw_her2 <- tolower(trimws(clin_full[["HER2_STATUS"]]))
+out$her2_status <- dplyr::case_when(
+  raw_her2 %in% c("positive", "positve") ~ 1L,
+  raw_her2 == "negative"                 ~ 0L,
+  TRUE ~ NA_integer_
+)
+message(sprintf("[02_METABRIC] HER2: 0=%d, 1=%d, NA=%d",
+                sum(out$her2_status == 0L, na.rm = TRUE),
+                sum(out$her2_status == 1L, na.rm = TRUE),
+                sum(is.na(out$her2_status))))
+
 n_le0 <- sum(out$os_time_months <= 0, na.rm = TRUE)
 n_na  <- sum(is.na(out$os_time_months))
 out   <- out |> filter(os_time_months > 0, !is.na(os_time_months))

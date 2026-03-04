@@ -1,0 +1,5 @@
+cohort,endpoint,population,n,n_events,n_covariates_complete,c_clinical,c_clinical_corepam,delta_c,delta_c_lo95,delta_c_hi95,hr_corepam_adjusted,hr_adj_lo95,hr_adj_hi95,p_corepam_adjusted,lrt_chisq,lrt_df,lrt_p,cal_slope_clinical,cal_slope_full,horizon_months
+SCAN-B,OS,All,2649,257,2649,0.7698,0.7866,0.0168,0.0061,0.0313,1.7465,1.5062,2.0251,1.553e-13,52.231,1,4.935e-13,1.0941,1.0501,60
+SCAN-B,OS,ER+,2450,222,2450,0.7698,0.7841,0.0143,0.0032,0.0298,1.6831,1.4421,1.9645,4.071e-11,41.721,1,1.053e-10,1.0867,1.0464,60
+METABRIC,DSS,All,1792,597,1792,0.6783,0.6931,0.0149,0.0056,0.026,1.2525,1.1366,1.3802,5.54e-6,20.463,1,6.079e-6,1.5646,1.6386,60
+METABRIC,DSS,ER+,1377,420,1377,0.6741,0.7065,0.0324,0.0175,0.0501,1.4683,1.3078,1.6484,7.774e-11,41.804,1,1.009e-10,1.298,1.4896,60
