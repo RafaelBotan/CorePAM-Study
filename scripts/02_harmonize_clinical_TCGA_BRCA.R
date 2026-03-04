@@ -1,7 +1,7 @@
 # =============================================================================
 # SCRIPT: 02_harmonize_clinical_TCGA_BRCA.R
 # PURPOSE: Clinical harmonization of TCGA-BRCA (GDC harmonized).
-# PROJETO: Core-PAM (Memorial v6.1)
+# PROJECT: Core-PAM (Memorial v6.1)
 #
 # INPUTS:
 #   01_Base_Pura_CorePAM/RAW/TCGA_BRCA/TCGA_BRCA_SE_counts_raw.rds  (SE)

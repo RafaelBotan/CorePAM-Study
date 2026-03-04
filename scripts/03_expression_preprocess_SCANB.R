@@ -2,7 +2,7 @@
 # SCRIPT: 03_expression_preprocess_SCANB.R
 # PURPOSE: Expression preprocessing for SCAN-B (training cohort, all 3069 samples).
 #          RNA-seq: raw counts → edgeR TMM → logCPM; HGNC mapping.
-# PROJETO: Core-PAM (Memorial v6.1 §4.2)
+# PROJECT: Core-PAM (Memorial v6.1 §4.2)
 #
 # INPUTS:
 #   01_Base_Pura_CorePAM/RAW/GSE96058/  (GEO supplementary files)

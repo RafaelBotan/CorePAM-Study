@@ -1,7 +1,7 @@
 # =============================================================================
 # SCRIPT: 05_reduce_pam50_to_corepam_FINAL.R
 # PURPOSE: Reduce PAM50 → CorePAM (minimal gene set) via OOF non-inferiority.
-# PROJETO: Core-PAM (Memorial v6.1 §5)
+# PROJECT: Core-PAM (Memorial v6.1 §5)
 #
 # DESIGN (A1-proof, audit-friendly):
 #   • Train only: SCAN-B (all N=3069; Option A — no internal split)

@@ -4,7 +4,7 @@
 #          - CSV (results/main/)
 #          - XLSX with formatting (results/main/)
 #          - PNG figure for validation (figures/supp/)
-# PROJETO: Core-PAM (Memorial v6.1)
+# PROJECT: Core-PAM (Memorial v6.1)
 # =============================================================================
 
 source("scripts/00_setup.R")

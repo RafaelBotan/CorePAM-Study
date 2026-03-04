@@ -2,7 +2,7 @@
 # SCRIPT: 03_expression_preprocess_GSE20685.R
 # PURPOSE: Expression preprocessing for GSE20685 (Taiwan, microarray).
 #          Affymetrix HGU133A: log2 intensity as-is → HGNC map.
-# PROJETO: Core-PAM (Memorial v6.1 §4.3)
+# PROJECT: Core-PAM (Memorial v6.1 §4.3)
 #
 # INPUTS:
 #   01_Base_Pura_CorePAM/RAW/GSE20685/  (GEO supplementary files — .gz)

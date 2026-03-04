@@ -3,7 +3,7 @@
 # PURPOSE: Strict pre-flight check — verifies that all required input files
 #          exist and are non-empty before survival analysis scripts (07_*) run.
 #          Fails hard (stop()) if any required file is missing.
-# PROJETO: Core-PAM (Memorial v6.1 §8)
+# PROJECT: Core-PAM (Memorial v6.1 §8)
 #
 # Run this before any 07_survival_analysis_<COHORT>.R script.
 # =============================================================================

@@ -3,7 +3,7 @@
 # PURPOSE: Correlations between CorePAM scores across cohorts EXCLUDING diagonal
 #          (no self-autocorrelation self=1). Figure FigS3.
 #          Follows Memorial v6.1 sec.1.2 (no pooling; score correlations only).
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
 source("scripts/00_setup.R")
@@ -15,7 +15,7 @@ suppressPackageStartupMessages({
 
 message(sprintf("[%s] Starting QC of score correlations (off-diagonal)", SCRIPT_NAME))
 
-COHORTS <- c("SCANB", "TCGA_BRCA", "METABRIC", "GSE20685")
+COHORTS <- c("SCANB", "TCGA_BRCA", "METABRIC", "GSE20685", "GSE1456")
 
 # --------------------------------------------------------------------------
 # 1) Load score per cohort (score_z from analysis_ready.parquet)
@@ -34,11 +34,12 @@ for (coh in COHORTS) {
     next
   }
   # Use sample_id as key
-  if (!"sample_id" %in% names(df)) {
-    message(sprintf("[%s] %s: sample_id missing. Skipping.", SCRIPT_NAME, coh))
+  id_col <- if ("sample_id" %in% names(df)) "sample_id" else if ("patient_id" %in% names(df)) "patient_id" else NULL
+  if (is.null(id_col)) {
+    message(sprintf("[%s] %s: no sample_id or patient_id. Skipping.", SCRIPT_NAME, coh))
     next
   }
-  score_list[[coh]] <- df[, c("sample_id", "score_z")]
+  score_list[[coh]] <- df[, c(id_col, "score_z")]
   names(score_list[[coh]])[2] <- coh
   message(sprintf("[%s] %s: %d samples with score_z loaded", SCRIPT_NAME, coh, nrow(df)))
 }
@@ -83,7 +84,7 @@ for (i in seq_len(n_coh)) {
     } else {
       old_warn <- getOption("warn"); options(warn = 0)
       cor_val <- tryCatch(
-        cor(pct_mat[, i], pct_mat[, j], method = "spearman", use = "complete.obs"),
+        cor(pct_mat[, i], pct_mat[, j], method = "pearson", use = "complete.obs"),
         error = function(e) NA_real_
       )
       options(warn = old_warn)
@@ -134,16 +135,16 @@ if (!requireNamespace("reshape2", quietly = TRUE)) {
 
 p_cor <- ggplot(cor_long, aes(x = Cohort_A, y = Cohort_B, fill = Spearman_rho)) +
   geom_tile(color = "white", linewidth = 0.5) +
-  geom_text(aes(label = sprintf("%.2f", Spearman_rho)),
-            color = "black", size = 4, na.rm = TRUE) +
+  geom_text(aes(label = sprintf("%.3f", Spearman_rho)),
+            color = "black", size = 3.5, na.rm = TRUE) +
   scale_fill_gradient2(
     low  = "#2166AC", mid = "white", high = "#D6604D",
     midpoint = 0, limits = c(-1, 1), na.value = "gray90",
-    name = "Spearman rho\n(percentis)"
+    name = "Pearson r\n(quantile values)"
   ) +
   labs(
-    title    = "CorePAM score correlations (off-diagonal, via percentiles)",
-    subtitle = "Diagonal excluded (no self-autocorrelation self=1)",
+    title    = "CorePAM score correlations (off-diagonal, via quantile values)",
+    subtitle = "Pearson on quantile values | Diagonal excluded",
     x        = NULL,
     y        = NULL
   ) +

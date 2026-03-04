@@ -20,7 +20,7 @@
 #   figures/supp/pt/pdf/FigS_CorePAM_vs_PAM50full_PT.pdf
 #   figures/supp/pt/png/FigS_CorePAM_vs_PAM50full_PT.png
 #
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM — OS block extra figs)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM — OS block extra figs)
 # =============================================================================
 
 source("scripts/00_setup.R")

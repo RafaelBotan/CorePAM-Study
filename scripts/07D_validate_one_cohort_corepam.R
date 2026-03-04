@@ -4,7 +4,7 @@
 #          pipeline end-to-end: data integrity, score distribution, Cox
 #          direction, and basic sanity checks. Intended for rapid validation
 #          before running full survival analysis.
-# PROJETO: Core-PAM (Memorial v6.1 §8)
+# PROJECT: Core-PAM (Memorial v6.1 §8)
 #
 # Usage:
 #   Rscript --no-save scripts/07D_validate_one_cohort_corepam.R COHORT

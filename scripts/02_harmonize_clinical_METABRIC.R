@@ -1,7 +1,7 @@
 # =============================================================================
 # SCRIPT: 02_harmonize_clinical_METABRIC.R
 # PURPOSE: Clinical harmonization of METABRIC — correctly creates OS and DSS.
-# PROJETO: Core-PAM (Memorial v6.1)
+# PROJECT: Core-PAM (Memorial v6.1)
 #
 # INPUTS:
 #   01_Base_Pura_CorePAM/RAW/METABRIC/brca_metabric/data_clinical_patient.txt

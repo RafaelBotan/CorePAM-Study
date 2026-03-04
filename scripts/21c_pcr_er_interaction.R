@@ -12,7 +12,7 @@
 #   figures/supp/FigS_pCR_ER_Interaction_EN.pdf/.png
 #   figures/supp/FigS_pCR_ER_Interaction_PT.pdf/.png
 #
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
 # =============================================================================
 
 suppressPackageStartupMessages({

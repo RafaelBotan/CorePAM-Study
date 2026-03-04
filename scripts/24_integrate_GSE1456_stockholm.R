@@ -1,6 +1,6 @@
 # =============================================================================
 # SCRIPT: 24_integrate_GSE1456_stockholm.R
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # PURPOSE: Integrate GSE1456 (Stockholm/Karolinska, N=159) as 4th external
 #          validation cohort (Affymetrix HG-U133A, OS + DSS).
 #          Downloads, harmonises clinical, preprocesses expression, computes

@@ -2,7 +2,7 @@
 # SCRIPT: 04_gene_audit_freeze.R
 # PURPOSE: Cross-cohort audit of PAM50 genes in all cohorts.
 #          Verifies panel coverage in training and validation sets.
-# PROJETO: Core-PAM (Memorial v6.1 §4.5 / Checklist §7)
+# PROJECT: Core-PAM (Memorial v6.1 §4.5 / Checklist §7)
 #
 # INPUTS:
 #   01_Base_Pura_CorePAM/PROCESSED/<COHORT>/expression_genelevel_preZ.parquet

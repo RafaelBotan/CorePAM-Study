@@ -10,49 +10,49 @@
 #   source("scripts/00_colors.R")
 #   geom_line(colour = COL$primary)
 #
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
 COL <- list(
 
-  # ── Análise principal ──────────────────────────────────────────────────────
-  primary    = "#2166AC",   # Azul escuro  — curva/linha principal de dados
-  selected   = "#D73027",   # Vermelho     — painel selecionado / resultado principal
-  reference  = "#636363",   # Cinza médio  — pontos de referência (C_max, etc.)
-  threshold  = "#D73027",   # Vermelho     — linhas de limiar (mesmo que selected)
-  fill_warn  = "#FDAE61",   # Laranja suave — zona abaixo do limiar (fill, alpha reduzido)
-  fill_ok    = "#ABD9E9",   # Azul suave   — zona acima do limiar (fill, se necessário)
+  # ── Main analysis ─────────────────────────────────────────────────────────
+  primary    = "#2166AC",   # Dark blue    — primary data curve/line
+  selected   = "#D73027",   # Red          — selected panel / main result
+  reference  = "#636363",   # Mid grey     — reference points (C_max, etc.)
+  threshold  = "#D73027",   # Red          — threshold lines (same as selected)
+  fill_warn  = "#FDAE61",   # Soft orange  — below-threshold zone (fill, reduced alpha)
+  fill_ok    = "#ABD9E9",   # Soft blue    — above-threshold zone (fill, if needed)
 
-  # ── Sobrevida / KM ────────────────────────────────────────────────────────
-  km_high    = "#D73027",   # Vermelho — alto risco (pior prognóstico)
-  km_low     = "#1A9850",   # Verde    — baixo risco (melhor prognóstico)
-  km_q1      = "#1A9850",   # Q1 (melhor)
+  # ── Survival / KM ───────────────────────────────────────────────────────
+  km_high    = "#D73027",   # Red   — high risk (worse prognosis)
+  km_low     = "#1A9850",   # Green — low risk (better prognosis)
+  km_q1      = "#1A9850",   # Q1 (best)
   km_q2      = "#91CF60",   # Q2
   km_q3      = "#FC8D59",   # Q3
-  km_q4      = "#D73027",   # Q4 (pior)
+  km_q4      = "#D73027",   # Q4 (worst)
 
-  # ── Coortes OS ────────────────────────────────────────────────────────────
-  scanb      = "#2166AC",   # Azul     — SCAN-B (treino)
-  tcga       = "#1A9850",   # Verde    — TCGA-BRCA
-  metabric   = "#D73027",   # Vermelho — METABRIC
-  gse20685   = "#756BB1",   # Roxo     — GSE20685
-  summary    = "#252525",   # Preto    — diamante de meta-análise / resumo
+  # ── OS cohorts ───────────────────────────────────────────────────────────
+  scanb      = "#2166AC",   # Blue   — SCAN-B (training)
+  tcga       = "#1A9850",   # Green  — TCGA-BRCA
+  metabric   = "#D73027",   # Red    — METABRIC
+  gse20685   = "#756BB1",   # Purple — GSE20685
+  summary    = "#252525",   # Black  — meta-analysis diamond / summary
 
-  # ── Coortes pCR (NACT block) ──────────────────────────────────────────────
-  gse25066   = "#E6550D",   # Laranja escuro — GSE25066 (Hatzis 2011, N=508)
-  gse20194   = "#31A354",   # Verde médio    — GSE20194 (Mina, N=278)
-  gse32646   = "#3182BD",   # Azul médio     — GSE32646 (Tabchy, N=154)
-  ispy1      = "#756BB1",   # Roxo           — I-SPY1 / GSE22226 (N=149)
-  ispy2      = "#BCBD22",   # Oliva          — I-SPY2 (conditional)
+  # ── pCR cohorts (NACT block) ─────────────────────────────────────────────
+  gse25066   = "#E6550D",   # Dark orange  — GSE25066 (Hatzis 2011, N=508)
+  gse20194   = "#31A354",   # Mid green    — GSE20194 (Mina, N=278)
+  gse32646   = "#3182BD",   # Mid blue     — GSE32646 (Tabchy, N=154)
+  ispy1      = "#756BB1",   # Purple       — I-SPY1 / GSE22226 (N=149)
+  ispy2      = "#BCBD22",   # Olive        — I-SPY2 (conditional)
 
-  # ── Subtipos PAM50 ────────────────────────────────────────────────────────
-  lumA       = "#2166AC",   # Azul
-  lumB       = "#74ADD1",   # Azul claro
-  her2       = "#D73027",   # Vermelho
-  basal      = "#FDAE61",   # Laranja
-  normal     = "#1A9850",   # Verde
+  # ── PAM50 subtypes ──────────────────────────────────────────────────────
+  lumA       = "#2166AC",   # Blue
+  lumB       = "#74ADD1",   # Light blue
+  her2       = "#D73027",   # Red
+  basal      = "#FDAE61",   # Orange
+  normal     = "#1A9850",   # Green
 
-  # ── Utilitários ───────────────────────────────────────────────────────────
+  # ── Utilities ────────────────────────────────────────────────────────────
   grey_light = "#F7F7F7",
   grey_mid   = "#BDBDBD",
   grey_dark  = "#636363",
@@ -60,7 +60,7 @@ COL <- list(
   white      = "#FFFFFF"
 )
 
-# Vetores nomeados para uso direto em scale_colour_manual / scale_fill_manual
+# Named vectors for direct use in scale_colour_manual / scale_fill_manual
 COL_COHORTS <- c(
   "SCANB"    = COL$scanb,
   "TCGA"     = COL$tcga,

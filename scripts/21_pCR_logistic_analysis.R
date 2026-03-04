@@ -14,7 +14,7 @@
 #   pcr_incremental_table.csv     — ΔAUC baseline vs baseline+score (T_pCR_3)
 #   T_pCR_1_Cohort_Characteristics.csv — cohort characteristics (T_pCR_1)
 #
-# PROJETO: Core-PAM (Memorial v6.1 §11 / Freeze Core-PAM — pCR block)
+# PROJECT: Core-PAM (Memorial v6.1 §11 / Freeze Core-PAM — pCR block)
 # =============================================================================
 
 source("scripts/00_setup.R")

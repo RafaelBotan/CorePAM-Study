@@ -2,7 +2,7 @@
 # SCRIPT: 03_expression_preprocess_TCGA_BRCA.R
 # PURPOSE: Expression preprocessing for TCGA-BRCA.
 #          RNA-seq STAR counts → edgeR TMM → logCPM; HGNC mapping.
-# PROJETO: Core-PAM (Memorial v6.1 §4.2)
+# PROJECT: Core-PAM (Memorial v6.1 §4.2)
 #
 # INPUTS:
 #   01_Base_Pura_CorePAM/RAW/TCGA_BRCA/TCGA_BRCA_SE_counts_raw.rds

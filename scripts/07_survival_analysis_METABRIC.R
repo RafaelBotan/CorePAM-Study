@@ -5,7 +5,7 @@
 #          DSS (primary) + OS (sensitivity) + Fine-Gray (sensitivity).
 #          Follows Memorial v6.1 sec.7.2 + sec.8.
 # COHORT:  METABRIC | Primary endpoint: DSS
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
 source("scripts/00_setup.R")

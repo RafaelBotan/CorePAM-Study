@@ -16,7 +16,7 @@
 # NOTE: No CORE-A / CORE-NACT baseline — age NOT available in GSE194040 metadata.
 #       Adjusted model uses HR+HER2+arm as the clinical baseline.
 #
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
 # =============================================================================
 
 source("scripts/00_setup.R")

@@ -9,7 +9,7 @@
 #   Phase 2 — Value search with coverage filter: scan all columns for values
 #             matching pCR/RD patterns; require >= MIN_COVERAGE_FRAC valid calls.
 #
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
 # =============================================================================
 
 MIN_COVERAGE_FRAC <- 0.10   # minimum fraction of samples with valid pCR to accept column

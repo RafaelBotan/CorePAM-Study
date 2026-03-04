@@ -14,7 +14,7 @@
 #   figures/supp/en/png/FigS_CorePAM_vs_PAM50full_HR_EN.png (forest, new)
 #   figures/supp/pt/pdf/FigS_CorePAM_vs_PAM50full_HR_PT.pdf
 #   figures/supp/pt/png/FigS_CorePAM_vs_PAM50full_HR_PT.png
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
 suppressPackageStartupMessages({

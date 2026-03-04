@@ -3,7 +3,7 @@
 # PURPOSE: Clinical harmonization of SCAN-B (GSE96058).
 #          ALL 3069 samples are the SCAN-B training cohort (no internal split).
 #          Decision: Option A, confirmed 2026-02-28 (Rafael Botan).
-# PROJETO: Core-PAM (Memorial v6.1)
+# PROJECT: Core-PAM (Memorial v6.1)
 #
 # INPUT:
 #   01_Base_Pura_CorePAM/RAW/GSE96058/GSE96058_clinical_raw.rds  (pData GEO)

@@ -14,7 +14,7 @@
 #   results/pcr/pcr_sensitivity_intersection.csv  — OR, AUC, CI per cohort
 #   results/pcr/pcr_sensitivity_meta_intersection.csv — pooled meta OR
 #
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
 # =============================================================================
 
 source("scripts/00_setup.R")

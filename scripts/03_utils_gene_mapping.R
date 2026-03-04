@@ -2,7 +2,7 @@
 # UTILITY: 03_utils_gene_mapping.R
 # PURPOSE: Shared gene mapping (HGNC) and probe collapse functions for all
 #          03_expression_preprocess_<COHORT>.R scripts.
-# PROJETO: Core-PAM (Memorial v6.1 §4.4)
+# PROJECT: Core-PAM (Memorial v6.1 §4.4)
 #
 # RULES:
 #   - IDs (Symbol/Entrez/RefSeq/Ensembl) → HGNC official symbol.

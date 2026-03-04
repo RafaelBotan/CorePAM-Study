@@ -2,8 +2,8 @@
 # SCRIPT: 00_setup.R
 # PURPOSE: Reproducible environment — paths, strict I/O, helpers, frozen
 #          parameters. Must be sourced at the beginning of all other scripts.
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
-# REGRA:   Never contain gene counts (e.g. PAM29) in paths or variables.
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
+# RULE:   Never contain gene counts (e.g. PAM29) in paths or variables.
 # =============================================================================
 
 suppressPackageStartupMessages({

@@ -11,7 +11,7 @@
 #   meta_pCR_with_ispy2.csv       — RE+FE meta, 4 GEO + I-SPY2
 #   meta_pCR_cohort_weights_with_ispy2.csv — per-cohort RE weights (5 cohorts)
 #
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
 # =============================================================================
 
 source("scripts/00_setup.R")

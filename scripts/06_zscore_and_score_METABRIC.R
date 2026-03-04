@@ -4,7 +4,7 @@
 #          Intra-cohort Z-score, rescaled score (Effective Gene Count),
 #          standardized direction (HR>1), generates analysis_ready.parquet
 # COHORT:  METABRIC (microarray validation; primary endpoint = DSS)
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
 source("scripts/00_setup.R")

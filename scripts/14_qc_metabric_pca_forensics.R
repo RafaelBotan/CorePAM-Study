@@ -4,7 +4,7 @@
 #          Detects batch effects, outlier samples, and platform artifacts
 #          that could confound survival analysis.
 #          Produces supplementary figure FigS4.
-# PROJETO: Core-PAM (Memorial v6.1 §QC)
+# PROJECT: Core-PAM (Memorial v6.1 §QC)
 #
 # INPUTS:
 #   01_Base_Pura_CorePAM/PROCESSED/METABRIC/expression_genelevel_preZ.parquet

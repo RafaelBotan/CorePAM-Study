@@ -8,7 +8,7 @@
 #          Downloads series matrices via GEOquery; skips if already present.
 #          SHA-256 + registry for all downloaded files.
 #
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
 # EXECUTION:
 #   Rscript scripts/19_download_pCR_raw_data.R
 #   Force re-download: FORCE_RERUN=TRUE Rscript scripts/19_download_pCR_raw_data.R

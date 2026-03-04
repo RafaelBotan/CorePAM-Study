@@ -9,7 +9,7 @@
 #   figures/main/en/png/Fig1_StudyDesign_EN.png
 #   figures/main/pt/pdf/Fig1_StudyDesign_PT.pdf
 #   figures/main/pt/png/Fig1_StudyDesign_PT.png
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
 source("scripts/00_setup.R")

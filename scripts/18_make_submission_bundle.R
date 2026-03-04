@@ -7,7 +7,7 @@
 #          - Registry snapshot
 #          - SHA-256 manifest of all bundled files
 #          - README with exact reproduction steps
-# PROJETO: Core-PAM (Memorial v6.1 §Submission)
+# PROJECT: Core-PAM (Memorial v6.1 §Submission)
 #
 # OUTPUTS:
 #   submission_bundle/CorePAM_bundle_YYYYMMDD.zip

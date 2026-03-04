@@ -1,7 +1,7 @@
 # =============================================================================
 # SCRIPT: 02_harmonize_clinical_GSE20685.R
 # PURPOSE: Clinical harmonization of GSE20685 (Taiwan; Affymetrix microarray).
-# PROJETO: Core-PAM (Memorial v6.1)
+# PROJECT: Core-PAM (Memorial v6.1)
 #
 # INPUT:
 #   01_Base_Pura_CorePAM/RAW/GSE20685/GSE20685_clinical_raw.rds  (pData GEO)

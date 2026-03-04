@@ -9,7 +9,7 @@
 #   01_Base_Pura_CorePAM/PROCESSED/SCANB/expression_genelevel_preZ.parquet
 #   01_Base_Pura_CorePAM/PROCESSED/SCANB/clinical_FINAL.parquet
 #   results/corepam/CorePAM_weights.csv
-#   results/corepam/CorePAM_training_card.json
+#   results/corepam/selected_CorePAM_summary.json
 #
 # OUTPUTS:
 #   results/supp/bootstrap_gene_stability.csv
@@ -47,7 +47,7 @@ ALPHA_EN <- FREEZE$alpha  # 0.5
 
 # Load frozen lambda from training card
 card <- jsonlite::fromJSON(
-  file.path(PATHS$results$corepam, "CorePAM_training_card.json")
+  file.path(PATHS$results$corepam, "selected_CorePAM_summary.json")
 )
 LAMBDA_FROZEN <- card$selected$lambda
 message(sprintf("[%s] Frozen lambda = %.6g | alpha = %.1f", SCRIPT_NAME, LAMBDA_FROZEN, ALPHA_EN))

@@ -9,7 +9,7 @@
 # N expected: ~154 pre-treatment biopsies
 # REF: Tabchy A et al. Clin Cancer Res 2010; paclitaxel + FAC NACT
 #
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
 # =============================================================================
 
 source("scripts/00_setup.R")

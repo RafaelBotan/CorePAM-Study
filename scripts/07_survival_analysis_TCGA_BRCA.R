@@ -4,7 +4,7 @@
 #          Univariate Cox + CORE-A, C-index bootstrap, KM (median + quartiles),
 #          24m horizon sensitivity. Follows Memorial v6.1 sec.8 + sec.9.4.
 # COHORT:  TCGA_BRCA | Primary endpoint: OS
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
 source("scripts/00_setup.R")

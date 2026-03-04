@@ -4,7 +4,7 @@
 #          Univariate Cox + CORE-A, C-index bootstrap, KM (median + quartiles),
 #          60m calibration. Follows Memorial v6.1 sec.8.
 # COHORT:  SCANB | Primary endpoint: OS
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
 source("scripts/00_setup.R")

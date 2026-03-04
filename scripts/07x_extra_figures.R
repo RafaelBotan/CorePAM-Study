@@ -6,7 +6,7 @@
 #   FigS_Heatmap      — Heatmap of Core-PAM gene expression z-scores (validation)
 #   FigS_Weights      — Lollipop chart of Core-PAM gene weights
 #   FigS_ScoreBySubtype — Score by PAM50/ER subtype (if available)
-# PROJETO: Core-PAM (Memorial v6.1)
+# PROJECT: Core-PAM (Memorial v6.1)
 # =============================================================================
 
 source("scripts/00_setup.R")

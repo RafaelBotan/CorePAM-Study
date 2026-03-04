@@ -5,7 +5,7 @@
 #          Outputs: results/pcr/meta_pCR_results.csv
 #                   results/pcr/meta_pCR_cohort_weights.csv
 #
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM — pCR block)
 # =============================================================================
 
 source("scripts/00_setup.R")

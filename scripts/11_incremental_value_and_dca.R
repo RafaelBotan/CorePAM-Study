@@ -5,7 +5,7 @@
 #          60m calibration (when available),
 #          DCA as sensitivity only.
 #          Follows Memorial v6.1 sec.2.1 + FIGURES sec.Fig5.
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
 source("scripts/00_setup.R")

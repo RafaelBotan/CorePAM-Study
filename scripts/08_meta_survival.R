@@ -5,7 +5,7 @@
 #          Cohorts: SCANB (training), TCGA_BRCA, METABRIC, GSE20685, GSE1456.
 #          Meta-analysis restricted to validation cohorts only (K=4).
 #          Follows Memorial v6.1 sec.8.2.
-# PROJETO: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
+# PROJECT: Core-PAM (Memorial v6.1 / Freeze Core-PAM)
 # =============================================================================
 
 source("scripts/00_setup.R")

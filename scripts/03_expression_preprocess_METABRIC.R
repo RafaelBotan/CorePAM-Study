@@ -2,7 +2,7 @@
 # SCRIPT: 03_expression_preprocess_METABRIC.R
 # PURPOSE: Expression preprocessing for METABRIC.
 #          Illumina HT-12 v3 microarray: log2 intensity as-is → HGNC map.
-# PROJETO: Core-PAM (Memorial v6.1 §4.3)
+# PROJECT: Core-PAM (Memorial v6.1 §4.3)
 #
 # INPUT:
 #   01_Base_Pura_CorePAM/RAW/METABRIC/brca_metabric/data_mrna_illumina_microarray.txt
