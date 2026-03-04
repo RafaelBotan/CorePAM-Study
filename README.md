@@ -2,12 +2,12 @@
 
 [![DOI](https://img.shields.io/badge/status-under%20review-yellow)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![R ≥ 4.4](https://img.shields.io/badge/R-%E2%89%A5%204.4-276DC3?logo=r)](https://cran.r-project.org/)
+[![R >= 4.4](https://img.shields.io/badge/R-%E2%89%A5%204.4-276DC3?logo=r)](https://cran.r-project.org/)
 
 > **PhD thesis project — Rafael de Negreiros Botan**
 >
 > Reducing the 50-gene PAM50 panel to the smallest prognostic subset (CorePAM, 24 genes)
-> whose out-of-fold C-index is non-inferior (ΔC ≤ 0.010) to the full 50-gene elastic-net
+> whose out-of-fold C-index is non-inferior (delta-C <= 0.010) to the full 50-gene elastic-net
 > Cox model. Validated across four independent cohorts spanning RNA-seq and microarray platforms.
 
 ---
@@ -18,15 +18,15 @@ PAM50 is the gold-standard 50-gene expression panel for breast cancer molecular 
 CorePAM asks: **how few of those 50 genes are actually needed for prognostic scoring?**
 
 Using elastic-net Cox regression on the SCAN-B cohort (n = 3,069), we derived a **24-gene
-subset** that retains non-inferior prognostic discrimination, then validated it on three
-independent cohorts (TCGA-BRCA, METABRIC, GSE20685) covering both RNA-seq and microarray
-platforms. A secondary analysis evaluated the CorePAM score as a predictor of pathological
-complete response (pCR) to neoadjuvant chemotherapy across five additional cohorts.
+subset** that retains non-inferior prognostic discrimination, then validated it on four
+independent cohorts (TCGA-BRCA, METABRIC, GSE20685, GSE1456) covering both RNA-seq and
+microarray platforms. A secondary analysis evaluated the CorePAM score as a predictor of
+pathological complete response (pCR) to neoadjuvant chemotherapy across five additional cohorts.
 
 **Key results:**
-- Random-effects meta-analysis HR = 1.61 (95% CI 1.17–2.22) per 1-SD increase in CorePAM score
-- Concordance (C-index) 0.58–0.64 across validation cohorts
-- pCR meta-analysis OR = 1.69 (95% CI 1.39–2.05), I² = 0%
+- Random-effects meta-analysis HR = 1.37 (95% CI 1.24-1.52; I2 = 38.3%; p = 1.8 x 10^-9) per 1-SD increase
+- Concordance (C-index) 0.62-0.66 across validation cohorts
+- pCR meta-analysis OR = 1.69 (95% CI 1.39-2.05; I2 = 0%)
 
 ---
 
@@ -36,20 +36,23 @@ complete response (pCR) to neoadjuvant chemotherapy across five additional cohor
 
 | Cohort | Role | Platform | Endpoint | N | Events | Median FU |
 |--------|------|----------|----------|---|--------|-----------|
-| SCAN-B (GSE96058) | **Training** | RNA-seq | OS | 3,069 | 322 (10.5%) | 54.9 mo |
-| TCGA-BRCA | Validation | RNA-seq | OS | 1,072 | 150 (14.0%) | 25.6 mo |
-| METABRIC | Validation | Microarray (Illumina) | DSS | 1,980 | 1,144 (57.8%) | 157.9 mo |
-| GSE20685 | Validation | Microarray (Affymetrix) | OS | 327 | 83 (25.4%) | 97.2 mo |
+| SCAN-B (GSE96058) | **Training** | RNA-seq | OS | 3,069 | 322 (10.5%) | 55.7 mo |
+| TCGA-BRCA | Validation | RNA-seq | OS | 1,072 | 150 (14.0%) | 32.0 mo |
+| METABRIC | Validation | Microarray (Illumina) | DSS | 1,978 | 646 (32.7%) | 159.0 mo |
+| GSE20685 | Validation | Microarray (Affymetrix) | OS | 327 | 83 (25.4%) | 112.8 mo |
+| GSE1456 | Validation | Microarray (Affymetrix) | OS | 159 | 40 (25.2%) | 91.0 mo |
 
 ### pCR (Pathological Complete Response to NACT)
 
-| Cohort | Role | Platform | N | pCR rate |
-|--------|------|----------|---|----------|
-| GSE25066 | Primary | HGU133A | 508 | 15.4% |
-| GSE20194 | Primary | HGU133Plus2 | 278 | 25.9% |
-| GSE32646 | Primary | HGU133Plus2 | 154 | 19.5% |
-| I-SPY 1 (GSE22226) | Primary | Agilent 44K | 122 | 27.9% |
+| Cohort | Role | Platform | N (analyzed) | pCR rate |
+|--------|------|----------|--------------|----------|
+| GSE25066 | Primary | HGU133A | 182 | 23.1% |
+| GSE20194 | Primary | HGU133Plus2 | 278 | 20.1% |
+| GSE32646 | Primary | HGU133Plus2 | 115 | 23.5% |
+| I-SPY 1 (GSE22226) | Primary | Agilent 44K | 122 | 26.2% |
 | I-SPY 2 (GSE194040) | Exploratory | Agilent 44K | 986 | 32.4% |
+
+> **Note:** pCR sample sizes reflect post-QC cohorts (complete CorePAM score + endpoint + covariates).
 
 ---
 
@@ -57,18 +60,20 @@ complete response (pCR) to neoadjuvant chemotherapy across five additional cohor
 
 ```
 .
-├── scripts/                     54 R scripts (numbered 00–23b)
+├── scripts/                     60 R scripts (numbered 00-29)
 │   ├── 00_setup.R               Environment + frozen parameters (sourced by all)
 │   ├── 00_colors.R              Colour palette for all figures
-│   ├── 01–04_*.R                Data download, clinical harmonisation, expression preprocessing
+│   ├── 01-04_*.R                Data download, clinical harmonisation, expression preprocessing
 │   ├── 05_reduce_pam50_to_corepam_FINAL.R   CorePAM derivation (FREEZE)
 │   ├── 06_*.R                   Z-score and scoring per cohort
 │   ├── 07_*.R                   Survival analysis per cohort + figures
-│   ├── 08_meta_survival.R       Random-effects meta-analysis (validation only)
-│   ├── 11_*.R                   Incremental value (ΔC-index) + DCA
-│   ├── 13–16_*.R                Quality control (correlations, PCA, schema, anti-hard-code)
-│   ├── 17–18_*.R                Manuscript rendering + submission bundle
-│   └── 19–23b_*.R               pCR analysis block (download → analysis → meta → figures)
+│   ├── 08_meta_survival.R       Random-effects meta-analysis (K = 4 validation cohorts)
+│   ├── 11_*.R                   Incremental value (delta-C-index) + DCA
+│   ├── 13-16_*.R                Quality control (correlations, PCA, schema, anti-hard-code)
+│   ├── 17-18_*.R                Manuscript rendering + submission bundle
+│   ├── 19-23b_*.R               pCR analysis block (download -> analysis -> meta -> figures)
+│   ├── 24_integrate_GSE1456_stockholm.R   4th validation cohort integration
+│   └── 25-29_*.R                Sensitivity analyses (CORE-A expanded, genefu, bootstrap, drop-gene)
 │
 ├── results/
 │   ├── corepam/                 Model artefacts (weights, Pareto, training card)
@@ -77,28 +82,22 @@ complete response (pCR) to neoadjuvant chemotherapy across five additional cohor
 │   └── pcr/                     pCR logistic results + meta-analysis
 │
 ├── figures/
-│   ├── main/{en,pt}/{pdf,png}/  Main figures (EN + PT versions, vector + raster)
-│   ├── supp/{en,pt}/{pdf,png}/  Supplementary figures
-│   ├── pcr/{en,pt}/{pdf,png}/   pCR figures
-│   └── interpretations/         Markdown narrative for each figure
+│   ├── main/en/{pdf,png}/       Main figures (vector + raster)
+│   ├── supp/en/{pdf,png}/       Supplementary figures
+│   └── pcr/en/{pdf,png}/        pCR figures
 │
 ├── 01_docs/
 │   ├── registry/                Frozen parameters, artefact inventory, audit reports
 │   └── endpoint_mapping_templates/  Clinical endpoint mapping per cohort
 │
 ├── manuscript/
-│   ├── CorePAM_manuscript.qmd   Quarto source (all numbers read from CSVs)
-│   └── CorePAM_manuscript.html  Rendered HTML
+│   └── CorePAM_manuscript.qmd   Quarto source (all numbers read from CSVs)
 │
+├── submission/                  Submitted manuscript (TeX, PDF, figures, supplementary files)
 ├── config/                      pCR cohort manifest
-├── docs/                        Figures/tables index, reviewer response letter
-│
-├── CLAUDE.md                    Full project specification and analytical rules
-├── Memorial_v6_1_CorePAM.md     Governance protocol (source of truth)
-├── COREPAM_REPRO_RUNBOOK_v2.md  Reproducibility runbook
 ├── CITATION.cff                 Citation metadata
 ├── INSTALL.R                    One-step package installer
-├── MANIFEST.txt                 File manifest
+├── LICENSE                      MIT License
 └── README.md                    This file
 ```
 
@@ -129,11 +128,11 @@ They are stored in [`01_docs/registry/analysis_freeze.csv`](01_docs/registry/ana
 
 | Component | Version |
 |-----------|---------|
-| R | ≥ 4.4.0 (developed on 4.5.2) |
-| Quarto | ≥ 1.4 (for manuscript rendering only) |
+| R | >= 4.4.0 (developed on 4.5.2) |
+| Quarto | >= 1.4 (for manuscript rendering only) |
 | Internet | Required for initial data download |
-| Disk space | ≥ 15 GB |
-| RAM | ≥ 16 GB |
+| Disk space | >= 15 GB |
+| RAM | >= 16 GB |
 
 ### Step 0 — Install packages
 
@@ -148,7 +147,7 @@ Scripts are numbered and must be executed in order. Each script sources
 (skip/force pattern — set `FORCE_RERUN=TRUE` to re-execute).
 
 ```r
-# Download raw data (requires internet, ~1–4 hours)
+# Download raw data (requires internet, ~1-4 hours)
 source("scripts/01_download_raw_data.R")
 
 # Clinical harmonisation (4 cohorts)
@@ -181,7 +180,7 @@ source("scripts/07_survival_analysis_METABRIC.R")
 source("scripts/07_survival_analysis_GSE20685.R")
 source("scripts/08_meta_survival.R")
 
-# Figures
+# Figures + tables
 source("scripts/07x_extra_figures.R")
 source("scripts/07y_pam50full_comparison.R")
 source("scripts/07z_table_figures_survival.R")
@@ -199,6 +198,9 @@ source("scripts/16_qc_text_vs_results_assert.R")
 # Manuscript rendering
 source("scripts/17_render_manuscript_quarto.R")
 
+# --- 4th validation cohort (GSE1456 / Stockholm) ---
+source("scripts/24_integrate_GSE1456_stockholm.R")
+
 # --- pCR block (secondary analysis) ---
 source("scripts/19_download_pCR_raw_data.R")
 source("scripts/20_prepare_pCR_GSE25066.R")
@@ -213,6 +215,13 @@ source("scripts/22_meta_pCR.R")
 source("scripts/22b_meta_pCR_with_ispy2.R")
 source("scripts/23_pCR_figures.R")
 source("scripts/23b_pCR_ispy2_figures.R")
+
+# --- Sensitivity analyses ---
+source("scripts/25_sensitivity_corea_expanded.R")
+source("scripts/26_sensitivity_genefu_comparison.R")
+source("scripts/27_bootstrap_gene_stability.R")
+source("scripts/28_dropgene_sensitivity.R")
+source("scripts/29_corea_sensitivity_forest.R")
 ```
 
 ### Step 2 — Validate
@@ -246,12 +255,12 @@ This checks syntax of all scripts and verifies that expected output files exist.
 |----------|------|-------------|
 | `CorePAM_weights.csv` | `results/corepam/` | 24 genes with Cox elastic-net weights |
 | `CorePAM_model.rds` | `results/corepam/` | Fitted glmnet model (git-ignored; regenerated by script 05) |
-| `CorePAM_training_card.json` | `results/corepam/` | Derivation metadata (C-index, genes, lambda) |
+| `selected_CorePAM_summary.json` | `results/corepam/` | Derivation metadata (C-index, genes, lambda) |
 | `pareto_df_cindex_oof.csv` | `results/corepam/` | Pareto frontier: gene count vs. OOF C-index |
 | `Table3_*.csv` | `results/main/` | Survival performance by cohort (HR, C-index, events) |
 | `meta_survival_summary.csv` | `results/main/` | Random-effects meta-analysis results |
 | `pCR_results_by_cohort.csv` | `results/pcr/` | Logistic regression per pCR cohort |
-| `meta_pCR_results.csv` | `results/pcr/` | pCR meta-analysis (OR, I²) |
+| `meta_pCR_results.csv` | `results/pcr/` | pCR meta-analysis (OR, I2) |
 
 ---
 
@@ -279,11 +288,24 @@ All data are publicly available:
 - **TCGA-BRCA**: [GDC Data Portal](https://portal.gdc.cancer.gov/)
 - **METABRIC**: [cBioPortal](https://www.cbioportal.org/study/summary?id=brca_metabric)
 - **GSE20685**: [GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE20685)
+- **GSE1456**: [GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE1456)
 - **GSE25066**: [GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE25066)
 - **GSE20194**: [GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE20194)
 - **GSE32646**: [GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE32646)
 - **I-SPY 1**: [GSE22226](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE22226)
 - **I-SPY 2**: [GSE194040](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE194040)
+
+---
+
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| Package installation fails | Run `source("INSTALL.R")` in a clean R session |
+| Download times out | Re-run `01_download_raw_data.R`; the skip/force pattern resumes from where it stopped |
+| "Output already exists" | Set `FORCE_RERUN=TRUE` environment variable to re-execute |
+| Warning treated as error | This is by design (`options(warn=2)`). Investigate the warning — it may indicate a data issue |
+| Memory error | Ensure >= 16 GB RAM. Close other applications before running preprocessing scripts |
 
 ---
 
@@ -299,7 +321,14 @@ See also [`CITATION.cff`](CITATION.cff) for machine-readable citation metadata.
 
 ---
 
+## Contact
+
+- **Rafael de Negreiros Botan** — oncologista@gmail.com
+- Faculty of Medicine, University of Brasilia (UnB), Brazil
+
+---
+
 ## License
 
-Analysis code: MIT License.
+Analysis code: [MIT License](LICENSE).
 Data are from public repositories (GEO, GDC, cBioPortal) under their respective terms of use.

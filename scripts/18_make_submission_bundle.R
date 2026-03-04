@@ -210,7 +210,7 @@ All files listed in `CorePAM_manifest_%s.csv` with SHA-256 checksums.
 ## Contact
 
 Rafael Botan — PhD Candidate
-GitHub: https://github.com/RafaelBotan/Phd-Genomic
+GitHub: https://github.com/RafaelBotan/CorePAM-Study
 ',
   BUNDLE_DATE, BUNDLE_DATE
 )

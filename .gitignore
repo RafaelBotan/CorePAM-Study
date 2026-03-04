@@ -40,6 +40,28 @@ RESULTS_SUMMARY.md
 ERRORS_LOG.md
 PLAN_SYNC.md
 
+# Internal governance (local only)
+CLAUDE.md
+Memorial_v6_1_CorePAM.md
+COREPAM_REPRO_RUNBOOK_v2.md
+
+# Thesis (separate deliverable)
+tese/
+
+# Portuguese figure translations (thesis only)
+figures/*/pt/
+
+# Internal figure narratives
+figures/interpretations/
+
+# Thesis-only scripts
+scripts/99_generate_pt_figures_tese.R
+scripts/13b_regenerate_corr_fig_pt.R
+
+# Internal editorial docs
+docs/Reviewer_Response_Letter.md
+docs/FIGURES_TABLES_INDEX.md
+
 # Internal planning documents (not relevant for repo)
 CHECKLIST_MASTER_*.md
 FIGURES_TABLES_PLAN_*.md
@@ -63,15 +85,11 @@ submission_bundle/
 
 # Word documents (local-only by default)
 **/*.docx
-# Exceptions: submission ground truth + thesis template
+# Exceptions: submission ground truth
 !submission/**/*.docx
-!tese/reference_abnt_v2.docx
 
 # Submission PDF (ground truth — tracked)
 !submission/**/*.pdf
-
-# Thesis build artifacts
-tese/*.html
 
 # Qualificacao (local-only, large binary files)
 Qualificacao doutorado/

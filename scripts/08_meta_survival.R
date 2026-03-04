@@ -207,7 +207,7 @@ if (!is.null(loo_uni)) {
 
 # --------------------------------------------------------------------------
 # 4a) OS-harmonised sensitivity meta-analysis
-# Use OS endpoint for all three validation cohorts (replaces METABRIC DSS
+# Use OS endpoint for all four validation cohorts (replaces METABRIC DSS
 # with METABRIC OS sensitivity results). Removes endpoint heterogeneity.
 # --------------------------------------------------------------------------
 message(sprintf("[%s] OS-harmonised sensitivity meta-analysis...", SCRIPT_NAME))

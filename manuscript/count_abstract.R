@@ -1,4 +1,4 @@
-txt <- readLines("Y:/CorePAM_Study/manuscript/CorePAM_manuscript_submission.md", warn = FALSE)
+txt <- readLines(file.path(here::here(), "manuscript", "CorePAM_manuscript_submission.md"), warn = FALSE)
 abstract_start <- grep("^# Abstract", txt)
 trial_reg <- grep("Trial registration", txt)
 abstract_lines <- txt[(abstract_start+1):(trial_reg[1]-1)]

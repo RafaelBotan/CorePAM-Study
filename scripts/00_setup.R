@@ -11,12 +11,16 @@ suppressPackageStartupMessages({
   library(digest)
   library(arrow)      # parquet read/write
   library(jsonlite)   # training card JSON
+  library(here)       # project root detection
 })
 
 # --------------------------------------------------------------------------
 # 1) PATHS — single source of truth (adjust ROOT_REPO once)
 # --------------------------------------------------------------------------
-ROOT_REPO <- normalizePath(".", mustWork = TRUE)
+ROOT_REPO <- normalizePath(
+  Sys.getenv("COREPAM_ROOT", here::here()),
+  mustWork = TRUE
+)
 DATA_LAKE <- file.path(ROOT_REPO, "01_Base_Pura_CorePAM")
 
 PATHS <- list(

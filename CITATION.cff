@@ -1,21 +1,27 @@
 cff-version: 1.2.0
 message: "If you use this work or code, please cite it using the metadata below."
 type: software
-title: "Core-PAM: Minimum Prognostic Core of the PAM50 Breast Cancer Signature"
+title: "CorePAM: A PAM50-Derived Minimum Gene Expression Score for Breast Cancer Prognosis"
 abstract: >
   Data-driven reduction of the PAM50 gene panel to a minimum non-inferior
-  prognostic core (Core-PAM) using out-of-fold Cox Elastic-Net non-inferiority
-  (delta_C = 0.010). Multi-cohort validation across SCAN-B, TCGA-BRCA,
-  METABRIC and GSE20685. Fully reproducible pipeline with SHA-256 audit trail.
-version: "v6.1-freeze"
-date-released: "2026-03-01"
+  prognostic core (CorePAM, 24 genes) using out-of-fold Cox Elastic-Net
+  non-inferiority (delta_C = 0.010). Trained on SCAN-B (N=3,069) and
+  validated across four independent cohorts: TCGA-BRCA, METABRIC,
+  GSE20685, and GSE1456. Includes secondary pCR prediction analysis
+  across five neoadjuvant chemotherapy cohorts. Fully reproducible
+  pipeline with SHA-256 audit trail.
+version: "1.0.0"
+date-released: "2026-03-03"
 license: MIT
 repository-code: "https://github.com/RafaelBotan/CorePAM-Study"
 authors:
   - family-names: Botan
-    given-names: Rafael
+    given-names: Rafael de Negreiros
     email: oncologista@gmail.com
-    orcid: ""
+    affiliation: "University of Brasilia (UnB)"
+  - family-names: Sousa
+    given-names: Joao Batista de
+    affiliation: "University of Brasilia (UnB)"
 keywords:
   - breast cancer
   - PAM50

@@ -157,7 +157,7 @@ make_fig1 <- function(lang = "EN") {
     lbl(70.5, 85.5, tr$validation, size = 3.6, fontface = "bold") +
     lbl(70.5, 82, tr$endpoint_os, size = 2.7)
 
-  # Three validation cohort boxes
+  # Validation cohort boxes (three shown; GSE1456 added as 4th cohort in script 24)
   box_h <- 12
   for (i in seq_along(c("tcga", "metabric", "gse20685"))) {
     cohort_lbl <- c(tr$tcga, tr$metabric, tr$gse20685)[i]
@@ -229,7 +229,7 @@ make_fig1 <- function(lang = "EN") {
     annotate("text", x = 69, y = 91, label = tr$validation,
              size = 3.8, fontface = "bold", color = COL_VAL, hjust = 0.5) +
 
-    # Three validation cohort boxes (side by side)
+    # Validation cohort boxes (side by side; GSE1456 added as 4th cohort in script 24)
     annotate("rect", xmin = 41, xmax = 58, ymin = 55, ymax = 88,
              fill = COL_VAL, color = NA, alpha = 0.82) +
     annotate("text", x = 49.5, y = 71.5, label = tr$tcga,

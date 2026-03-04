@@ -408,6 +408,6 @@ if (file.exists(f6)) knitr::include_graphics(f6) else cat("Aguardando script 23_
 
 - **Aprovação ética:** dados públicos (GEO, GDC, cBioPortal) — dispensa aprovação ética específica
 - **Disponibilidade de dados:** todos os dados brutos disponíveis publicamente nos repositórios citados
-- **Código:** disponível em <https://github.com/RafaelBotan/Phd-Genomic/tree/main>
+- **Código:** disponível em <https://github.com/RafaelBotan/CorePAM-Study/tree/main>
 - **Conflito de interesses:** nenhum declarado
 - **Financiamento:** pelos próprios autores (sem financiamento externo)
