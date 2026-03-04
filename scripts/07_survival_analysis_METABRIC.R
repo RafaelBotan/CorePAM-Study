@@ -114,7 +114,7 @@ message(sprintf("[%s] Cox uni (%s) HR=%.3f (%.3f-%.3f) p=%.4g",
 # --------------------------------------------------------------------------
 corea_vars  <- c("age", "er_status")
 corea_avail <- intersect(corea_vars, names(df))
-# Only include covariates with ≥80% non-NA (METABRIC er_status only ~22% populated)
+# Only include covariates with ≥80% non-NA (METABRIC er_status ~98% populated)
 corea_avail <- corea_avail[sapply(corea_avail, function(v) mean(!is.na(df[[v]])) >= 0.8)]
 corea_used  <- if (length(corea_avail) > 0) paste(corea_avail, collapse = "+") else "none"
 
