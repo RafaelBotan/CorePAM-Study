@@ -7,12 +7,13 @@
 
 \newcommand{\reviewerquote}[1]{\begin{quote}\itshape #1\end{quote}}
 
-\title{Response to Reviewers}
-\author{Rafael Botan}
-\date{\today}
-
 \begin{document}
-\maketitle
+
+\begin{center}
+{\Large\bfseries Response to Reviewers}
+\end{center}
+
+\bigskip
 
 \noindent\textbf{Manuscript:} CorePAM: a 24-gene PAM50-derived expression score with cross-platform external validation for breast cancer prognosis\\
 \textbf{Journal:} Breast Cancer Research\\
@@ -22,9 +23,7 @@
 
 Dear Editor and Reviewers,
 
-We are deeply grateful to the Editors and Reviewers for their thorough, constructive, and intellectually rigorous evaluation of our initial submission. Each critique was taken seriously, and their collective guidance has led to a fundamentally redesigned study that we believe is substantially superior in analytical rigour, statistical transparency, and scientific defensibility. We have addressed every concern raised --- in most cases by completely rebuilding the analytical framework from the ground up, rather than by incremental adjustments. Below, we respond point-by-point to each concern with humility and precision.
-
-We sincerely thank the reviewers for their time and expertise. Their insights have been instrumental in shaping a stronger manuscript.
+We thank the Editors and Reviewers for their thorough and constructive evaluation. We revised the manuscript extensively and addressed each concern with additional analyses, broader validation, and clearer reporting. Below, we respond point-by-point to each comment.
 
 \bigskip\hrule\bigskip
 
@@ -39,7 +38,7 @@ We sincerely thank the reviewers for their time and expertise. Their insights ha
 We wholeheartedly agree with this critical observation. The absence of an RNA-seq validation cohort was a significant limitation of the original submission. In the revised study, we have completely restructured the cohort architecture:
 
 \begin{itemize}
-  \item \textbf{Training cohort:} SCAN-B (GSE96058; N=3,069; RNA-seq), the largest publicly available RNA-seq breast cancer cohort with matched clinical follow-up.
+  \item \textbf{Training cohort:} SCAN-B (GSE96058; N=3,069; RNA-seq), one of the largest publicly available RNA-seq breast cancer cohorts with matched clinical follow-up.
   \item \textbf{RNA-seq validation:} TCGA-BRCA (N=1,072; RNA-seq), providing independent RNA-seq validation.
   \item \textbf{Microarray validation:} METABRIC (N=1,978; Illumina HT-12), GSE20685 (N=327; Affymetrix HGU133A), and GSE1456 (N=159; Affymetrix HGU133A/B --- Stockholm cohort).
 \end{itemize}
@@ -99,7 +98,7 @@ This is a perceptive and entirely valid critique. The reviewer correctly identif
   \item Gene coverage in validation cohorts is reported transparently (Table~2): platform limitations (e.g., 6 PAM50 genes absent from Affymetrix HGU133A) are documented, and a pre-specified minimum coverage of 80\% was met in all cohorts.
 \end{itemize}
 
-This approach eliminates the subjectivity flagged by the reviewer and replaces it with a transparent, reproducible, data-driven framework.
+This approach eliminates the subjectivity flagged by the reviewer and replaces it with a transparent, reproducible, data-driven framework. Cross-platform reproducibility was evaluated by out-of-cohort discrimination across RNA-seq and microarray validation cohorts, score concordance analyses (off-diagonal Pearson correlations), and a frozen-reference scoring sensitivity analysis (Additional file~14: Table~S4).
 
 \subsection*{Comment R1.5 --- Discrepancies between text and Figure 3A}
 
@@ -133,7 +132,7 @@ This improves readability substantially and directly addresses the reviewer's co
 
 We appreciate this suggestion. However, the revised CorePAM is fundamentally different from the original approach in a critical way: \textbf{CorePAM does not perform subtype classification.} It is a continuous prognostic score derived from Cox elastic-net regression --- not a centroid-based classifier. Therefore, a subtype frequency comparison is not applicable to the current formulation. The score captures prognostic information across the subtype spectrum via weighted gene expression, rather than assigning discrete categories.
 
-We have added a head-to-head comparison with the research-based ROR-S (50 genes; centroid-based) and OncotypeDX-RS (21 genes) implementations from the \texttt{genefu} R package (Additional file~13: Table~S3), which provides the comparative context the reviewer seeks --- albeit at the score level rather than categorical subtype level.
+We have added a head-to-head comparison with the research-based ROR-S (50 genes; centroid-based) and OncotypeDX-RS (21 genes) implementations from the \texttt{genefu} R package (Additional file~13: Table~S3), which provides the comparative context the reviewer seeks --- albeit at the score level rather than categorical subtype level. Additionally, PAM50 intrinsic subtype frequencies per cohort (using the standard centroid-based research implementation) are reported descriptively in Table~2, providing a sanity check of population composition across datasets.
 
 \subsection*{Comment R1.8 --- Auto-correlation inflating Pearson correlations}
 
@@ -157,7 +156,7 @@ We are grateful for this forensic observation. In the revised study, we conducte
 
 \noindent\textbf{Response:}
 
-We thank the reviewer for this careful reading. The revised manuscript now uses \textbf{five validation cohorts} (four for OS/DSS prognosis + four for pCR prediction + one exploratory pCR cohort), and all cohort counts are explicitly defined. The cohort architecture is:
+We thank the reviewer for this careful reading. The revised manuscript now uses \textbf{nine external cohorts} (four for OS/DSS prognosis, four for pCR prediction, and one exploratory pCR cohort), and all cohort counts are explicitly defined. The cohort architecture is:
 
 \begin{itemize}
   \item \textbf{OS/DSS block:} 4 validation cohorts (TCGA-BRCA, METABRIC, GSE20685, GSE1456)
@@ -180,7 +179,7 @@ This is a fundamental methodological critique, and we fully concur that endpoint
   \item \textbf{Strict endpoint separation:} The OS/DSS prognostic block and the pCR (neoadjuvant response) block are entirely independent analyses with no shared data or pooled estimates.
   \item \textbf{METABRIC uses DSS as the primary endpoint} (not OS), following established precedent for that dataset. Deaths from other causes are censored at time of death. OS is reported only as a sensitivity analysis (Additional file~5: Figure~S5A).
   \item \textbf{Fine--Gray competing risks model} was applied to METABRIC DSS (Additional file~5: Figure~S5B).
-  \item \textbf{Meta-analysis explicitly separates endpoint types:} The primary meta-analysis (K=4) includes OS for TCGA-BRCA, GSE20685, and GSE1456, and DSS for METABRIC. A harmonised OS-only sensitivity analysis (K=3) substituting METABRIC OS for DSS is reported separately and confirms consistent results.
+  \item \textbf{Meta-analysis explicitly separates endpoint types:} The primary meta-analysis (K=4) pools OS (TCGA-BRCA, GSE20685, GSE1456) and DSS (METABRIC) under the umbrella of ``time-to-event survival endpoint''; this is justified because both measure cancer-related mortality risk, and DSS is a more specific subset of OS. A harmonised OS-only sensitivity analysis (K=3, substituting METABRIC OS for DSS) is reported separately and confirms consistent results.
   \item \textbf{Decision curve analysis uses cohort-specific horizons:} 60 months for SCAN-B, METABRIC, and GSE20685; 24 months for TCGA-BRCA (reflecting its shorter follow-up). No cross-cohort pooling of DCA results is performed.
 \end{enumerate}
 
@@ -262,7 +261,7 @@ Preprocessing details & Not described & Full protocol per platform \\
 pCR analysis & Not performed & 4 cohorts + I-SPY2 (pooled OR=1.69) \\
 Meta-analysis & 3 cohorts, mixed endpoints & K=4 RE: HR=1.37 (95\%CI 1.24--1.52) \\
 Competing risks & Not assessed & Fine--Gray for METABRIC DSS \\
-Frozen z-score & Not assessed & Preserved discrimination ($r \geq 0.958$) \\
+Frozen z-score & Not assessed & Preserved discrimination ($r = 0.921$--$1.000$) \\
 Uno's C / tdAUC & Not assessed & Confirms robustness to censoring \\
 Formal calibration & Not assessed & Slope/intercept per cohort \\
 ER subgroup & Not assessed & Signal concentrated in ER+ (dual-cohort) \\
