@@ -24,7 +24,7 @@ microarray platforms. A secondary analysis evaluated the CorePAM score as a pred
 pathological complete response (pCR) to neoadjuvant chemotherapy across five additional cohorts.
 
 **Key results:**
-- Random-effects meta-analysis HR = 1.37 (95% CI 1.24-1.52; I2 = 38.3%; p = 1.8 x 10^-9) per 1-SD increase
+- Random-effects meta-analysis HR = 1.37 (95% CI 1.24-1.52; I2 = 38.2%; p = 1.6 x 10^-9) per 1-SD increase
 - Concordance (C-index) 0.62-0.66 across validation cohorts
 - pCR meta-analysis OR = 1.69 (95% CI 1.39-2.05; I2 = 0%)
 
@@ -36,7 +36,7 @@ pathological complete response (pCR) to neoadjuvant chemotherapy across five add
 
 | Cohort | Role | Platform | Endpoint | N | Events | Median FU |
 |--------|------|----------|----------|---|--------|-----------|
-| SCAN-B (GSE96058) | **Training** | RNA-seq | OS | 3,069 | 322 (10.5%) | 55.7 mo |
+| SCAN-B (GSE96058) | **Training** | RNA-seq | OS | 3,069 | 322 (10.5%) | 54.9 mo |
 | TCGA-BRCA | Validation | RNA-seq | OS | 1,072 | 150 (14.0%) | 32.0 mo |
 | METABRIC | Validation | Microarray (Illumina) | DSS | 1,978 | 646 (32.7%) | 159.0 mo |
 | GSE20685 | Validation | Microarray (Affymetrix) | OS | 327 | 83 (25.4%) | 112.8 mo |
