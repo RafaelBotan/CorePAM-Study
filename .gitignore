@@ -45,6 +45,21 @@ CLAUDE.md
 Memorial_v6_1_CorePAM.md
 COREPAM_REPRO_RUNBOOK_v2.md
 
+# Exploratory analysis workspace (local only)
+analise_exploratoria/
+
+# Audit pack (local only)
+_AuditPack/
+
+# Submission legacy files (old figures/CSVs moved during cleanup)
+submission/legacy/
+
+# Submission template reference
+submission/sn-article-template/
+
+# Study guide (thesis prep, local only)
+submission/GUIA_ESTUDO_*.md
+
 # Thesis (separate deliverable)
 tese/
 

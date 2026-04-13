@@ -75,7 +75,8 @@ COHORTS <- list(
   SCANB     = list(time = "os_time_months",  event = "os_event"),
   TCGA_BRCA = list(time = "os_time_months",  event = "os_event"),
   METABRIC  = list(time = "dss_time_months", event = "dss_event"),
-  GSE20685  = list(time = "os_time_months",  event = "os_event")
+  GSE20685  = list(time = "os_time_months",  event = "os_event"),
+  GSE1456   = list(time = "os_time_months",  event = "os_event")
 )
 
 # --------------------------------------------------------------------------

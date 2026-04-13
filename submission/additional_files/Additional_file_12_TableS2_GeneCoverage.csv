@@ -1,6 +1,0 @@
-"cohort","platform","genes_present","genes_total","coverage_pct","missing_genes"
-"SCAN-B","RNA-seq (Illumina)",24,24,100,""
-"TCGA-BRCA","RNA-seq (STAR/GDC)",23,24,95.8,"MIA"
-"METABRIC","Illumina HT-12 microarray",24,24,100,""
-"GSE20685","Affymetrix HGU133A",22,24,91.7,"GPR160, CXXC5"
-"GSE1456","Affymetrix HG-U133A microarray",21,24,87.5,"GPR160, CXXC5, KRT17"

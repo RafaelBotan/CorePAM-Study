@@ -1,7 +1,7 @@
 # =============================================================================
 # SCRIPT: 03_expression_preprocess_GSE20685.R
 # PURPOSE: Expression preprocessing for GSE20685 (Taiwan, microarray).
-#          Affymetrix HGU133A: log2 intensity as-is → HGNC map.
+#          Affymetrix HG-U133 Plus 2.0 (GPL570): log2 intensity as-is → HGNC map.
 # PROJECT: Core-PAM (Memorial v6.1 §4.3)
 #
 # INPUTS:
@@ -14,7 +14,7 @@
 #
 # RULES (Memorial v6.1 §4.3):
 #   - Microarray: log2-intensity as-is (no TMM).
-#   - Affymetrix probes → HGNC via hgu133a.db.
+#   - Affymetrix probes → HGNC via hgu133plus2.db (GPL570).
 #   - Multiple probes → highest intra-cohort variance.
 #   - Intra-cohort Z-score in 06_zscore_and_score_GSE20685.R.
 # =============================================================================
@@ -99,7 +99,7 @@ if (grepl("series_matrix", basename(expr_file), ignore.case = TRUE)) {
   expr_mat  <- as.matrix(expr_df[, -1])
   rownames(expr_mat) <- probe_ids
   storage.mode(expr_mat) <- "numeric"
-  platform  <- "hgu133a"   # GSE20685 usa HGU133A
+  platform  <- "hgu133plus2"   # GSE20685 uses GPL570 = HG-U133 Plus 2.0
   message(sprintf("[03_GSE20685] %d probes x %d samples", nrow(expr_mat), ncol(expr_mat)))
 }
 options(warn = old_warn)
@@ -141,13 +141,13 @@ if (p95 > 20) {
 
 # =============================================================================
 # 5) AFFYMETRIX PROBE → HGNC MAPPING
-#    GSE20685: Affymetrix Human Genome U133A (GPL96) or U133 Plus 2.0 (GPL570)
+#    GSE20685: Affymetrix HG-U133 Plus 2.0 (GPL570)
 # =============================================================================
 platform_pkg <- dplyr::case_when(
-  grepl("GPL96|hgu133a|133a$",  tolower(platform)) ~ "hgu133a",
-  grepl("GPL570|hgu133plus2",   tolower(platform)) ~ "hgu133plus2",
-  grepl("GPL6947|hgu133b",      tolower(platform)) ~ "hgu133b",
-  TRUE ~ "hgu133a"   # default for GSE20685
+  grepl("gpl570|hgu133plus2",   tolower(platform)) ~ "hgu133plus2",
+  grepl("gpl96|hgu133a|133a$",  tolower(platform)) ~ "hgu133a",
+  grepl("gpl6947|hgu133b",      tolower(platform)) ~ "hgu133b",
+  TRUE ~ "hgu133plus2"   # GSE20685 uses GPL570 = HG-U133 Plus 2.0
 )
 message(sprintf("[03_GSE20685] Platform detected: %s → using %s.db",
                 platform, platform_pkg))

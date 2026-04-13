@@ -74,7 +74,7 @@ make_fig1 <- function(lang = "EN") {
     pcr_block   = "Secondary Analysis\n(pCR — chemotherapy response)",
     scanb       = "SCAN-B\n(RNA-seq)\nN=3,069 | Events=322",
     tcga        = "TCGA-BRCA\n(RNA-seq)\nN=1,072 | Events=150",
-    metabric    = "METABRIC\n(Microarray)\nN=1,980 | DSS Events=646",
+    metabric    = "METABRIC\n(Microarray)\nN=1,978 | DSS Events=646",
     gse20685    = "GSE20685\n(Microarray)\nN=327 | Events=83",
     pam50       = "PAM50\n(50 genes)",
     corepam     = "CorePAM\n(24 genes)",
@@ -86,6 +86,8 @@ make_fig1 <- function(lang = "EN") {
     gse20194    = "GSE20194 | N=278",
     gse32646    = "GSE32646 | N=115",
     ispy1       = "I-SPY1 | N=122",
+    gse1456     = "GSE1456\n(Microarray)\nN=159 | Events=40",
+    ispy2       = "I-SPY2*\n(Microarray)\nN=986 | Exploratory",
     score       = "Score = Σ(wᵢ·zᵢ) / Σ|wᵢ|"
   ) else list(
     title       = "Desenho do Estudo",
@@ -94,7 +96,7 @@ make_fig1 <- function(lang = "EN") {
     pcr_block   = "Análise Secundária\n(pCR — resposta à quimioterapia)",
     scanb       = "SCAN-B\n(RNA-seq)\nN=3.069 | Eventos=322",
     tcga        = "TCGA-BRCA\n(RNA-seq)\nN=1.072 | Eventos=150",
-    metabric    = "METABRIC\n(Microarray)\nN=1.980 | Eventos DSS=646",
+    metabric    = "METABRIC\n(Microarray)\nN=1.978 | Eventos DSS=646",
     gse20685    = "GSE20685\n(Microarray)\nN=327 | Eventos=83",
     pam50       = "PAM50\n(50 genes)",
     corepam     = "Core-PAM\n(24 genes)",
@@ -105,7 +107,9 @@ make_fig1 <- function(lang = "EN") {
     gse25       = "GSE25066 | N=182",
     gse20194    = "GSE20194 | N=278",
     gse32646    = "GSE32646 | N=115",
+    gse1456     = "GSE1456\n(Microarray)\nN=159 | Eventos=40",
     ispy1       = "I-SPY1 | N=122",
+    ispy2       = "I-SPY2*\n(Microarray)\nN=986 | Exploratória",
     score       = "Score = Σ(wᵢ·zᵢ) / Σ|wᵢ|"
   )
 
@@ -157,16 +161,13 @@ make_fig1 <- function(lang = "EN") {
     lbl(70.5, 85.5, tr$validation, size = 3.6, fontface = "bold") +
     lbl(70.5, 82, tr$endpoint_os, size = 2.7)
 
-  # Validation cohort boxes (three shown; GSE1456 added as 4th cohort in script 24)
-  box_h <- 12
-  for (i in seq_along(c("tcga", "metabric", "gse20685"))) {
-    cohort_lbl <- c(tr$tcga, tr$metabric, tr$gse20685)[i]
-    x1 <- c(43, 64, 77)[i]; x2 <- c(63, 76, 98)[i]
-    y1 <- 79 - box_h - (i - 1) * 0.5
-    y2 <- 79 - (i - 1) * 0.5
+  # Validation cohort boxes (4 cohorts)
+  for (i in seq_along(c("tcga", "metabric", "gse20685", "gse1456"))) {
+    cohort_lbl <- c(tr$tcga, tr$metabric, tr$gse20685, tr$gse1456)[i]
+    x1 <- c(43, 58, 73, 86)[i]; x2 <- c(57, 72, 85, 98)[i]
     p <- p +
-      box(x1, x2, 62, 77.5 - (i - 1) * 0.5, fill = COL_VAL, alpha = 0.65) +
-      lbl((x1 + x2) / 2, 69.5 - (i - 1) * 0.5, cohort_lbl, size = 2.35)
+      box(x1, x2, 62, 77.5, fill = COL_VAL, alpha = 0.65) +
+      lbl((x1 + x2) / 2, 69.5, cohort_lbl, size = 2.15)
   }
   # Rebuild cleanly
   p2 <- ggplot() +
@@ -229,21 +230,26 @@ make_fig1 <- function(lang = "EN") {
     annotate("text", x = 69, y = 91, label = tr$validation,
              size = 3.8, fontface = "bold", color = COL_VAL, hjust = 0.5) +
 
-    # Validation cohort boxes (side by side; GSE1456 added as 4th cohort in script 24)
-    annotate("rect", xmin = 41, xmax = 58, ymin = 55, ymax = 88,
+    # Validation cohort boxes (4 cohorts side by side)
+    annotate("rect", xmin = 41, xmax = 55, ymin = 55, ymax = 88,
              fill = COL_VAL, color = NA, alpha = 0.82) +
-    annotate("text", x = 49.5, y = 71.5, label = tr$tcga,
-             size = 2.8, color = "white", hjust = 0.5, lineheight = 1.3) +
+    annotate("text", x = 48, y = 71.5, label = tr$tcga,
+             size = 2.5, color = "white", hjust = 0.5, lineheight = 1.3) +
 
-    annotate("rect", xmin = 59, xmax = 78, ymin = 55, ymax = 88,
+    annotate("rect", xmin = 56, xmax = 72, ymin = 55, ymax = 88,
              fill = COL_VAL, color = NA, alpha = 0.82) +
-    annotate("text", x = 68.5, y = 71.5, label = tr$metabric,
-             size = 2.8, color = "white", hjust = 0.5, lineheight = 1.3) +
+    annotate("text", x = 64, y = 71.5, label = tr$metabric,
+             size = 2.5, color = "white", hjust = 0.5, lineheight = 1.3) +
 
-    annotate("rect", xmin = 79, xmax = 97, ymin = 55, ymax = 88,
+    annotate("rect", xmin = 73, xmax = 85, ymin = 55, ymax = 88,
              fill = COL_VAL, color = NA, alpha = 0.82) +
-    annotate("text", x = 88, y = 71.5, label = tr$gse20685,
-             size = 2.8, color = "white", hjust = 0.5, lineheight = 1.3) +
+    annotate("text", x = 79, y = 71.5, label = tr$gse20685,
+             size = 2.5, color = "white", hjust = 0.5, lineheight = 1.3) +
+
+    annotate("rect", xmin = 86, xmax = 97, ymin = 55, ymax = 88,
+             fill = COL_VAL, color = NA, alpha = 0.82) +
+    annotate("text", x = 91.5, y = 71.5, label = tr$gse1456,
+             size = 2.5, color = "white", hjust = 0.5, lineheight = 1.3) +
 
     annotate("text", x = 69, y = 50.5, label = tr$endpoint_os,
              size = 2.5, color = COL_VAL, hjust = 0.5, fontface = "italic") +
@@ -255,26 +261,31 @@ make_fig1 <- function(lang = "EN") {
     annotate("text", x = 50, y = 42, label = tr$pcr_block,
              size = 3.4, fontface = "bold.italic", color = COL_PCR, hjust = 0.5) +
 
-    # 4 pCR cohort boxes
-    annotate("rect", xmin = 3,  xmax = 27, ymin = 10, ymax = 38,
+    # 5 pCR cohort boxes (4 primary + 1 exploratory)
+    annotate("rect", xmin = 3,  xmax = 21, ymin = 10, ymax = 38,
              fill = COL_PCR, color = NA, alpha = 0.8) +
-    annotate("text", x = 15, y = 24, label = tr$gse25,
-             size = 2.6, color = "white", hjust = 0.5) +
+    annotate("text", x = 12, y = 24, label = tr$gse25,
+             size = 2.3, color = "white", hjust = 0.5) +
 
-    annotate("rect", xmin = 28, xmax = 50, ymin = 10, ymax = 38,
+    annotate("rect", xmin = 22, xmax = 40, ymin = 10, ymax = 38,
              fill = COL_PCR, color = NA, alpha = 0.8) +
-    annotate("text", x = 39, y = 24, label = tr$gse20194,
-             size = 2.6, color = "white", hjust = 0.5) +
+    annotate("text", x = 31, y = 24, label = tr$gse20194,
+             size = 2.3, color = "white", hjust = 0.5) +
 
-    annotate("rect", xmin = 51, xmax = 73, ymin = 10, ymax = 38,
+    annotate("rect", xmin = 41, xmax = 57, ymin = 10, ymax = 38,
              fill = COL_PCR, color = NA, alpha = 0.8) +
-    annotate("text", x = 62, y = 24, label = tr$gse32646,
-             size = 2.6, color = "white", hjust = 0.5) +
+    annotate("text", x = 49, y = 24, label = tr$gse32646,
+             size = 2.3, color = "white", hjust = 0.5) +
 
-    annotate("rect", xmin = 74, xmax = 97, ymin = 10, ymax = 38,
+    annotate("rect", xmin = 58, xmax = 74, ymin = 10, ymax = 38,
              fill = COL_PCR, color = NA, alpha = 0.8) +
-    annotate("text", x = 85.5, y = 24, label = tr$ispy1,
-             size = 2.6, color = "white", hjust = 0.5) +
+    annotate("text", x = 66, y = 24, label = tr$ispy1,
+             size = 2.3, color = "white", hjust = 0.5) +
+
+    annotate("rect", xmin = 75, xmax = 97, ymin = 10, ymax = 38,
+             fill = COL_PCR, color = NA, alpha = 0.5, linetype = "dashed") +
+    annotate("text", x = 86, y = 24, label = tr$ispy2,
+             size = 2.1, color = "white", hjust = 0.5, lineheight = 1.3) +
 
     annotate("text", x = 50, y = 7, label = tr$endpoint_pcr,
              size = 2.5, color = COL_PCR, hjust = 0.5, fontface = "italic") +

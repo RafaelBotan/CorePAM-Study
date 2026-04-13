@@ -1,0 +1,11 @@
+cohort,model,hr,hr_lo,hr_hi,p_value,endpoint,n_samples,n_events,corea_vars
+SCANB,Univariate,1.9226,1.7362,2.1291,3.5609999999999996e-36,OS,3069,322,score_z only
+SCANB,Adjusted (CORE-A),1.8597,1.6351,2.115,3.411e-21,OS,3069,322,age+er_status
+TCGA_BRCA,Univariate,1.2042,1.0356,1.4003,0.01578,OS,1072,150,score_z only
+TCGA_BRCA,Adjusted (CORE-A),1.2703,1.0891,1.4817,0.002319,OS,1072,150,age
+METABRIC,Univariate,1.4123000000000001,1.3095,1.5232,3.447e-19,DSS,1978,646,score_z only
+METABRIC,Adjusted (CORE-A),1.357,1.2437,1.4806,6.82e-12,DSS,1978,646,age+er_status
+GSE20685,Univariate,1.4001,1.1189,1.7521,0.003265,OS,327,83,score_z only
+GSE20685,Adjusted (CORE-A),1.4005,1.12,1.7513,0.003137,OS,327,83,age
+GSE1456,Univariate,1.7119,1.2298,2.383,0.00144428020989385,OS,159,40,score_z only
+GSE1456,Adjusted (CORE-A),1.7119,1.2298,2.383,0.00144428020989385,OS,159,40,none (age/ER unavailable)
