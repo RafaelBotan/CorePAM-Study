@@ -1,0 +1,1273 @@
+{
+  "summary": {
+    "bib_entries": 83,
+    "bib_citations_in_qmd": 76,
+    "missing_citation_keys": [],
+    "unused_bib_entries_count": 7,
+    "entries_with_doi": 82,
+    "entries_without_doi": 1,
+    "doi_crossref_failures": [
+      {
+        "key": "botan2026",
+        "doi": "10.1186/s13058-026-02298-5",
+        "status": 404,
+        "title": "{CorePAM"
+      }
+    ]
+  },
+  "entries": [
+    {
+      "key": "perou2000",
+      "type": "article",
+      "doi": "10.1038/35021093",
+      "url": "",
+      "title": "Molecular portraits of human breast tumours",
+      "author": "Perou, Charles M and Sorlie, Therese and Eisen, Michael B and others",
+      "year": "2000",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1038%2F35021093"
+      }
+    },
+    {
+      "key": "sorlie2001",
+      "type": "article",
+      "doi": "10.1073/pnas.191367098",
+      "url": "",
+      "title": "Gene expression patterns of breast carcinomas distinguish tumor subclasses with clinical implications",
+      "author": "Sorlie, Therese and Perou, Charles M and Tibshirani, Robert and others",
+      "year": "2001",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1073%2Fpnas.191367098"
+      }
+    },
+    {
+      "key": "parker2009",
+      "type": "article",
+      "doi": "10.1200/JCO.2008.18.1370",
+      "url": "",
+      "title": "Supervised risk predictor of breast cancer based on intrinsic subtypes",
+      "author": "Parker, Joel S and Mullins, Michael and Cheang, Maggie C and others",
+      "year": "2009",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1200%2FJCO.2008.18.1370"
+      }
+    },
+    {
+      "key": "paik2004",
+      "type": "article",
+      "doi": "10.1056/NEJMoa041588",
+      "url": "",
+      "title": "A multigene assay to predict recurrence of tamoxifen-treated, node-negative breast cancer",
+      "author": "Paik, Soonmyung and Shak, Steven and Tang, Gong and others",
+      "year": "2004",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1056%2FNEJMoa041588"
+      }
+    },
+    {
+      "key": "vantveer2002",
+      "type": "article",
+      "doi": "10.1038/415530a",
+      "url": "",
+      "title": "Gene expression profiling predicts clinical outcome of breast cancer",
+      "author": "van't Veer, Laura J and Dai, Hongyue and van de Vijver, Marc J and others",
+      "year": "2002",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1038%2F415530a"
+      }
+    },
+    {
+      "key": "sparano2018",
+      "type": "article",
+      "doi": "10.1056/NEJMoa1804710",
+      "url": "",
+      "title": "Adjuvant chemotherapy guided by a 21-gene expression assay in breast cancer",
+      "author": "Sparano, Joseph A and Gray, Robert J and Makower, Della F and others",
+      "year": "2018",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1056%2FNEJMoa1804710"
+      }
+    },
+    {
+      "key": "cardoso2016",
+      "type": "article",
+      "doi": "10.1056/NEJMoa1602253",
+      "url": "",
+      "title": "70-gene signature as an aid to treatment decisions in early-stage breast cancer",
+      "author": "Cardoso, Fatima and van't Veer, Laura J and Bogaerts, Jan and others",
+      "year": "2016",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1056%2FNEJMoa1602253"
+      }
+    },
+    {
+      "key": "zou2005",
+      "type": "article",
+      "doi": "10.1111/j.1467-9868.2005.00503.x",
+      "url": "",
+      "title": "Regularization and variable selection via the elastic net",
+      "author": "Zou, Hui and Hastie, Trevor",
+      "year": "2005",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1111%2Fj.1467-9868.2005.00503.x"
+      }
+    },
+    {
+      "key": "tibshirani1996",
+      "type": "article",
+      "doi": "10.1111/j.2517-6161.1996.tb02080.x",
+      "url": "",
+      "title": "Regression shrinkage and selection via the lasso",
+      "author": "Tibshirani, Robert",
+      "year": "1996",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1111%2Fj.2517-6161.1996.tb02080.x"
+      }
+    },
+    {
+      "key": "tibshirani1997",
+      "type": "article",
+      "doi": "10.1002/(SICI)1097-0258(19970228)16:4<385::AID-SIM380>3.0.CO;2-3",
+      "url": "",
+      "title": "The lasso method for variable selection in the {C",
+      "author": "Tibshirani, Robert",
+      "year": "1997",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1002%2F%28SICI%291097-0258%2819970228%2916%3A4%3C385%3A%3AAID-SIM380%3E3.0.CO%3B2-3"
+      }
+    },
+    {
+      "key": "friedman2010",
+      "type": "article",
+      "doi": "10.18637/jss.v033.i01",
+      "url": "",
+      "title": "Regularization paths for generalized linear models via coordinate descent",
+      "author": "Friedman, Jerome and Hastie, Trevor and Tibshirani, Robert",
+      "year": "2010",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.18637%2Fjss.v033.i01"
+      }
+    },
+    {
+      "key": "simon2011",
+      "type": "article",
+      "doi": "10.18637/jss.v039.i05",
+      "url": "",
+      "title": "Regularization paths for {C",
+      "author": "Simon, Noah and Friedman, Jerome and Hastie, Trevor and Tibshirani, Robert",
+      "year": "2011",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.18637%2Fjss.v039.i05"
+      }
+    },
+    {
+      "key": "harrell1982",
+      "type": "article",
+      "doi": "10.1001/jama.1982.03320430047030",
+      "url": "",
+      "title": "Evaluating the yield of medical tests",
+      "author": "Harrell, Frank E and Califf, Robert M and Pryor, David B and Lee, Kerry L and Rosati, Robert A",
+      "year": "1982",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1001%2Fjama.1982.03320430047030"
+      }
+    },
+    {
+      "key": "uno2011",
+      "type": "article",
+      "doi": "10.1002/sim.4154",
+      "url": "",
+      "title": "On the {C",
+      "author": "Uno, Hajime and Cai, Tianxi and Pencina, Michael J and D'Agostino, Ralph B and Wei, Lee-Jen",
+      "year": "2011",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1002%2Fsim.4154"
+      }
+    },
+    {
+      "key": "blanche2013",
+      "type": "article",
+      "doi": "10.1002/sim.5958",
+      "url": "",
+      "title": "Estimating and comparing time-dependent areas under receiver operating characteristic curves for censored event times with competing risks",
+      "author": "Blanche, Paul and Dartigues, Jean-Francois and Jacqmin-Gadda, Helene",
+      "year": "2013",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1002%2Fsim.5958"
+      }
+    },
+    {
+      "key": "viechtbauer2010",
+      "type": "article",
+      "doi": "10.18637/jss.v036.i03",
+      "url": "",
+      "title": "Conducting meta-analyses in {R",
+      "author": "Viechtbauer, Wolfgang",
+      "year": "2010",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.18637%2Fjss.v036.i03"
+      }
+    },
+    {
+      "key": "higgins2003",
+      "type": "article",
+      "doi": "10.1136/bmj.327.7414.557",
+      "url": "",
+      "title": "Measuring inconsistency in meta-analyses",
+      "author": "Higgins, Julian P and Thompson, Simon G and Deeks, Jonathan J and Altman, Douglas G",
+      "year": "2003",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1136%2Fbmj.327.7414.557"
+      }
+    },
+    {
+      "key": "dersimonian1986",
+      "type": "article",
+      "doi": "10.1016/0197-2456(86)90046-2",
+      "url": "",
+      "title": "Meta-analysis in clinical trials",
+      "author": "DerSimonian, Rebecca and Laird, Nan",
+      "year": "1986",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1016%2F0197-2456%2886%2990046-2"
+      }
+    },
+    {
+      "key": "hartung2001",
+      "type": "article",
+      "doi": "10.1002/sim.1009",
+      "url": "",
+      "title": "A refined method for the meta-analysis of controlled clinical trials with binary outcome",
+      "author": "Hartung, Joachim and Knapp, Guido",
+      "year": "2001",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1002%2Fsim.1009"
+      }
+    },
+    {
+      "key": "fine1999",
+      "type": "article",
+      "doi": "10.1080/01621459.1999.10474144",
+      "url": "",
+      "title": "A proportional hazards model for the subdistribution of a competing risk",
+      "author": "Fine, Jason P and Gray, Robert J",
+      "year": "1999",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1080%2F01621459.1999.10474144"
+      }
+    },
+    {
+      "key": "vickers2006",
+      "type": "article",
+      "doi": "10.1177/0272989X06295361",
+      "url": "",
+      "title": "Decision curve analysis: a novel method for evaluating prediction models",
+      "author": "Vickers, Andrew J and Elkin, Elena B",
+      "year": "2006",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1177%2F0272989X06295361"
+      }
+    },
+    {
+      "key": "grambsch1994",
+      "type": "article",
+      "doi": "10.1093/biomet/81.3.515",
+      "url": "",
+      "title": "Proportional hazards tests and diagnostics based on weighted residuals",
+      "author": "Grambsch, Patricia M and Therneau, Terry M",
+      "year": "1994",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1093%2Fbiomet%2F81.3.515"
+      }
+    },
+    {
+      "key": "robinson2010",
+      "type": "article",
+      "doi": "10.1093/bioinformatics/btp616",
+      "url": "",
+      "title": "edge{R",
+      "author": "Robinson, Mark D and McCarthy, Davis J and Smyth, Gordon K",
+      "year": "2010",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1093%2Fbioinformatics%2Fbtp616"
+      }
+    },
+    {
+      "key": "gendoo2016",
+      "type": "article",
+      "doi": "10.1093/bioinformatics/btv693",
+      "url": "",
+      "title": "Genefu: an {R",
+      "author": "Gendoo, Deena M and Ratanasirigulchai, Natchar and Schroder, Markus S and others",
+      "year": "2016",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1093%2Fbioinformatics%2Fbtv693"
+      }
+    },
+    {
+      "key": "moons2015",
+      "type": "article",
+      "doi": "10.7326/M14-0698",
+      "url": "",
+      "title": "Transparent reporting of a multivariable prediction model for individual prognosis or diagnosis ({TRIPOD",
+      "author": "Moons, Karel G and Altman, Douglas G and Reitsma, Johannes B and others",
+      "year": "2015",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.7326%2FM14-0698"
+      }
+    },
+    {
+      "key": "royston2013",
+      "type": "article",
+      "doi": "10.1186/1471-2288-13-33",
+      "url": "",
+      "title": "External validation of a {C",
+      "author": "Royston, Patrick and Altman, Douglas G",
+      "year": "2013",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1186%2F1471-2288-13-33"
+      }
+    },
+    {
+      "key": "therneau2000",
+      "type": "book",
+      "doi": "10.1007/978-1-4757-3294-8",
+      "url": "",
+      "title": "Modeling Survival Data: Extending the {C",
+      "author": "Therneau, Terry M and Grambsch, Patricia M",
+      "year": "2000",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1007%2F978-1-4757-3294-8"
+      }
+    },
+    {
+      "key": "brueffer2018",
+      "type": "article",
+      "doi": "10.1200/PO.17.00135",
+      "url": "",
+      "title": "Clinical value of {RNA",
+      "author": "Brueffer, Christian and Vallon-Christersson, Johan and Grabau, Dorthe and others",
+      "year": "2018",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1200%2FPO.17.00135"
+      }
+    },
+    {
+      "key": "saal2015",
+      "type": "article",
+      "doi": "10.1186/s13073-015-0131-9",
+      "url": "",
+      "title": "The {S",
+      "author": "Saal, Lao H and Vallon-Christersson, Johan and Hakkinen, Jari and others",
+      "year": "2015",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1186%2Fs13073-015-0131-9"
+      }
+    },
+    {
+      "key": "tcga2012",
+      "type": "article",
+      "doi": "10.1038/nature11412",
+      "url": "",
+      "title": "Comprehensive molecular portraits of human breast tumours",
+      "author": "{TCGA Network",
+      "year": "2012",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1038%2Fnature11412"
+      }
+    },
+    {
+      "key": "curtis2012",
+      "type": "article",
+      "doi": "10.1038/nature10983",
+      "url": "",
+      "title": "The genomic and transcriptomic architecture of 2,000 breast tumours reveals novel subgroups",
+      "author": "Curtis, Christina and Shah, Sohrab P and Chin, Suet-Feung and others",
+      "year": "2012",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1038%2Fnature10983"
+      }
+    },
+    {
+      "key": "kao2011",
+      "type": "article",
+      "doi": "10.1186/1471-2407-11-143",
+      "url": "",
+      "title": "Correlation of microarray-based breast cancer molecular subtypes and clinical outcomes",
+      "author": "Kao, Kuo-Jang and Chang, Kai-Ming and Hsu, Hsueh-Chih and Huang, Ai Tao",
+      "year": "2011",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1186%2F1471-2407-11-143"
+      }
+    },
+    {
+      "key": "pawitan2005",
+      "type": "article",
+      "doi": "10.1186/bcr1325",
+      "url": "",
+      "title": "Gene expression profiling spares early breast cancer patients from adjuvant therapy: derived and validated in two population-based cohorts",
+      "author": "Pawitan, Yudi and Bjohle, Jonas and Amler, Lukas and others",
+      "year": "2005",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1186%2Fbcr1325"
+      }
+    },
+    {
+      "key": "hatzis2011",
+      "type": "article",
+      "doi": "10.1001/jama.2011.593",
+      "url": "",
+      "title": "A genomic predictor of response and survival following taxane-anthracycline chemotherapy for invasive breast cancer",
+      "author": "Hatzis, Christos and Pusztai, Lajos and Valero, Vicente and others",
+      "year": "2011",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1001%2Fjama.2011.593"
+      }
+    },
+    {
+      "key": "esserman2012",
+      "type": "article",
+      "doi": "10.1007/s10549-011-1895-2",
+      "url": "",
+      "title": "Chemotherapy response and recurrence-free survival in neoadjuvant breast cancer depends on biomarker profiles: results from the {I-SPY",
+      "author": "Esserman, Laura J and Berry, Donald A and Cheang, Maggie C and others",
+      "year": "2012",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1007%2Fs10549-011-1895-2"
+      }
+    },
+    {
+      "key": "wolf2022",
+      "type": "article",
+      "doi": "10.1016/j.ccell.2022.05.005",
+      "url": "",
+      "title": "Redefining breast cancer subtypes to guide treatment prioritization and maximize response: predictive biomarkers across 10 cancer therapies",
+      "author": "Wolf, Denise M and Yau, Christina and Wulfkuhle, Julia and others",
+      "year": "2022",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1016%2Fj.ccell.2022.05.005"
+      }
+    },
+    {
+      "key": "cortazar2014",
+      "type": "article",
+      "doi": "10.1016/S0140-6736(13)62422-8",
+      "url": "",
+      "title": "Pathological complete response and long-term clinical benefit in breast cancer: the {CTNeoBC",
+      "author": "Cortazar, Patricia and Zhang, Liang and Untch, Michael and others",
+      "year": "2014",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1016%2FS0140-6736%2813%2962422-8"
+      }
+    },
+    {
+      "key": "prat2015",
+      "type": "article",
+      "doi": "10.1186/s12916-015-0540-z",
+      "url": "",
+      "title": "Response and survival of breast cancer intrinsic subtypes following multi-agent neoadjuvant chemotherapy",
+      "author": "Prat, Aleix and Fan, Cheng and Fernandez, Aranzazu and others",
+      "year": "2015",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1186%2Fs12916-015-0540-z"
+      }
+    },
+    {
+      "key": "dowsett2013",
+      "type": "article",
+      "doi": "10.1200/JCO.2012.46.1558",
+      "url": "",
+      "title": "Comparison of {PAM50",
+      "author": "Dowsett, Mitch and Sestak, Ivana and Lopez-Knowles, Elena and others",
+      "year": "2013",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1200%2FJCO.2012.46.1558"
+      }
+    },
+    {
+      "key": "steyerberg2016",
+      "type": "article",
+      "doi": "10.1016/j.jclinepi.2015.04.005",
+      "url": "",
+      "title": "Prediction models need appropriate internal, internal-external, and external validation",
+      "author": "Steyerberg, Ewout W and Harrell, Frank E Jr",
+      "year": "2016",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1016%2Fj.jclinepi.2015.04.005"
+      }
+    },
+    {
+      "key": "robinson2010b",
+      "type": "article",
+      "doi": "10.1186/gb-2010-11-3-r25",
+      "url": "",
+      "title": "A scaling normalization method for differential expression analysis of {RNA",
+      "author": "Robinson, Mark D and Oshlack, Alicia",
+      "year": "2010",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1186%2Fgb-2010-11-3-r25"
+      }
+    },
+    {
+      "key": "maqc2010",
+      "type": "article",
+      "doi": "10.1038/nbt.1665",
+      "url": "",
+      "title": "The {M",
+      "author": "{MAQC Consortium",
+      "year": "2010",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1038%2Fnbt.1665"
+      }
+    },
+    {
+      "key": "miyake2012",
+      "type": "article",
+      "doi": "10.1111/j.1349-7006.2012.02241.x",
+      "url": "",
+      "title": "{GSTP1",
+      "author": "Miyake, Tetsuya and Nakayama, Takahiro and Naoi, Yasuto and others",
+      "year": "2012",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1111%2Fj.1349-7006.2012.02241.x"
+      }
+    },
+    {
+      "key": "botan2026",
+      "type": "article",
+      "doi": "10.1186/s13058-026-02298-5",
+      "url": "",
+      "title": "{CorePAM",
+      "author": "{Botan, RN",
+      "year": "2026",
+      "note": "Artigo aceito ap{\\'o",
+      "crossref": {
+        "status": 404,
+        "ok": false,
+        "url": "https://api.crossref.org/works/10.1186%2Fs13058-026-02298-5"
+      }
+    },
+    {
+      "key": "bray2024",
+      "type": "article",
+      "doi": "10.3322/caac.21834",
+      "url": "",
+      "title": "Global cancer statistics 2022: {GLOBOCAN",
+      "author": "Bray, Freddie and Laversanne, Mathieu and Sung, Hyuna and Ferlay, Jacques and Siegel, Rebecca L and Soerjomataram, Isabelle and Jemal, Ahmedin",
+      "year": "2024",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.3322%2Fcaac.21834"
+      }
+    },
+    {
+      "key": "sung2021",
+      "type": "article",
+      "doi": "10.3322/caac.21660",
+      "url": "",
+      "title": "Global cancer statistics 2020: {GLOBOCAN",
+      "author": "Sung, Hyuna and Ferlay, Jacques and Siegel, Rebecca L and Laversanne, Mathieu and Soerjomataram, Isabelle and Jemal, Ahmedin and Bray, Freddie",
+      "year": "2021",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.3322%2Fcaac.21660"
+      }
+    },
+    {
+      "key": "harbeck2019",
+      "type": "article",
+      "doi": "10.1038/s41572-019-0111-2",
+      "url": "",
+      "title": "Breast cancer",
+      "author": "Harbeck, Nadia and Penault-Llorca, Frederique and Cortes, Javier and Gnant, Michael and Houssami, Nehmat and Poortmans, Philip and Ruddy, Kathryn and Tsang, Janice and Cardoso, Fatima",
+      "year": "2019",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1038%2Fs41572-019-0111-2"
+      }
+    },
+    {
+      "key": "sparano2019",
+      "type": "article",
+      "doi": "10.1056/NEJMoa1904819",
+      "url": "",
+      "title": "Clinical and genomic risk to guide the use of adjuvant therapy for breast cancer",
+      "author": "Sparano, Joseph A and Gray, Robert J and Ravdin, Peter M and others",
+      "year": "2019",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1056%2FNEJMoa1904819"
+      }
+    },
+    {
+      "key": "kalinsky2021",
+      "type": "article",
+      "doi": "10.1056/NEJMoa2108873",
+      "url": "",
+      "title": "21-gene assay to inform chemotherapy benefit in node-positive breast cancer",
+      "author": "Kalinsky, Kevin and Barlow, William E and Gralow, Julie R and others",
+      "year": "2021",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1056%2FNEJMoa2108873"
+      }
+    },
+    {
+      "key": "piccart2021",
+      "type": "article",
+      "doi": "10.1016/S1470-2045(21)00007-3",
+      "url": "",
+      "title": "70-gene signature as an aid for treatment decisions in early breast cancer: updated results of the phase 3 randomised {MINDACT",
+      "author": "Piccart, Martine and van't Veer, Laura J and Poncet, Coralie and others",
+      "year": "2021",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1016%2FS1470-2045%2821%2900007-3"
+      }
+    },
+    {
+      "key": "sestak2018",
+      "type": "article",
+      "doi": "10.1001/jamaoncol.2017.5524",
+      "url": "",
+      "title": "Comparison of the performance of 6 prognostic signatures for estrogen receptor-positive breast cancer",
+      "author": "Sestak, Ivana and Buus, Richard and Cuzick, Jack and others",
+      "year": "2018",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1001%2Fjamaoncol.2017.5524"
+      }
+    },
+    {
+      "key": "dowsett2010",
+      "type": "article",
+      "doi": "10.1200/JCO.2009.24.4798",
+      "url": "",
+      "title": "Prediction of risk of distant recurrence using the 21-gene recurrence score in node-negative and node-positive postmenopausal patients with breast cancer treated with anastrozole or tamoxifen: a {TransATAC",
+      "author": "Dowsett, Mitch and Cuzick, Jack and Wale, Christopher and Forbes, John and Mallon, Elizabeth A and Salter, Janine and Quinn, Emma and Dunbier, Anita and Baum, Michael and Buzdar, Aman and Howell, Anthony and Bugarini, Roberto and Baehner, Frederick L and Shak, Steven",
+      "year": "2010",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1200%2FJCO.2009.24.4798"
+      }
+    },
+    {
+      "key": "gnant2014",
+      "type": "article",
+      "doi": "10.1093/annonc/mdt494",
+      "url": "",
+      "title": "Predicting distant recurrence in receptor-positive breast cancer patients with limited clinicopathological risk: using the {PAM50",
+      "author": "Gnant, Michael and Filipits, Martin and Greil, Richard and others",
+      "year": "2014",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1093%2Fannonc%2Fmdt494"
+      }
+    },
+    {
+      "key": "filipits2011",
+      "type": "article",
+      "doi": "10.1158/1078-0432.CCR-11-0926",
+      "url": "",
+      "title": "A new molecular predictor of distant recurrence in {ER",
+      "author": "Filipits, Martin and Rudas, Margaretha and Jakesz, Raimund and others",
+      "year": "2011",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1158%2F1078-0432.CCR-11-0926"
+      }
+    },
+    {
+      "key": "zhang2013",
+      "type": "article",
+      "doi": "10.1158/1078-0432.CCR-13-0804",
+      "url": "",
+      "title": "Breast {C",
+      "author": "Zhang, Yi and Schnabel, Catherine A and Schroeder, Brock E and others",
+      "year": "2013",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1158%2F1078-0432.CCR-13-0804"
+      }
+    },
+    {
+      "key": "coates2015",
+      "type": "article",
+      "doi": "10.1093/annonc/mdv221",
+      "url": "",
+      "title": "Tailoring therapies---improving the management of early breast cancer: {S",
+      "author": "Coates, Alan S and Winer, Eric P and Goldhirsch, Aron and others",
+      "year": "2015",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1093%2Fannonc%2Fmdv221"
+      }
+    },
+    {
+      "key": "burstein2019",
+      "type": "article",
+      "doi": "10.1093/annonc/mdz235",
+      "url": "",
+      "title": "Estimating the benefits of therapy for early-stage breast cancer: the {S",
+      "author": "Burstein, Harold J and Curigliano, Giuseppe and Loibl, Sibylle and others",
+      "year": "2019",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1093%2Fannonc%2Fmdz235"
+      }
+    },
+    {
+      "key": "andre2022",
+      "type": "article",
+      "doi": "10.1200/JCO.22.00069",
+      "url": "",
+      "title": "Biomarkers for adjuvant endocrine and chemotherapy in early-stage breast cancer: {ASCO",
+      "author": "Andre, Fabrice and Ismaila, Nofisat and Allison, Kimberly H and others",
+      "year": "2022",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1200%2FJCO.22.00069"
+      }
+    },
+    {
+      "key": "nielsen2010",
+      "type": "article",
+      "doi": "10.1158/1078-0432.CCR-10-1282",
+      "url": "",
+      "title": "A comparison of {PAM50",
+      "author": "Nielsen, Torsten O and Parker, Joel S and Leung, Samuel and Voduc, David and Ebbert, Mark and Vickery, Tammi and Davies, Sherri R and Snider, Jacqueline and Stijleman, Inge J and Reed, Jerry and Cheang, Maggie C U and Mardis, Elaine R and Perou, Charles M and Bernard, Philip S and Ellis, Matthew J",
+      "year": "2010",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1158%2F1078-0432.CCR-10-1282"
+      }
+    },
+    {
+      "key": "pratperou2011",
+      "type": "article",
+      "doi": "10.1016/j.molonc.2010.11.003",
+      "url": "",
+      "title": "Deconstructing the molecular portraits of breast cancer",
+      "author": "Prat, Aleix and Perou, Charles M",
+      "year": "2011",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1016%2Fj.molonc.2010.11.003"
+      }
+    },
+    {
+      "key": "pratpareja2015",
+      "type": "article",
+      "doi": "10.1016/j.breast.2015.07.008",
+      "url": "",
+      "title": "Clinical implications of the intrinsic molecular subtypes of breast cancer",
+      "author": "Prat, Aleix and Pineda, Estela and Adamo, Barbara and others",
+      "year": "2015",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1016%2Fj.breast.2015.07.008"
+      }
+    },
+    {
+      "key": "johnson2007",
+      "type": "article",
+      "doi": "10.1093/biostatistics/kxj037",
+      "url": "",
+      "title": "Adjusting batch effects in microarray expression data using empirical {B",
+      "author": "Johnson, W Evan and Li, Cheng and Rabinovic, Ariel",
+      "year": "2007",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1093%2Fbiostatistics%2Fkxj037"
+      }
+    },
+    {
+      "key": "leek2010",
+      "type": "article",
+      "doi": "10.1038/nrg2825",
+      "url": "",
+      "title": "Tackling the widespread and critical impact of batch effects in high-throughput data",
+      "author": "Leek, Jeffrey T and Scharpf, Robert B and Bravo, Hector Corrada and Simcha, David and Langmead, Benjamin and Johnson, W Evan and Geman, Donald and Baggerly, Keith and Irizarry, Rafael A",
+      "year": "2010",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1038%2Fnrg2825"
+      }
+    },
+    {
+      "key": "love2014",
+      "type": "article",
+      "doi": "10.1186/s13059-014-0550-8",
+      "url": "",
+      "title": "Moderated estimation of fold change and dispersion for {RNA",
+      "author": "Love, Michael I and Huber, Wolfgang and Anders, Simon",
+      "year": "2014",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1186%2Fs13059-014-0550-8"
+      }
+    },
+    {
+      "key": "ritchie2015",
+      "type": "article",
+      "doi": "10.1093/nar/gkv007",
+      "url": "",
+      "title": "{limma",
+      "author": "Ritchie, Matthew E and Phipson, Belinda and Wu, Di and Hu, Yifang and Law, Charity W and Shi, Wei and Smyth, Gordon K",
+      "year": "2015",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1093%2Fnar%2Fgkv007"
+      }
+    },
+    {
+      "key": "collins2015",
+      "type": "article",
+      "doi": "10.1136/bmj.g7594",
+      "url": "",
+      "title": "Transparent reporting of a multivariable prediction model for individual prognosis or diagnosis ({TRIPOD",
+      "author": "Collins, Gary S and Reitsma, Johannes B and Altman, Douglas G and Moons, Karel G M",
+      "year": "2015",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1136%2Fbmj.g7594"
+      }
+    },
+    {
+      "key": "vancalster2019",
+      "type": "article",
+      "doi": "10.1186/s12916-019-1466-7",
+      "url": "",
+      "title": "Calibration: the {A",
+      "author": "Van Calster, Ben and McLernon, David J and van Smeden, Maarten and Wynants, Laure and Steyerberg, Ewout W",
+      "year": "2019",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1186%2Fs12916-019-1466-7"
+      }
+    },
+    {
+      "key": "vancalster2016",
+      "type": "article",
+      "doi": "10.1016/j.jclinepi.2015.12.005",
+      "url": "",
+      "title": "A calibration hierarchy for risk models was defined: from utopia to empirical data",
+      "author": "Van Calster, Ben and Nieboer, Daan and Vergouwe, Yvonne and De Cock, Bavo and Pencina, Michael J and Steyerberg, Ewout W",
+      "year": "2016",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1016%2Fj.jclinepi.2015.12.005"
+      }
+    },
+    {
+      "key": "cheang2009",
+      "type": "article",
+      "doi": "10.1093/jnci/djp082",
+      "url": "",
+      "title": "{Ki67",
+      "author": "Cheang, Maggie C U and Chia, Stephen K and Voduc, David and others",
+      "year": "2009",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1093%2Fjnci%2Fdjp082"
+      }
+    },
+    {
+      "key": "chia2012",
+      "type": "article",
+      "doi": "10.1158/1078-0432.CCR-12-0286",
+      "url": "",
+      "title": "A 50-gene intrinsic subtype classifier for prognosis and prediction of benefit from adjuvant tamoxifen",
+      "author": "Chia, Stephen K and Bramwell, Vivien H and Tu, Dongsheng and others",
+      "year": "2012",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1158%2F1078-0432.CCR-12-0286"
+      }
+    },
+    {
+      "key": "wallden2015",
+      "type": "article",
+      "doi": "10.1186/s12920-015-0129-6",
+      "url": "",
+      "title": "Development and verification of the {PAM50",
+      "author": "Wallden, Brett and Storhoff, James and Nielsen, Torsten and others",
+      "year": "2015",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1186%2Fs12920-015-0129-6"
+      }
+    },
+    {
+      "key": "denkert2018",
+      "type": "article",
+      "doi": "10.1016/S1470-2045(17)30904-X",
+      "url": "",
+      "title": "Tumour-infiltrating lymphocytes and prognosis in different subtypes of breast cancer: a pooled analysis of 3771 patients treated with neoadjuvant therapy",
+      "author": "Denkert, Carsten and von Minckwitz, Gunter and Darb-Esfahani, Silvia and others",
+      "year": "2018",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1016%2FS1470-2045%2817%2930904-X"
+      }
+    },
+    {
+      "key": "efron1979",
+      "type": "article",
+      "doi": "10.1214/aos/1176344552",
+      "url": "",
+      "title": "Bootstrap methods: another look at the jackknife",
+      "author": "Efron, Bradley",
+      "year": "1979",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1214%2Faos%2F1176344552"
+      }
+    },
+    {
+      "key": "tibshirani2009",
+      "type": "article",
+      "doi": "10.2202/1544-6115.1438",
+      "url": "",
+      "title": "Univariate shrinkage in the {C",
+      "author": "Tibshirani, Robert J",
+      "year": "2009",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.2202%2F1544-6115.1438"
+      }
+    },
+    {
+      "key": "inca2023",
+      "type": "article",
+      "doi": "",
+      "url": "",
+      "title": "Estimativa 2023: incidencia de cancer no {B",
+      "author": "{Instituto Nacional de Cancer",
+      "year": "2022",
+      "note": "ISBN 978-65-88517-10-9",
+      "crossref": {
+        "status": "no_doi",
+        "ok": null
+      }
+    },
+    {
+      "key": "migowski2018",
+      "type": "article",
+      "doi": "10.1590/0102-311X00074817",
+      "url": "",
+      "title": "Diretrizes para deteccao precoce do cancer de mama no {B",
+      "author": "Migowski, Arn and Silva, Gulnar Azevedo e and Dias, Mario Borges Rosa and Diz, Maria do Desterro Paiva and Sant'Ana, Denise Rangel and Nadanovsky, Paulo",
+      "year": "2018",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1590%2F0102-311X00074817"
+      }
+    },
+    {
+      "key": "modi2022",
+      "type": "article",
+      "doi": "10.1056/NEJMoa2203690",
+      "url": "",
+      "title": "Trastuzumab deruxtecan in previously treated {HER2",
+      "author": "Modi, Shanu and Jacot, William and Yamashita, Toshinari and others",
+      "year": "2022",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1056%2FNEJMoa2203690"
+      }
+    },
+    {
+      "key": "symmans2017",
+      "type": "article",
+      "doi": "10.1200/JCO.2015.63.1010",
+      "url": "",
+      "title": "Long-term prognostic risk after neoadjuvant chemotherapy associated with residual cancer burden and breast cancer subtype",
+      "author": "Symmans, W Fraser and Wei, Caimiao and Gould, Rebekah and others",
+      "year": "2017",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1200%2FJCO.2015.63.1010"
+      }
+    },
+    {
+      "key": "pereira2016",
+      "type": "article",
+      "doi": "10.1038/ncomms11479",
+      "url": "",
+      "title": "The somatic mutation profiles of 2,433 breast cancers refines their genomic and transcriptomic landscapes",
+      "author": "Pereira, Bernard and Chin, Suet-Feung and Rueda, Oscar M and others",
+      "year": "2016",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1038%2Fncomms11479"
+      }
+    },
+    {
+      "key": "peto2012",
+      "type": "article",
+      "doi": "10.1016/S0140-6736(11)61625-5",
+      "url": "",
+      "title": "Comparisons between different polychemotherapy regimens for early breast cancer: meta-analyses of long-term outcome among 100,000 women in 123 randomised trials",
+      "author": "Peto, Richard and Davies, Christina and Godwin, Jon and others",
+      "year": "2012",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1016%2FS0140-6736%2811%2961625-5"
+      }
+    },
+    {
+      "key": "ebctcg2011",
+      "type": "article",
+      "doi": "10.1016/S0140-6736(11)60993-8",
+      "url": "",
+      "title": "Relevance of breast cancer hormone receptors and other factors to the efficacy of adjuvant tamoxifen: patient-level meta-analysis of randomised trials",
+      "author": "{Early Breast Cancer Trialists' Collaborative Group",
+      "year": "2011",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1016%2FS0140-6736%2811%2960993-8"
+      }
+    },
+    {
+      "key": "ebctcg2019",
+      "type": "article",
+      "doi": "10.1016/S1470-2045(17)30777-5",
+      "url": "",
+      "title": "Long-term outcomes for neoadjuvant versus adjuvant chemotherapy in early breast cancer: meta-analysis of individual patient data from ten randomised trials",
+      "author": "{Early Breast Cancer Trialists' Collaborative Group",
+      "year": "2018",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1016%2FS1470-2045%2817%2930777-5"
+      }
+    },
+    {
+      "key": "swain2023",
+      "type": "article",
+      "doi": "10.1038/s41573-022-00579-0",
+      "url": "",
+      "title": "Targeting {HER2",
+      "author": "Swain, Sandra M and Shastry, Mythili and Hamilton, Erika",
+      "year": "2023",
+      "note": "",
+      "crossref": {
+        "status": 200,
+        "ok": true,
+        "url": "https://api.crossref.org/works/10.1038%2Fs41573-022-00579-0"
+      }
+    }
+  ],
+  "unused_keys": [
+    "dowsett2013",
+    "ebctcg2019",
+    "modi2022",
+    "pratpareja2015",
+    "swain2023",
+    "symmans2017",
+    "tibshirani2009"
+  ]
+}

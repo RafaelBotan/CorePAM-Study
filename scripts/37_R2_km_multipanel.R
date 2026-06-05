@@ -25,60 +25,63 @@ message(sprintf("[%s] Starting multi-panel KM figure generation", SCRIPT_NAME))
 # --------------------------------------------------------------------------
 # Cohort definitions (training first, then validation in manuscript order)
 # --------------------------------------------------------------------------
-cohort_defs <- list(
-  list(id       = "SCANB",
-       label    = "A",
-       title    = "SCAN-B (training)",
-       time_col = "os_time_months",
-       event_col = "os_event",
-       ylab     = "Overall survival",
-       endpoint = "OS",
-       note     = "Training cohort"),
-
-  list(id       = "TCGA_BRCA",
-       label    = "B",
-       title    = "TCGA-BRCA",
-       time_col = "os_time_months",
-       event_col = "os_event",
-       ylab     = "Overall survival",
-       endpoint = "OS",
-       note     = NULL),
-
-  list(id       = "METABRIC",
-       label    = "C",
-       title    = "METABRIC",
-       time_col = "dss_time_months",
-       event_col = "dss_event",
-       ylab     = "Disease-specific survival",
-       endpoint = "DSS",
-       note     = NULL),
-
-  list(id       = "GSE20685",
-       label    = "D",
-       title    = "GSE20685",
-       time_col = "os_time_months",
-       event_col = "os_event",
-       ylab     = "Overall survival",
-       endpoint = "OS",
-       note     = NULL),
-
-  list(id       = "GSE1456",
-       label    = "E",
-       title    = "GSE1456 (Stockholm)",
-       time_col = "os_time_months",
-       event_col = "os_event",
-       ylab     = "Overall survival",
-       endpoint = "OS",
-       note     = NULL)
-)
+make_cohort_defs <- function(lang = "EN") {
+  tr <- if (lang == "EN") list(
+    scanb_title = "SCAN-B (training)",
+    ylab_os     = "Overall survival",
+    ylab_dss    = "Disease-specific survival",
+    gse1456     = "GSE1456 (Stockholm)",
+    training_note = "Training cohort"
+  ) else list(
+    scanb_title = "SCAN-B (treinamento)",
+    ylab_os     = "Sobrevida global",
+    ylab_dss    = "Sobrevida doen\u00e7a-espec\u00edfica",
+    gse1456     = "GSE1456 (Estocolmo)",
+    training_note = "Coorte de treinamento"
+  )
+  list(
+    list(id = "SCANB", label = "A", title = tr$scanb_title,
+         time_col = "os_time_months", event_col = "os_event",
+         ylab = tr$ylab_os, endpoint = "OS", note = tr$training_note),
+    list(id = "TCGA_BRCA", label = "B", title = "TCGA-BRCA",
+         time_col = "os_time_months", event_col = "os_event",
+         ylab = tr$ylab_os, endpoint = "OS", note = NULL),
+    list(id = "METABRIC", label = "C", title = "METABRIC",
+         time_col = "dss_time_months", event_col = "dss_event",
+         ylab = tr$ylab_dss, endpoint = "DSS", note = NULL),
+    list(id = "GSE20685", label = "D", title = "GSE20685",
+         time_col = "os_time_months", event_col = "os_event",
+         ylab = tr$ylab_os, endpoint = "OS", note = NULL),
+    list(id = "GSE1456", label = "E", title = tr$gse1456,
+         time_col = "os_time_months", event_col = "os_event",
+         ylab = tr$ylab_os, endpoint = "OS", note = NULL)
+  )
+}
 
 # --------------------------------------------------------------------------
 # Consistent styling
 # --------------------------------------------------------------------------
 PAL        <- c("High" = COL$km_high, "Low" = COL$km_low)
-LEGEND_LBL <- c("High risk", "Low risk")
 ANNO_SIZE  <- 2.8
 TITLE_SIZE <- 11
+
+lang_strings <- function(lang) {
+  if (lang == "EN") list(
+    legend = c("High risk", "Low risk"),
+    xlab   = "Time (months)",
+    events = "events",
+    hr_prefix = "HR",
+    lr_prefix = "Log-rank p",
+    cutoff_note = "Cutoff: intra-cohort median\n(pre-specified, not optimised)"
+  ) else list(
+    legend = c("Alto risco", "Baixo risco"),
+    xlab   = "Tempo (meses)",
+    events = "eventos",
+    hr_prefix = "HR",
+    lr_prefix = "Log-rank p",
+    cutoff_note = "Ponto de corte: mediana intracoorte\n(pr\u00e9-especificado, n\u00e3o otimizado)"
+  )
+}
 
 # --------------------------------------------------------------------------
 # Helper: x-axis cutoff (last time where min n-at-risk >= min_nrisk)
@@ -92,11 +95,14 @@ x_cutoff <- function(km_fit, min_nrisk = 10) {
 }
 
 # --------------------------------------------------------------------------
-# Generate one panel per cohort
+# Generate one panel per cohort (wrapped in a language loop)
 # --------------------------------------------------------------------------
-panels <- list()
+build_all_panels <- function(lang) {
+  cohort_defs <- make_cohort_defs(lang)
+  tr <- lang_strings(lang)
+  panels <- list()
 
-for (coh in cohort_defs) {
+  for (coh in cohort_defs) {
   message(sprintf("[%s] Processing %s (%s)...", SCRIPT_NAME, coh$id, coh$endpoint))
 
   # Load data
@@ -165,15 +171,15 @@ for (coh in cohort_defs) {
 
   # Annotation text — single annotation with HR + log-rank p
   anno_text <- sprintf(
-    "HR = %.2f (%.2f\u2013%.2f)\nLog-rank p = %s",
-    hr_km, lo_km, hi_km, p_label
+    "%s = %.2f (%.2f\u2013%.2f)\n%s = %s",
+    tr$hr_prefix, hr_km, lo_km, hi_km, tr$lr_prefix, p_label
   )
 
   # Panel title with cohort info
   panel_title <- sprintf(
-    "%s.  %s (N = %s; %d events; %s)",
+    "%s.  %s (N = %s; %d %s; %s)",
     coh$label, coh$title,
-    format(n_total, big.mark = ","), n_events, coh$endpoint
+    format(n_total, big.mark = ","), n_events, tr$events, coh$endpoint
   )
 
   # Create ggsurvplot (no risk table — too complex for multi-panel)
@@ -185,9 +191,9 @@ for (coh in cohort_defs) {
     pval       = FALSE,
     conf.int   = TRUE,
     palette    = unname(PAL),
-    xlab       = "Time (months)",
+    xlab       = tr$xlab,
     ylab       = coh$ylab,
-    legend.labs = LEGEND_LBL,
+    legend.labs = tr$legend,
     legend.title = NULL,
     legend      = c(0.8, 0.95),
     xlim       = c(0, xlim_val),
@@ -213,60 +219,59 @@ for (coh in cohort_defs) {
     )
 
   panels[[coh$id]] <- km_p$plot
+  }
+
+  empty_panel <- ggplot() +
+    theme_void() +
+    annotate("text", x = 0.5, y = 0.5,
+             label = tr$cutoff_note,
+             size = 3.5, colour = "grey40", fontface = "italic")
+
+  plot_grid(
+    panels[["SCANB"]],
+    panels[["TCGA_BRCA"]],
+    panels[["METABRIC"]],
+    panels[["GSE20685"]],
+    panels[["GSE1456"]],
+    empty_panel,
+    ncol   = 2,
+    nrow   = 3,
+    align  = "hv",
+    axis   = "tblr"
+  )
 }
 
 # --------------------------------------------------------------------------
-# Combine into multi-panel figure
+# Build + save for each language
 # --------------------------------------------------------------------------
-message(sprintf("[%s] Assembling multi-panel figure...", SCRIPT_NAME))
+for (lang in c("EN", "PT")) {
+  message(sprintf("[%s] Assembling multi-panel figure (%s)...", SCRIPT_NAME, lang))
+  combined <- build_all_panels(lang)
 
-# 3x2 grid: panels A-E + empty slot (bottom-right)
-# Add a subtitle to the empty slot area
-empty_panel <- ggplot() +
-  theme_void() +
-  annotate("text", x = 0.5, y = 0.5,
-           label = "Cutoff: intra-cohort median\n(pre-specified, not optimised)",
-           size = 3.5, colour = "grey40", fontface = "italic")
+  pdf_dir <- if (lang == "EN") PATHS$figures$main_en_pdf else PATHS$figures$main_pt_pdf
+  png_dir <- if (lang == "EN") PATHS$figures$main_en_png else PATHS$figures$main_pt_png
+  suffix <- lang
+  out_pdf_main <- file.path(pdf_dir, sprintf("Fig2_KM_MultiPanel_%s.pdf", suffix))
+  out_png_main <- file.path(png_dir, sprintf("Fig2_KM_MultiPanel_%s.png", suffix))
 
-combined <- plot_grid(
-  panels[["SCANB"]],
-  panels[["TCGA_BRCA"]],
-  panels[["METABRIC"]],
-  panels[["GSE20685"]],
-  panels[["GSE1456"]],
-  empty_panel,
-  ncol   = 2,
-  nrow   = 3,
-  align  = "hv",
-  axis   = "tblr"
-)
+  cairo_pdf(out_pdf_main, width = 12, height = 16)
+  print(combined)
+  dev.off()
+  message(sprintf("[%s] Saved: %s", SCRIPT_NAME, out_pdf_main))
 
-# --------------------------------------------------------------------------
-# Save: figures/ (main archive) + submission/figures/ (submission)
-# --------------------------------------------------------------------------
-out_pdf_main <- file.path(PATHS$figures$main_en_pdf, "Fig2_KM_MultiPanel_EN.pdf")
-out_png_main <- file.path(PATHS$figures$main_en_png, "Fig2_KM_MultiPanel_EN.png")
-out_png_sub  <- file.path(ROOT_REPO, "submission", "figures", "Fig2_KM_MultiPanel_EN.png")
+  png(out_png_main, width = 12, height = 16, units = "in", res = 600)
+  print(combined)
+  dev.off()
+  message(sprintf("[%s] Saved: %s", SCRIPT_NAME, out_png_main))
 
-# PDF (vector)
-cairo_pdf(out_pdf_main, width = 12, height = 16)
-print(combined)
-dev.off()
-message(sprintf("[%s] Saved: %s", SCRIPT_NAME, out_pdf_main))
+  if (lang == "EN") {
+    out_png_sub <- file.path(ROOT_REPO, "submission", "figures", "Fig2_KM_MultiPanel_EN.png")
+    file.copy(out_png_main, out_png_sub, overwrite = TRUE)
+    message(sprintf("[%s] Copied to: %s", SCRIPT_NAME, out_png_sub))
+    registry_append("ALL", "figure_km_multipanel_R2", out_pdf_main,
+                    sha256_file(out_pdf_main), "ok", SCRIPT_NAME,
+                    file.info(out_pdf_main)$size / 1e6)
+  }
+}
 
-# PNG high-res (for submission)
-png(out_png_main, width = 12, height = 16, units = "in", res = 600)
-print(combined)
-dev.off()
-message(sprintf("[%s] Saved: %s", SCRIPT_NAME, out_png_main))
-
-# Copy to submission/figures/
-file.copy(out_png_main, out_png_sub, overwrite = TRUE)
-message(sprintf("[%s] Copied to: %s", SCRIPT_NAME, out_png_sub))
-
-# Registry
-registry_append("ALL", "figure_km_multipanel_R2", out_pdf_main,
-                sha256_file(out_pdf_main), "ok", SCRIPT_NAME,
-                file.info(out_pdf_main)$size / 1e6)
-
-message(sprintf("[%s] COMPLETED — multi-panel KM figure generated", SCRIPT_NAME))
+message(sprintf("[%s] COMPLETED — multi-panel KM figure generated (EN+PT)", SCRIPT_NAME))

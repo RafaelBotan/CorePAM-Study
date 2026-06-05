@@ -1,0 +1,149 @@
+{
+  "file": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\submission\\Tese CorePAM Rafael Botan doutorado versao 1.0 defesa impressao.pdf",
+  "sha256": "9D4961F8EEE94BF78F19C1A284626D569A8EB898452184FBE8BEC661BA14A43B",
+  "page_count": 170,
+  "unique_page_sizes": [
+    [
+      595.3,
+      841.89
+    ]
+  ],
+  "blank_pages": [],
+  "frontmatter_visible_page_numbers": [],
+  "banca_examinadora_blocks_page3": [
+    {
+      "x0": 242.1,
+      "x1": 381.7,
+      "center_x": 311.9
+    }
+  ],
+  "critical_hits": {
+    "folha_aprovacao": [
+      3
+    ],
+    "banca_examinadora": [
+      3
+    ],
+    "dedicatoria": [
+      4
+    ],
+    "introducao": [
+      16,
+      19
+    ],
+    "referencias": [
+      18,
+      105
+    ],
+    "apendice_a": [
+      18,
+      37,
+      114
+    ],
+    "apendice_b": [
+      18,
+      124
+    ],
+    "article_in_press": [
+      125,
+      126,
+      127,
+      128,
+      129,
+      130,
+      131,
+      132,
+      133,
+      134,
+      135,
+      136,
+      137,
+      138,
+      139,
+      140,
+      141,
+      142,
+      143,
+      144,
+      145,
+      146,
+      147,
+      148,
+      149,
+      150,
+      151,
+      152,
+      153,
+      154,
+      155,
+      156,
+      157,
+      158,
+      159,
+      160,
+      161,
+      162,
+      163,
+      164,
+      165,
+      166,
+      167,
+      168,
+      169,
+      170
+    ],
+    "doi_corepam": [
+      113,
+      125
+    ],
+    "joao_batista": [
+      2,
+      3,
+      5
+    ],
+    "doralina": [
+      3
+    ],
+    "helio": [
+      3
+    ],
+    "ruffo": [
+      3
+    ],
+    "joao_nunes_cettro": [
+      3
+    ]
+  },
+  "toc_vs_body": {
+    "1. INTRODUÇÃO": {
+      "toc": 19,
+      "body_first": 19
+    },
+    "REFERÊNCIAS BIBLIOGRÁFICAS": {
+      "toc": 105,
+      "body_first": 105
+    },
+    "APÊNDICE A — Pipeline computacional": {
+      "toc": 114,
+      "body_first": 114
+    },
+    "APÊNDICE B — Artigo publicado no Breast Cancer Research": {
+      "toc": 124,
+      "body_first": 124
+    }
+  },
+  "article": {
+    "appendix_b_page": 124,
+    "article_first_page": 125,
+    "article_last_page": 170,
+    "article_pages": 46
+  },
+  "forbidden_terms_hits": {
+    "Professor Adjunto": [],
+    "adjunto": [],
+    "Local para artigo aceito": [],
+    "ainda não publicado": []
+  },
+  "created_at": "2026-05-22T18:00:07",
+  "pass": true
+}

@@ -323,87 +323,104 @@ if (!is.null(loo_df)) {
 # --------------------------------------------------------------------------
 # 6) Forest plot — Fig4
 # --------------------------------------------------------------------------
-fp_pdf <- file.path(PATHS$figures$main_en_pdf, "Fig4_Meta_Forest_HR_per1SD_CorePAM.pdf")
-fp_png <- file.path(PATHS$figures$main_en_png, "Fig4_Meta_Forest_HR_per1SD_CorePAM.png")
-
-# Prepare data for manual forest plot with ggplot2 — validation cohorts only
-plot_df <- val_res %>%
-  select(cohort, hr_uni, hr_uni_lo95, hr_uni_hi95, n_samples, n_events) %>%
-  mutate(
-    label = sprintf("%s (n=%d, ev=%d)", cohort,
-                    ifelse("n_samples" %in% names(val_res), n_samples, NA_integer_),
-                    ifelse("n_events" %in% names(val_res), n_events, NA_integer_)),
-    hr_label = sprintf("%.2f (%.2f\u2013%.2f)", hr_uni, hr_uni_lo95, hr_uni_hi95),
-    cohort_f = factor(cohort, levels = rev(VALIDATION_COHORTS))
+build_forest <- function(lang = "EN") {
+  tr <- if (lang == "EN") list(
+    meta_label = "Meta (RE)",
+    title = "CorePAM Meta-analysis: HR per 1 SD (random-effects)",
+    subt_fmt = "I\u00b2=%.1f%%, \u03c4\u00b2=%.4f, p_het=%.3g",
+    xlab = "HR per 1 SD of score (log scale)",
+    meta_lbl_fmt = "Meta RE (K=%d, I\u00b2=%.0f%%, \u03c4\u00b2=%.3f)"
+  ) else list(
+    meta_label = "Meta (EA)",
+    title = "Meta-an\u00e1lise CorePAM: HR por 1 DP (efeitos aleat\u00f3rios)",
+    subt_fmt = "I\u00b2=%.1f%%, \u03c4\u00b2=%.4f, p_heterog=%.3g",
+    xlab = "HR por 1 DP do escore (escala log)",
+    meta_lbl_fmt = "Meta EA (K=%d, I\u00b2=%.0f%%, \u03c4\u00b2=%.3f)"
   )
 
-# Add meta-analysis summary row
-meta_row <- tibble(
-  cohort    = "Meta (RE)",
-  hr_uni    = exp(meta_uni$b[1]),
-  hr_uni_lo95 = exp(meta_uni$ci.lb),
-  hr_uni_hi95 = exp(meta_uni$ci.ub),
-  n_samples = NA_integer_,
-  n_events  = NA_integer_,
-  label     = sprintf("Meta RE (K=%d, I\u00b2=%.0f%%, \u03c4\u00b2=%.3f)",
-                      nrow(val_res), meta_uni$I2, meta_uni$tau2),
-  hr_label  = sprintf("%.2f (%.2f\u2013%.2f)",
-                       exp(meta_uni$b[1]), exp(meta_uni$ci.lb), exp(meta_uni$ci.ub)),
-  cohort_f  = factor("Meta (RE)", levels = c(rev(VALIDATION_COHORTS), "Meta (RE)"))
-)
+  plot_df <- val_res %>%
+    select(cohort, hr_uni, hr_uni_lo95, hr_uni_hi95, n_samples, n_events) %>%
+    mutate(
+      hr_label = sprintf("%.2f (%.2f\u2013%.2f)", hr_uni, hr_uni_lo95, hr_uni_hi95),
+      cohort_f = factor(cohort, levels = rev(VALIDATION_COHORTS))
+    )
 
-levels_full <- c(rev(VALIDATION_COHORTS), "Meta (RE)")
-plot_df$cohort_f <- factor(plot_df$cohort, levels = levels_full)
-meta_row$cohort_f <- factor("Meta (RE)", levels = levels_full)
-
-fp_data <- bind_rows(plot_df, meta_row)
-
-fp <- ggplot(fp_data, aes(x = hr_uni, y = cohort_f)) +
-  geom_vline(xintercept = 1, linetype = "dashed", color = "gray50") +
-  geom_errorbar(aes(xmin = hr_uni_lo95, xmax = hr_uni_hi95),
-                orientation = "y", width = 0.2, linewidth = 0.8) +
-  geom_point(aes(shape = ifelse(cohort == "Meta (RE)", 18L, 15L),
-                 size  = ifelse(cohort == "Meta (RE)", 5, 3),
-                 color = ifelse(cohort == "Meta (RE)", "Meta (RE)", "Cohort"))) +
-  geom_text(aes(x = max(fp_data$hr_uni_hi95, na.rm = TRUE) * 1.15,
-                label = hr_label),
-            hjust = 0, size = 3.0, color = "grey30") +
-  scale_shape_identity() +
-  scale_size_identity() +
-  scale_color_manual(values = c("Cohort" = "#2980B9", "Meta (RE)" = "#E74C3C"),
-                     name = NULL) +
-  scale_x_log10(breaks = c(0.5, 0.75, 1, 1.25, 1.5, 2, 3)) +
-  coord_cartesian(xlim = c(0.5, max(fp_data$hr_uni_hi95, na.rm = TRUE) * 2.5)) +
-  labs(
-    title    = "CorePAM Meta-analysis: HR per 1 SD (random-effects)",
-    subtitle = sprintf("I\u00b2=%.1f%%, \u03c4\u00b2=%.4f, p_het=%.3g",
-                        meta_uni$I2, meta_uni$tau2, meta_uni$QEp),
-    x        = "HR per 1 SD of score (log scale)",
-    y        = NULL
-  ) +
-  theme_classic(base_size = 12) +
-  theme(
-    plot.title    = element_text(face = "bold", size = 13),
-    plot.subtitle = element_text(size = 10, color = "grey40"),
-    axis.text.y   = element_text(size = 10),
-    legend.position = "bottom"
+  meta_row <- tibble(
+    cohort    = tr$meta_label,
+    hr_uni    = exp(meta_uni$b[1]),
+    hr_uni_lo95 = exp(meta_uni$ci.lb),
+    hr_uni_hi95 = exp(meta_uni$ci.ub),
+    n_samples = NA_integer_,
+    n_events  = NA_integer_,
+    hr_label  = sprintf("%.2f (%.2f\u2013%.2f)",
+                         exp(meta_uni$b[1]), exp(meta_uni$ci.lb), exp(meta_uni$ci.ub))
   )
 
-old_warn <- getOption("warn"); options(warn = 0)
-pdf(fp_pdf, width = 10, height = 5)
-print(fp)
-dev.off()
-png(fp_png, width = 1000, height = 500, res = 100)
-print(fp)
-dev.off()
-options(warn = old_warn)
+  levels_full <- c(rev(VALIDATION_COHORTS), tr$meta_label)
+  plot_df$cohort_f <- factor(plot_df$cohort, levels = levels_full)
+  meta_row$cohort_f <- factor(tr$meta_label, levels = levels_full)
 
-h_fp_pdf <- sha256_file(fp_pdf)
-h_fp_png <- sha256_file(fp_png)
-registry_append("ALL", "figure_forest_meta", fp_pdf, h_fp_pdf, "ok", SCRIPT_NAME,
-                file.info(fp_pdf)$size / 1e6)
-registry_append("ALL", "figure_forest_meta_png", fp_png, h_fp_png, "ok", SCRIPT_NAME,
-                file.info(fp_png)$size / 1e6)
+  fp_data <- bind_rows(plot_df, meta_row)
+  meta_flag <- tr$meta_label
+
+  ggplot(fp_data, aes(x = hr_uni, y = cohort_f)) +
+    geom_vline(xintercept = 1, linetype = "dashed", color = "gray50") +
+    geom_errorbar(aes(xmin = hr_uni_lo95, xmax = hr_uni_hi95),
+                  orientation = "y", width = 0.2, linewidth = 0.8) +
+    geom_point(aes(shape = ifelse(cohort == meta_flag, 18L, 15L),
+                   size  = ifelse(cohort == meta_flag, 5, 3),
+                   color = ifelse(cohort == meta_flag, "M", "C"))) +
+    geom_text(aes(x = max(fp_data$hr_uni_hi95, na.rm = TRUE) * 1.15,
+                  label = hr_label),
+              hjust = 0, size = 3.0, color = "grey30") +
+    scale_shape_identity() + scale_size_identity() +
+    scale_color_manual(values = c("C" = "#2980B9", "M" = "#E74C3C"), name = NULL, guide = "none") +
+    scale_x_log10(breaks = c(0.5, 0.75, 1, 1.25, 1.5, 2, 3)) +
+    coord_cartesian(xlim = c(0.5, max(fp_data$hr_uni_hi95, na.rm = TRUE) * 2.5)) +
+    labs(
+      title    = tr$title,
+      subtitle = sprintf(tr$subt_fmt, meta_uni$I2, meta_uni$tau2, meta_uni$QEp),
+      x        = tr$xlab,
+      y        = NULL
+    ) +
+    theme_classic(base_size = 12) +
+    theme(
+      plot.title    = element_text(face = "bold", size = 13),
+      plot.subtitle = element_text(size = 10, color = "grey40"),
+      axis.text.y   = element_text(size = 10),
+      legend.position = "none"
+    )
+}
+
+for (lang in c("EN", "PT")) {
+  fp <- build_forest(lang)
+  pdf_dir <- if (lang == "EN") PATHS$figures$main_en_pdf else PATHS$figures$main_pt_pdf
+  png_dir <- if (lang == "EN") PATHS$figures$main_en_png else PATHS$figures$main_pt_png
+  fp_pdf <- file.path(pdf_dir, sprintf("Fig4_Meta_Forest_HR_per1SD_CorePAM_%s.pdf", lang))
+  fp_png <- file.path(png_dir, sprintf("Fig4_Meta_Forest_HR_per1SD_CorePAM_%s.png", lang))
+  old_warn <- getOption("warn"); options(warn = 0)
+  pdf(fp_pdf, width = 10, height = 5); print(fp); dev.off()
+  png(fp_png, width = 1000, height = 500, res = 100); print(fp); dev.off()
+  options(warn = old_warn)
+  if (lang == "EN") {
+    # Also save legacy name (no suffix) for back-compat
+    fp_pdf_legacy <- file.path(pdf_dir, "Fig4_Meta_Forest_HR_per1SD_CorePAM.pdf")
+    fp_png_legacy <- file.path(png_dir, "Fig4_Meta_Forest_HR_per1SD_CorePAM.png")
+    file.copy(fp_pdf, fp_pdf_legacy, overwrite = TRUE)
+    file.copy(fp_png, fp_png_legacy, overwrite = TRUE)
+    registry_append("ALL", "figure_forest_meta", fp_pdf_legacy, sha256_file(fp_pdf_legacy), "ok", SCRIPT_NAME,
+                    file.info(fp_pdf_legacy)$size / 1e6)
+    registry_append("ALL", "figure_forest_meta_png", fp_png_legacy, sha256_file(fp_png_legacy), "ok", SCRIPT_NAME,
+                    file.info(fp_png_legacy)$size / 1e6)
+  } else {
+    # Save under the canonical PT name
+    fp_png_canon <- file.path(png_dir, "Fig4_Meta_Forest_HR_per1SD_CorePAM.png")
+    fp_pdf_canon <- file.path(pdf_dir, "Fig4_Meta_Forest_HR_per1SD_CorePAM.pdf")
+    file.copy(fp_png, fp_png_canon, overwrite = TRUE)
+    file.copy(fp_pdf, fp_pdf_canon, overwrite = TRUE)
+  }
+  message(sprintf("[%s] Forest %s saved: %s", SCRIPT_NAME, lang, fp_png))
+}
 
 message(sprintf("[%s] COMPLETED | Meta HR=%.3f (%.3f-%.3f) I2=%.1f%%",
                 SCRIPT_NAME,

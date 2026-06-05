@@ -156,69 +156,95 @@ if (file.exists(raw_clin_path)) {
   }
 }
 
-p1 <- ggplot(annotated, aes(x = PC1, y = PC2)) +
-  {if (!is.null(er_col)) aes(color = as.factor(get(er_col))) else NULL} +
-  geom_point(alpha = 0.5, size = 1.5) +
-  {if (n_outliers > 0 && n_outliers <= 20) {
-    geom_label_repel(
-      data  = annotated[annotated$is_outlier, ],
-      aes(label = sample_id),
-      size  = 2.5,
-      color = "red",
-      max.overlaps = 20
-    )
-  }} +
-  labs(
-    title  = sprintf("METABRIC Forensic PCA — PC1 vs PC2 (top 500 variable genes)"),
-    x      = sprintf("PC1 (%.1f%% variance)", pct_var[1]),
-    y      = sprintf("PC2 (%.1f%% variance)", pct_var[2]),
-    color  = "ER status",
-    caption = sprintf("Outliers (Mahalanobis p<0.001): n=%d", n_outliers)
-  ) +
-  theme_classic(base_size = 11)
+build_pca_panels <- function(lang) {
+  ttl1 <- if (lang == "EN") "METABRIC Forensic PCA — PC1 vs PC2 (top 500 variable genes)"
+          else "PCA forense METABRIC — PC1 vs PC2 (500 genes mais vari\u00e1veis)"
+  ttl2 <- if (lang == "EN") "METABRIC Forensic PCA — PC1 vs PC3"
+          else "PCA forense METABRIC — PC1 vs PC3"
+  ttl3 <- if (lang == "EN") "Scree plot — PCA variance explained"
+          else "Scree plot — vari\u00e2ncia explicada pela PCA"
+  var_lbl <- if (lang == "EN") "variance" else "vari\u00e2ncia"
+  er_lbl  <- if (lang == "EN") "ER status" else "Status ER"
+  pc_lbl  <- if (lang == "EN") "Principal Component" else "Componente principal"
+  vexp    <- if (lang == "EN") "Variance explained (%)" else "Vari\u00e2ncia explicada (%)"
+  cap_lbl <- if (lang == "EN") sprintf("Outliers (Mahalanobis p<0.001): n=%d", n_outliers)
+             else sprintf("Outliers (Mahalanobis p<0.001): n=%d", n_outliers)
 
-p2 <- ggplot(annotated, aes(x = PC1, y = PC3)) +
-  {if (!is.null(er_col)) aes(color = as.factor(get(er_col))) else NULL} +
-  geom_point(alpha = 0.5, size = 1.5) +
-  labs(
-    title  = "METABRIC Forensic PCA — PC1 vs PC3",
-    x      = sprintf("PC1 (%.1f%%)", pct_var[1]),
-    y      = sprintf("PC3 (%.1f%%)", pct_var[3]),
-    color  = "ER status"
-  ) +
-  theme_classic(base_size = 11)
+  p1 <- ggplot(annotated, aes(x = PC1, y = PC2)) +
+    {if (!is.null(er_col)) aes(color = as.factor(get(er_col))) else NULL} +
+    geom_point(alpha = 0.5, size = 1.5) +
+    {if (n_outliers > 0 && n_outliers <= 20) {
+      geom_label_repel(
+        data  = annotated[annotated$is_outlier, ],
+        aes(label = sample_id),
+        size  = 2.5, color = "red", max.overlaps = 20
+      )
+    }} +
+    labs(
+      title  = ttl1,
+      x      = sprintf("PC1 (%.1f%% %s)", pct_var[1], var_lbl),
+      y      = sprintf("PC2 (%.1f%% %s)", pct_var[2], var_lbl),
+      color  = er_lbl,
+      caption = cap_lbl
+    ) +
+    theme_classic(base_size = 11)
 
-p3 <- ggplot(
-  data.frame(pc = seq_len(10), pct = pct_var[seq_len(10)]),
-  aes(x = pc, y = pct)
-) +
-  geom_col(fill = "#2980B9") +
-  geom_line(color = "red", linewidth = 0.8) +
-  geom_point(color = "red", size = 2) +
-  labs(
-    title = "Scree plot — PCA variance explained",
-    x     = "Principal Component",
-    y     = "Variance explained (%)"
+  p2 <- ggplot(annotated, aes(x = PC1, y = PC3)) +
+    {if (!is.null(er_col)) aes(color = as.factor(get(er_col))) else NULL} +
+    geom_point(alpha = 0.5, size = 1.5) +
+    labs(
+      title  = ttl2,
+      x      = sprintf("PC1 (%.1f%%)", pct_var[1]),
+      y      = sprintf("PC3 (%.1f%%)", pct_var[3]),
+      color  = er_lbl
+    ) +
+    theme_classic(base_size = 11)
+
+  p3 <- ggplot(
+    data.frame(pc = seq_len(10), pct = pct_var[seq_len(10)]),
+    aes(x = pc, y = pct)
   ) +
-  theme_classic(base_size = 11)
+    geom_col(fill = "#2980B9") +
+    geom_line(color = "red", linewidth = 0.8) +
+    geom_point(color = "red", size = 2) +
+    labs(title = ttl3, x = pc_lbl, y = vexp) +
+    theme_classic(base_size = 11)
+
+  list(p1, p2, p3)
+}
 
 # ---------------------------------------------------------------------------
-# 7) Save figures
+# 7) Save figures — bilingual
 # ---------------------------------------------------------------------------
-fig_dir <- PATHS$figures$supp
-dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
+dir.create(PATHS$figures$supp, showWarnings = FALSE, recursive = TRUE)
 
-out_png <- file.path(fig_dir, sprintf("FigS4_%s_PCA_forensics.png", COHORT))
+for (lang in c("EN", "PT")) {
+  lang_lc <- tolower(lang)
+  panels <- build_pca_panels(lang)
 
-old_warn <- getOption("warn"); options(warn = 0)
-pdf(out_pdf, width = 14, height = 5)
-gridExtra::grid.arrange(p1, p2, p3, ncol = 3)
-dev.off()
+  out_pdf_lang <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_pdf")]],
+                            sprintf("FigS4_%s_PCA_forensics_%s.pdf", COHORT, lang))
+  out_png_lang <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_png")]],
+                            sprintf("FigS4_%s_PCA_forensics_%s.png", COHORT, lang))
 
-png(out_png, width = 1400, height = 500, res = 100)
-gridExtra::grid.arrange(p1, p2, p3, ncol = 3)
-dev.off()
-options(warn = old_warn)
+  old_warn <- getOption("warn"); options(warn = 0)
+  pdf(out_pdf_lang, width = 14, height = 5)
+  gridExtra::grid.arrange(panels[[1]], panels[[2]], panels[[3]], ncol = 3)
+  dev.off()
+  png(out_png_lang, width = 1400, height = 500, res = 100)
+  gridExtra::grid.arrange(panels[[1]], panels[[2]], panels[[3]], ncol = 3)
+  dev.off()
+  options(warn = old_warn)
+
+  if (lang == "EN") {
+    # Legacy (no suffix) copies
+    file.copy(out_pdf_lang, out_pdf, overwrite = TRUE)
+    out_png <- file.path(PATHS$figures$supp, sprintf("FigS4_%s_PCA_forensics.png", COHORT))
+    file.copy(out_png_lang, out_png, overwrite = TRUE)
+  }
+}
+# Ensure legacy vars exist for registry below
+out_png <- file.path(PATHS$figures$supp, sprintf("FigS4_%s_PCA_forensics.png", COHORT))
 
 h_pdf <- sha256_file(out_pdf)
 h_png <- sha256_file(out_png)

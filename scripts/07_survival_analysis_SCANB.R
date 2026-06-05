@@ -149,48 +149,69 @@ km_fit_med <- survfit(
 )
 options(warn = old_warn)
 
-km_plot_med <- ggsurvplot(
-  km_fit_med,
-  data          = df,
-  risk.table    = TRUE,
-  pval          = FALSE,
-  conf.int      = TRUE,
-  palette       = c("#E74C3C", "#2980B9"),
-  title         = sprintf("KM CorePAM — %s | %s | Intra-cohort median cutpoint (pre-specified, not optimized)", COHORT, ENDPOINT),
-  xlab          = "Time (months)",
-  ylab          = "Overall survival",
-  legend.labs   = c("High risk", "Low risk"),
-  ggtheme       = theme_classic()
-)
-
-# Add High-vs-Low HR annotation (positioned at 5 months, bottom of plot)
-km_hr_lbl <- sprintf("High vs Low: HR = %.2f (%.2f\u2013%.2f), p = %s",
-                     hr_km, lo_km, hi_km,
-                     formatC(p_km, format = "e", digits = 1))
-km_plot_med$plot <- km_plot_med$plot +
-  ggplot2::annotate("text",
-                    x = 5, y = 0.10,
-                    label = km_hr_lbl,
-                    hjust = 0, size = 3.0, colour = "grey20")
-
-km_pdf <- file.path(PATHS$figures$main_en_pdf, sprintf("Fig3_KM_%s_%s_CorePAM.pdf", COHORT, ENDPOINT))
-km_png <- file.path(PATHS$figures$main_en_png, sprintf("Fig3_KM_%s_%s_CorePAM.png", COHORT, ENDPOINT))
-
+# Bilingual KM main — EN and PT
 old_warn <- getOption("warn"); options(warn = 0)
-pdf(km_pdf, width = 8, height = 6)
-print(km_plot_med)
-dev.off()
-png(km_png, width = 800, height = 600, res = 100)
-print(km_plot_med)
-dev.off()
-options(warn = old_warn)
+for (lang in c("EN", "PT")) {
+  lang_lc <- tolower(lang)
+  xlb <- if (lang == "EN") "Time (months)"           else "Tempo (meses)"
+  ylb <- if (lang == "EN") "Overall survival"        else "Sobrevida global"
+  lbs <- if (lang == "EN") c("High risk", "Low risk") else c("Alto risco", "Baixo risco")
+  ttl <- if (lang == "EN")
+    sprintf("KM CorePAM — %s | %s | Intra-cohort median cutpoint (pre-specified, not optimized)", COHORT, ENDPOINT)
+  else
+    sprintf("KM CorePAM — %s | %s | Ponto de corte: mediana intracoorte (pr\u00e9-especificado, n\u00e3o otimizado)", COHORT, ENDPOINT)
 
-h_km_pdf <- sha256_file(km_pdf)
-h_km_png <- sha256_file(km_png)
-registry_append(COHORT, "figure_km_main", km_pdf, h_km_pdf, "ok", SCRIPT_NAME,
-                file.info(km_pdf)$size / 1e6)
-registry_append(COHORT, "figure_km_main_png", km_png, h_km_png, "ok", SCRIPT_NAME,
-                file.info(km_png)$size / 1e6)
+  km_plot_med <- ggsurvplot(
+    km_fit_med,
+    data          = df,
+    risk.table    = TRUE,
+    pval          = FALSE,
+    conf.int      = TRUE,
+    palette       = c("#E74C3C", "#2980B9"),
+    title         = ttl,
+    xlab          = xlb,
+    ylab          = ylb,
+    legend.labs   = lbs,
+    ggtheme       = theme_classic()
+  )
+
+  # Add High-vs-Low HR annotation
+  km_hr_lbl <- if (lang == "EN")
+    sprintf("High vs Low: HR = %.2f (%.2f\u2013%.2f), p = %s",
+            hr_km, lo_km, hi_km, formatC(p_km, format = "e", digits = 1))
+  else
+    sprintf("Alto vs Baixo: HR = %.2f (IC: %.2f\u2013%.2f), p = %s",
+            hr_km, lo_km, hi_km, formatC(p_km, format = "e", digits = 1))
+  km_plot_med$plot <- km_plot_med$plot +
+    ggplot2::annotate("text",
+                      x = 5, y = 0.10,
+                      label = km_hr_lbl,
+                      hjust = 0, size = 3.0, colour = "grey20")
+
+  km_pdf <- file.path(PATHS$figures[[paste0("main_", lang_lc, "_pdf")]],
+                      sprintf("Fig3_KM_%s_%s_CorePAM_%s.pdf", COHORT, ENDPOINT, lang))
+  km_png <- file.path(PATHS$figures[[paste0("main_", lang_lc, "_png")]],
+                      sprintf("Fig3_KM_%s_%s_CorePAM_%s.png", COHORT, ENDPOINT, lang))
+
+  pdf(km_pdf, width = 8, height = 6); print(km_plot_med); dev.off()
+  png(km_png, width = 800, height = 600, res = 100); print(km_plot_med); dev.off()
+
+  registry_append(COHORT, sprintf("figure_km_main_%s", lang), km_pdf,
+                  sha256_file(km_pdf), "ok", SCRIPT_NAME, file.info(km_pdf)$size / 1e6)
+  registry_append(COHORT, sprintf("figure_km_main_png_%s", lang), km_png,
+                  sha256_file(km_png), "ok", SCRIPT_NAME, file.info(km_png)$size / 1e6)
+
+  # Back-compat: also save legacy EN filename without suffix
+  if (lang == "EN") {
+    km_pdf_legacy <- file.path(PATHS$figures$main_en_pdf,
+                               sprintf("Fig3_KM_%s_%s_CorePAM.pdf", COHORT, ENDPOINT))
+    km_png_legacy <- file.path(PATHS$figures$main_en_png,
+                               sprintf("Fig3_KM_%s_%s_CorePAM.png", COHORT, ENDPOINT))
+    file.copy(km_pdf, km_pdf_legacy, overwrite = TRUE)
+    file.copy(km_png, km_png_legacy, overwrite = TRUE)
+  }
+}
+gc(); options(warn = old_warn)
 
 # KM quartiles (sensitivity)
 quart_cuts <- quantile(df$score_z, probs = c(0.25, 0.75), na.rm = TRUE)

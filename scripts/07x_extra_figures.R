@@ -483,41 +483,49 @@ wt_df <- weights_df |>
     gene      = reorder(gene, weight)
   )
 
-pal_dir <- c("Higher risk (+)" = "#C0392B", "Lower risk (−)" = "#2980B9")
-
-p_lollipop <- ggplot(wt_df, aes(x = gene, y = weight, color = direction)) +
-  geom_hline(yintercept = 0, color = "grey60", linewidth = 0.5) +
-  geom_segment(aes(x = gene, xend = gene, y = 0, yend = weight),
-               linewidth = 0.8) +
-  geom_point(aes(size = abs(weight)), shape = 16) +
-  ggrepel::geom_text_repel(
-    aes(label = gene),
-    size = 2.8, color = "black",
-    direction = "y", nudge_x = 0.3,
-    segment.size = 0.2, segment.color = "grey60",
-    box.padding = 0.2, point.padding = 0.3,
-    min.segment.length = 0.1,
-    max.overlaps = 30
-  ) +
-  scale_color_manual(values = pal_dir, name = "Effect direction") +
-  scale_size_continuous(range = c(2, 6), guide = "none") +
-  coord_flip() +
-  labs(
-    x        = NULL,
-    y        = "Elastic-net coefficient (weight)",
-    title    = "Core-PAM Panel — Gene Weights",
-    subtitle = sprintf("%d genes | OOF non-inferiority (ΔC=0.010) | SCAN-B training | Weights from refit on full training set",
-                       nrow(wt_df))
-  ) +
-  theme_classic(base_size = 11) +
-  theme(
-    axis.text.y     = element_blank(),
-    axis.ticks.y    = element_blank(),
-    legend.position = "bottom",
-    plot.title      = element_text(face = "bold")
-  )
-
-save_fig(p_lollipop, "FigS_Weights_CorePAM_Lollipop", w = 8, h = 6, dir = fig_supp)
+for (lang in c("EN", "PT")) {
+  if (lang == "EN") {
+    pal_dir <- c("Higher risk (+)" = "#C0392B", "Lower risk (\u2212)" = "#2980B9")
+    wt_df_l <- wt_df %>% mutate(direction = ifelse(weight > 0, "Higher risk (+)", "Lower risk (\u2212)"))
+    ttl <- "Core-PAM Panel — Gene Weights"
+    sub <- sprintf("%d genes | OOF non-inferiority (\u0394C=0.010) | SCAN-B training | Weights from refit on full training set", nrow(wt_df))
+    ylb <- "Elastic-net coefficient (weight)"
+    leg <- "Effect direction"
+  } else {
+    pal_dir <- c("Maior risco (+)" = "#C0392B", "Menor risco (\u2212)" = "#2980B9")
+    wt_df_l <- wt_df %>% mutate(direction = ifelse(weight > 0, "Maior risco (+)", "Menor risco (\u2212)"))
+    ttl <- "Painel Core-PAM — pesos dos genes"
+    sub <- sprintf("%d genes | n\u00e3o-inferioridade OOF (\u0394C=0,010) | treino SCAN-B | pesos do refit no conjunto completo", nrow(wt_df))
+    ylb <- "Coeficiente Elastic-net (peso)"
+    leg <- "Dire\u00e7\u00e3o do efeito"
+  }
+  p_lollipop <- ggplot(wt_df_l, aes(x = reorder(gene, weight), y = weight, color = direction)) +
+    geom_hline(yintercept = 0, color = "grey60", linewidth = 0.5) +
+    geom_segment(aes(xend = reorder(gene, weight), y = 0, yend = weight), linewidth = 0.8) +
+    geom_point(aes(size = abs(weight)), shape = 16) +
+    ggrepel::geom_text_repel(
+      aes(label = gene), size = 2.8, color = "black",
+      direction = "y", nudge_x = 0.3,
+      segment.size = 0.2, segment.color = "grey60",
+      box.padding = 0.2, point.padding = 0.3,
+      min.segment.length = 0.1, max.overlaps = 30
+    ) +
+    scale_color_manual(values = pal_dir, name = leg) +
+    scale_size_continuous(range = c(2, 6), guide = "none") +
+    coord_flip() +
+    labs(x = NULL, y = ylb, title = ttl, subtitle = sub) +
+    theme_classic(base_size = 11) +
+    theme(
+      axis.text.y     = element_blank(),
+      axis.ticks.y    = element_blank(),
+      legend.position = "bottom",
+      plot.title      = element_text(face = "bold")
+    )
+  fig_name <- if (lang == "EN") "FigS_Weights_CorePAM_Lollipop"
+              else "FigS_Weights_CorePAM_Lollipop_PT"
+  save_fig(p_lollipop, fig_name, w = 8, h = 6,
+           lang = tolower(lang), section = "supp")
+}
 
 # --------------------------------------------------------------------------
 # 5) SCORE BY ER STATUS — multi-cohort violin (reads from analysis_ready.parquet)
@@ -615,33 +623,42 @@ cindex_df <- tab_surv |>
                                      "GSE20685\n(OS, 113mo FU)"))
   )
 
-p_cindex <- ggplot(cindex_df,
-                   aes(x = cohort_label, y = c_index,
-                       ymin = c_index_lo95, ymax = c_index_hi95,
-                       fill = cohort_label)) +
-  geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50", linewidth = 0.6) +
-  geom_col(alpha = 0.8, width = 0.55) +
-  geom_errorbar(width = 0.18, linewidth = 0.8) +
-  geom_text(aes(label = sprintf("%.3f\n(%.3f–%.3f)", c_index, c_index_lo95, c_index_hi95),
-                y = c_index_hi95 + 0.01),
-            size = 3.2, fontface = "bold", vjust = 0) +
-  scale_fill_manual(values = c(
-    "TCGA-BRCA\n(OS, 32mo FU)"   = "#2980B9",
-    "METABRIC\n(DSS, 159mo FU)"  = "#E67E22",
-    "GSE20685\n(OS, 113mo FU)"   = "#27AE60"
-  ), guide = "none") +
-  scale_y_continuous(breaks = seq(0.45, 0.75, 0.05)) +
-  coord_cartesian(ylim = c(0.45, 0.75)) +
-  labs(
-    x        = NULL,
-    y        = "Harrell C-index (adjusted, bootstrap 95% CI)",
-    title    = "Core-PAM Discriminative Performance by Cohort",
-    subtitle = "C_adj = max(C_raw, 1–C_raw) | 1,000 bootstrap resamples | Dashed line = 0.5 (random)"
-  ) +
-  theme_classic(base_size = 11) +
-  theme(plot.title = element_text(face = "bold"))
+for (lang in c("EN", "PT")) {
+  if (lang == "EN") {
+    ttl <- "Core-PAM Discriminative Performance by Cohort"
+    sub <- "C_adj = max(C_raw, 1\u2013C_raw) | 1,000 bootstrap resamples | Dashed line = 0.5 (random)"
+    ylb <- "Harrell C-index (adjusted, bootstrap 95% CI)"
+  } else {
+    ttl <- "Desempenho discriminativo do Core-PAM por coorte"
+    sub <- "C_aj = max(C_bruto, 1\u2013C_bruto) | 1.000 reamostragens bootstrap | Linha tracejada = 0,5 (aleat\u00f3rio)"
+    ylb <- "C-index de Harrell (ajustado, IC 95% bootstrap)"
+  }
+  p_cindex <- ggplot(cindex_df,
+                     aes(x = cohort_label, y = c_index,
+                         ymin = c_index_lo95, ymax = c_index_hi95,
+                         fill = cohort_label)) +
+    geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50", linewidth = 0.6) +
+    geom_col(alpha = 0.8, width = 0.55) +
+    geom_errorbar(width = 0.18, linewidth = 0.8) +
+    geom_text(aes(label = sprintf("%.3f\n(%.3f\u2013%.3f)", c_index, c_index_lo95, c_index_hi95),
+                  y = c_index_hi95 + 0.01),
+              size = 3.2, fontface = "bold", vjust = 0) +
+    scale_fill_manual(values = c(
+      "TCGA-BRCA\n(OS, 32mo FU)"   = "#2980B9",
+      "METABRIC\n(DSS, 159mo FU)"  = "#E67E22",
+      "GSE20685\n(OS, 113mo FU)"   = "#27AE60"
+    ), guide = "none") +
+    scale_y_continuous(breaks = seq(0.45, 0.75, 0.05)) +
+    coord_cartesian(ylim = c(0.45, 0.75)) +
+    labs(x = NULL, y = ylb, title = ttl, subtitle = sub) +
+    theme_classic(base_size = 11) +
+    theme(plot.title = element_text(face = "bold"))
 
-save_fig(p_cindex, "FigS_Cindex_ByCohort", w = 7, h = 5, dir = fig_supp)
+  fig_name <- if (lang == "EN") "FigS_Cindex_ByCohort"
+              else "FigS_Cindex_ByCohort_PT"
+  save_fig(p_cindex, fig_name, w = 7, h = 5,
+           lang = tolower(lang), section = "supp")
+}
 
 # --------------------------------------------------------------------------
 # 7) PARETO CURVE — df vs C-index OOF (derivation figure)
@@ -656,7 +673,9 @@ if (file.exists(pareto_path)) {
   delta_c <- FREEZE$delta_c
   thresh  <- c_max - delta_c
 
-  sel_df  <- fromJSON(file.path(PATHS$results$corepam, "CorePAM_training_card.json"))
+  sel_json <- file.path(PATHS$results$corepam, "CorePAM_training_card.json")
+  if (!file.exists(sel_json)) sel_json <- file.path(PATHS$results$corepam, "selected_CorePAM_summary.json")
+  sel_df  <- fromJSON(sel_json)
   n_sel   <- sel_df$selected$df
 
   for (lang in c("EN", "PT")) {

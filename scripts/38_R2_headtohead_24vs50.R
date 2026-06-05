@@ -252,30 +252,42 @@ plot_df <- res_df %>%
     label = factor(label, levels = rev(unique(label)))
   )
 
-p <- ggplot(plot_df, aes(x = delta_c, y = label)) +
-  geom_vline(xintercept = 0, linetype = "solid", colour = "grey50") +
-  geom_vline(xintercept = -0.010, linetype = "dashed", colour = "red", linewidth = 0.5) +
-  geom_point(size = 3) +
-  geom_errorbar(aes(xmin = dc_lo, xmax = dc_hi), width = 0.2, orientation = "y") +
-  labs(
-    x = expression(Delta*C ~ "(C"[24] ~ "-" ~ "C"[50]*")"),
-    y = NULL,
-    title = "External head-to-head: CorePAM (24) vs PAM50-full (50)",
-    subtitle = "Dashed red line: non-inferiority margin (−0.010)"
-  ) +
-  theme_classic(base_size = 11) +
-  theme(plot.title = element_text(face = "bold", size = 12))
+for (lang in c("EN", "PT")) {
+  lang_lc <- tolower(lang)
+  ttl <- if (lang == "EN") "External head-to-head: CorePAM (24) vs PAM50-full (50)"
+         else "Compara\u00e7\u00e3o direta externa: CorePAM (24) vs PAM50 completo (50)"
+  sub <- if (lang == "EN") "Dashed red line: non-inferiority margin (\u22120.010)"
+         else "Linha vermelha tracejada: margem de n\u00e3o-inferioridade (\u22120.010)"
 
+  p <- ggplot(plot_df, aes(x = delta_c, y = label)) +
+    geom_vline(xintercept = 0, linetype = "solid", colour = "grey50") +
+    geom_vline(xintercept = -0.010, linetype = "dashed", colour = "red", linewidth = 0.5) +
+    geom_point(size = 3) +
+    geom_errorbar(aes(xmin = dc_lo, xmax = dc_hi), width = 0.2, orientation = "y") +
+    labs(
+      x = expression(Delta*C ~ "(C"[24] ~ "-" ~ "C"[50]*")"),
+      y = NULL, title = ttl, subtitle = sub
+    ) +
+    theme_classic(base_size = 11) +
+    theme(plot.title = element_text(face = "bold", size = 12))
+
+  out_pdf <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_pdf")]],
+                       sprintf("FigS_HeadToHead_24vs50_%s.pdf", lang))
+  out_png <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_png")]],
+                       sprintf("FigS_HeadToHead_24vs50_%s.png", lang))
+
+  cairo_pdf(out_pdf, width = 8, height = 5); print(p); dev.off()
+  png(out_png, width = 8, height = 5, units = "in", res = 300); print(p); dev.off()
+
+  if (lang == "EN") {
+    file.copy(out_pdf, file.path(PATHS$figures$supp_en_pdf,
+              "FigS_HeadToHead_24vs50.pdf"), overwrite = TRUE)
+    file.copy(out_png, file.path(PATHS$figures$supp_en_png,
+              "FigS_HeadToHead_24vs50.png"), overwrite = TRUE)
+  }
+}
 out_pdf <- file.path(PATHS$figures$supp_en_pdf, "FigS_HeadToHead_24vs50.pdf")
 out_png <- file.path(PATHS$figures$supp_en_png, "FigS_HeadToHead_24vs50.png")
-
-cairo_pdf(out_pdf, width = 8, height = 5)
-print(p)
-dev.off()
-
-png(out_png, width = 8, height = 5, units = "in", res = 300)
-print(p)
-dev.off()
 
 message(sprintf("[%s] Figure saved: %s", SCRIPT_NAME, out_png))
 message(sprintf("[%s] COMPLETED", SCRIPT_NAME))

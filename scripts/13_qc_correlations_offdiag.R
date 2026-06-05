@@ -133,35 +133,51 @@ if (!requireNamespace("reshape2", quietly = TRUE)) {
 
 # figure dirs created by 00_setup.R
 
-p_cor <- ggplot(cor_long, aes(x = Cohort_A, y = Cohort_B, fill = Pearson_r)) +
-  geom_tile(color = "white", linewidth = 0.5) +
-  geom_text(aes(label = sprintf("%.3f", Pearson_r)),
-            color = "black", size = 3.5, na.rm = TRUE) +
-  scale_fill_gradient2(
-    low  = "#2166AC", mid = "white", high = "#D6604D",
-    midpoint = 0, limits = c(-1, 1), na.value = "gray90",
-    name = "Pearson r\n(quantile values)"
-  ) +
-  labs(
-    title    = "CorePAM score correlations (off-diagonal, via quantile values)",
-    subtitle = "Pearson on quantile values | Diagonal excluded",
-    x        = NULL,
-    y        = NULL
-  ) +
-  theme_classic(base_size = 12) +
-  theme(
-    axis.text.x  = element_text(angle = 45, hjust = 1),
-    plot.title   = element_text(face = "bold"),
-    plot.subtitle = element_text(color = "gray40")
-  )
+for (lang in c("EN", "PT")) {
+  lang_lc <- tolower(lang)
+  ttl <- if (lang == "EN") "CorePAM score correlations (off-diagonal, via quantile values)"
+         else "Correla\u00e7\u00f5es do escore CorePAM (off-diagonal, via valores quantile)"
+  sub <- if (lang == "EN") "Pearson on quantile values | Diagonal excluded"
+         else "Pearson sobre valores quantile | Diagonal exclu\u00edda"
+  fill_name <- if (lang == "EN") "Pearson r\n(quantile values)"
+               else "Pearson r\n(valores quantile)"
 
+  p_cor <- ggplot(cor_long, aes(x = Cohort_A, y = Cohort_B, fill = Pearson_r)) +
+    geom_tile(color = "white", linewidth = 0.5) +
+    geom_text(aes(label = sprintf("%.3f", Pearson_r)),
+              color = "black", size = 3.5, na.rm = TRUE) +
+    scale_fill_gradient2(
+      low  = "#2166AC", mid = "white", high = "#D6604D",
+      midpoint = 0, limits = c(-1, 1), na.value = "gray90",
+      name = fill_name
+    ) +
+    labs(title = ttl, subtitle = sub, x = NULL, y = NULL) +
+    theme_classic(base_size = 12) +
+    theme(
+      axis.text.x  = element_text(angle = 45, hjust = 1),
+      plot.title   = element_text(face = "bold"),
+      plot.subtitle = element_text(color = "gray40")
+    )
+
+  figs3_pdf <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_pdf")]],
+                         sprintf("FigS3_Correlation_OffDiagonal_%s.pdf", lang))
+  figs3_png <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_png")]],
+                         sprintf("FigS3_Correlation_OffDiagonal_%s.png", lang))
+
+  old_warn <- getOption("warn"); options(warn = 0)
+  pdf(figs3_pdf, width = 7, height = 6); print(p_cor); dev.off()
+  png(figs3_png, width = 700, height = 600, res = 100); print(p_cor); dev.off()
+  options(warn = old_warn)
+
+  if (lang == "EN") {
+    file.copy(figs3_pdf, file.path(PATHS$figures$supp_en_pdf,
+              "FigS3_Correlation_OffDiagonal.pdf"), overwrite = TRUE)
+    file.copy(figs3_png, file.path(PATHS$figures$supp_en_png,
+              "FigS3_Correlation_OffDiagonal.png"), overwrite = TRUE)
+  }
+}
 figs3_pdf <- file.path(PATHS$figures$supp_en_pdf, "FigS3_Correlation_OffDiagonal.pdf")
 figs3_png <- file.path(PATHS$figures$supp_en_png, "FigS3_Correlation_OffDiagonal.png")
-
-old_warn <- getOption("warn"); options(warn = 0)
-pdf(figs3_pdf, width = 7, height = 6); print(p_cor); dev.off()
-png(figs3_png, width = 700, height = 600, res = 100); print(p_cor); dev.off()
-options(warn = old_warn)
 
 h_s3_pdf <- sha256_file(figs3_pdf)
 h_s3_png <- sha256_file(figs3_png)

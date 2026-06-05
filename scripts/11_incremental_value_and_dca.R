@@ -375,39 +375,54 @@ if (nrow(df_plot) > 0) {
                                df_plot$delta_ci_lo95,
                                df_plot$delta_ci_hi95)
 
-  p_delta <- ggplot(df_plot, aes(x = delta_cindex, y = reorder(y_label, delta_cindex))) +
-    geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
-    geom_errorbar(aes(xmin = delta_ci_lo95, xmax = delta_ci_hi95),
-                  orientation = "y", width = 0.3, linewidth = 0.8, color = "#2980B9") +
-    geom_point(size = 4, color = "#2980B9") +
-    geom_text(aes(x = max(delta_ci_hi95, na.rm = TRUE) + 0.005, label = dc_label),
-              hjust = 0, size = 3.0, color = "grey30") +
-    coord_cartesian(xlim = c(min(df_plot$delta_ci_lo95, 0) - 0.005,
-                              max(df_plot$delta_ci_hi95, na.rm = TRUE) + 0.06)) +
-    labs(
-      title    = "CorePAM Incremental Value: Delta C-index",
-      subtitle = "CORE-A + CorePAM vs CORE-A alone | Bootstrap 1,000 iterations | SCANB=age+ER; others=age only",
-      x        = "Delta C-index (95% CI)",
-      y        = NULL
-    ) +
-    theme_classic(base_size = 12) +
-    theme(
-      plot.title    = element_text(face = "bold", size = 12),
-      plot.subtitle = element_text(size = 9)
-    )
+  for (lang in c("EN", "PT")) {
+    lang_lc <- tolower(lang)
+    ttl <- if (lang == "EN") "CorePAM Incremental Value: Delta C-index"
+           else "Valor incremental do CorePAM: Delta C-index"
+    sub <- if (lang == "EN")
+      "CORE-A + CorePAM vs CORE-A alone | Bootstrap 1,000 iterations | SCANB=age+ER; others=age only"
+    else
+      "CORE-A + CorePAM vs CORE-A isolado | Bootstrap 1.000 itera\u00e7\u00f5es | SCANB=idade+ER; demais=idade"
+    xlb <- if (lang == "EN") "Delta C-index (95% CI)"
+           else "Delta C-index (IC 95%)"
 
-  fig5_pdf <- file.path(PATHS$figures$main_en_pdf, "Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.pdf")
-  fig5_png <- file.path(PATHS$figures$main_en_png, "Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.png")
+    p_delta <- ggplot(df_plot, aes(x = delta_cindex, y = reorder(y_label, delta_cindex))) +
+      geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
+      geom_errorbar(aes(xmin = delta_ci_lo95, xmax = delta_ci_hi95),
+                    orientation = "y", width = 0.3, linewidth = 0.8, color = "#2980B9") +
+      geom_point(size = 4, color = "#2980B9") +
+      geom_text(aes(x = max(delta_ci_hi95, na.rm = TRUE) + 0.005, label = dc_label),
+                hjust = 0, size = 3.0, color = "grey30") +
+      coord_cartesian(xlim = c(min(df_plot$delta_ci_lo95, 0) - 0.005,
+                                max(df_plot$delta_ci_hi95, na.rm = TRUE) + 0.06)) +
+      labs(title = ttl, subtitle = sub, x = xlb, y = NULL) +
+      theme_classic(base_size = 12) +
+      theme(
+        plot.title    = element_text(face = "bold", size = 12),
+        plot.subtitle = element_text(size = 9)
+      )
 
-  old_warn <- getOption("warn"); options(warn = 0)
-  pdf(fig5_pdf, width = 8, height = 5); print(p_delta); dev.off()
-  png(fig5_png, width = 800, height = 500, res = 100); print(p_delta); dev.off()
-  options(warn = old_warn)
+    fig5_pdf <- file.path(PATHS$figures[[paste0("main_", lang_lc, "_pdf")]],
+                          sprintf("Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM_%s.pdf", lang))
+    fig5_png <- file.path(PATHS$figures[[paste0("main_", lang_lc, "_png")]],
+                          sprintf("Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM_%s.png", lang))
 
-  registry_append("ALL", "figure_delta_cindex", fig5_pdf, sha256_file(fig5_pdf), "ok",
-                  SCRIPT_NAME, file.info(fig5_pdf)$size / 1e6)
-  registry_append("ALL", "figure_delta_cindex_png", fig5_png, sha256_file(fig5_png), "ok",
-                  SCRIPT_NAME, file.info(fig5_png)$size / 1e6)
+    old_warn <- getOption("warn"); options(warn = 0)
+    pdf(fig5_pdf, width = 8, height = 5); print(p_delta); dev.off()
+    png(fig5_png, width = 800, height = 500, res = 100); print(p_delta); dev.off()
+    options(warn = old_warn)
+
+    if (lang == "EN") {
+      file.copy(fig5_pdf, file.path(PATHS$figures$main_en_pdf,
+                "Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.pdf"), overwrite = TRUE)
+      file.copy(fig5_png, file.path(PATHS$figures$main_en_png,
+                "Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM.png"), overwrite = TRUE)
+      registry_append("ALL", "figure_delta_cindex", fig5_pdf, sha256_file(fig5_pdf), "ok",
+                      SCRIPT_NAME, file.info(fig5_pdf)$size / 1e6)
+      registry_append("ALL", "figure_delta_cindex_png", fig5_png, sha256_file(fig5_png), "ok",
+                      SCRIPT_NAME, file.info(fig5_png)$size / 1e6)
+    }
+  }
 }
 
 # --------------------------------------------------------------------------
@@ -430,31 +445,50 @@ if (length(cal_files) > 0) {
     if (!"horizon" %in% names(cal_all)) cal_all$horizon <- 60L
     cal_all$facet_label <- sprintf("%s (%dm)", cal_all$cohort, cal_all$horizon)
 
-    p_cal <- ggplot(cal_all, aes(x = pred_mean, y = obs_surv)) +
-      geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray50") +
-      geom_point(aes(color = cohort), size = 2) +
-      geom_smooth(method = "loess", se = FALSE, color = "black", linewidth = 0.7,
-                  formula = y ~ x) +
-      facet_wrap(~facet_label) +
-      labs(
-        title    = "CorePAM Calibration — Predicted vs Observed Survival",
-        subtitle = "Calibration horizon per cohort: TCGA-BRCA=24m; SCANB/METABRIC/GSE20685=60m",
-        x        = "Predicted survival probability at horizon",
-        y        = "Observed survival at horizon (Kaplan-Meier)"
-      ) +
-      theme_classic(base_size = 11) +
-      theme(
-        legend.position = "none",
-        plot.subtitle   = element_text(size = 9)
-      )
+    for (lang in c("EN", "PT")) {
+      lang_lc <- tolower(lang)
+      ttl <- if (lang == "EN") "CorePAM Calibration — Predicted vs Observed Survival"
+             else "Calibra\u00e7\u00e3o CorePAM — Sobrevida Predita vs Observada"
+      sub <- if (lang == "EN") "Calibration horizon per cohort: TCGA-BRCA=24m; SCANB/METABRIC/GSE20685=60m"
+             else "Horizonte de calibra\u00e7\u00e3o por coorte: TCGA-BRCA=24m; SCANB/METABRIC/GSE20685=60m"
+      xlb <- if (lang == "EN") "Predicted survival probability at horizon"
+             else "Probabilidade predita de sobrevida no horizonte"
+      ylb <- if (lang == "EN") "Observed survival at horizon (Kaplan-Meier)"
+             else "Sobrevida observada no horizonte (Kaplan-Meier)"
 
+      p_cal <- ggplot(cal_all, aes(x = pred_mean, y = obs_surv)) +
+        geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray50") +
+        geom_point(aes(color = cohort), size = 2) +
+        geom_smooth(method = "loess", se = FALSE, color = "black", linewidth = 0.7,
+                    formula = y ~ x) +
+        facet_wrap(~facet_label) +
+        labs(title = ttl, subtitle = sub, x = xlb, y = ylb) +
+        theme_classic(base_size = 11) +
+        theme(
+          legend.position = "none",
+          plot.subtitle   = element_text(size = 9)
+        )
+
+      fig5b_pdf <- file.path(PATHS$figures[[paste0("main_", lang_lc, "_pdf")]],
+                             sprintf("Fig5_Calibration_60m_Panels_CorePAM_%s.pdf", lang))
+      fig5b_png <- file.path(PATHS$figures[[paste0("main_", lang_lc, "_png")]],
+                             sprintf("Fig5_Calibration_60m_Panels_CorePAM_%s.png", lang))
+
+      old_warn <- getOption("warn"); options(warn = 0)
+      pdf(fig5b_pdf, width = 10, height = 6); print(p_cal); dev.off()
+      png(fig5b_png, width = 1000, height = 600, res = 100); print(p_cal); dev.off()
+      options(warn = old_warn)
+
+      if (lang == "EN") {
+        file.copy(fig5b_pdf, file.path(PATHS$figures$main_en_pdf,
+                  "Fig5_Calibration_60m_Panels_CorePAM.pdf"), overwrite = TRUE)
+        file.copy(fig5b_png, file.path(PATHS$figures$main_en_png,
+                  "Fig5_Calibration_60m_Panels_CorePAM.png"), overwrite = TRUE)
+      }
+    }
+    # Legacy registry append (EN)
     fig5b_pdf <- file.path(PATHS$figures$main_en_pdf, "Fig5_Calibration_60m_Panels_CorePAM.pdf")
     fig5b_png <- file.path(PATHS$figures$main_en_png, "Fig5_Calibration_60m_Panels_CorePAM.png")
-
-    old_warn <- getOption("warn"); options(warn = 0)
-    pdf(fig5b_pdf, width = 10, height = 6); print(p_cal); dev.off()
-    png(fig5b_png, width = 1000, height = 600, res = 100); print(p_cal); dev.off()
-    options(warn = old_warn)
 
     registry_append("ALL", "figure_calibration_60m", fig5b_pdf, sha256_file(fig5b_pdf), "ok",
                     SCRIPT_NAME, file.info(fig5b_pdf)$size / 1e6)

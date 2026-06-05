@@ -1,0 +1,54 @@
+{
+  "version": "1.2_didatica",
+  "generated_at": "2026-05-18 15:53:29 -03:00",
+  "project_root": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted",
+  "notes": [
+    "Versao didatica criada sem sobrescrever a v1.1 final.",
+    "Inclui explicacao de centroides PAM50/CorePAM, DCA, pseudocodigo, scripts e desenho de coortes.",
+    "PDF final renderizado em A4, 122 paginas; listas e sumario injetados; paginacao oculta no pre-textual e visivel na introducao."
+  ],
+  "files": [
+    {
+      "path": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\submission\\TESE_CorePAM_v1.2_didatica.qmd",
+      "size_bytes": 193203,
+      "last_write_time": "2026-05-18 15:44:22 -03:00",
+      "sha256": "2AC1B40D81048AD563EB74DB26048DD962E99A9E36E70551261F35A85405EE4D"
+    },
+    {
+      "path": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\submission\\TESE_CorePAM_v1.2_didatica.docx",
+      "size_bytes": 4338922,
+      "last_write_time": "2026-05-18 15:51:52 -03:00",
+      "sha256": "692C97E4E748C9C3FF72629EADBACEEE331992C91C6A3FF03DFAF52CE40C5CF4"
+    },
+    {
+      "path": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\submission\\TESE_CorePAM_v1.2_didatica.pdf",
+      "size_bytes": 6007593,
+      "last_write_time": "2026-05-18 15:52:30 -03:00",
+      "sha256": "6BADD1C932C88A1ACD2F1C2D243A56B4392ADC6DAF48B93AD6127F03C186D844"
+    },
+    {
+      "path": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\submission\\generate_v12_centroid_figure.py",
+      "size_bytes": 7607,
+      "last_write_time": "2026-05-18 15:20:39 -03:00",
+      "sha256": "4C153D7F6148CE3C918CA28565BCB44553B635E1BD1ABA5D0ABC3751DF46D3CC"
+    },
+    {
+      "path": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\scripts\\37_R2_km_multipanel_v12.R",
+      "size_bytes": 9934,
+      "last_write_time": "2026-05-18 15:19:46 -03:00",
+      "sha256": "6C889E16724197B3070F88E9952CAB674E58CDDEE613DC8B07EDCC6EF5C0F3EA"
+    },
+    {
+      "path": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\figures\\didaticas\\pt\\png\\B4_PAM50_Centroides_CorePAM_PT.png",
+      "size_bytes": 380986,
+      "last_write_time": "2026-05-18 15:21:02 -03:00",
+      "sha256": "ED9765C59E3DAF8C737E9E5D6FCBF89D7CF80B2E038658BA0A77E12E69C68E2C"
+    },
+    {
+      "path": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\figures\\main\\pt\\png\\Fig2_KM_MultiPanel_PT_v12.png",
+      "size_bytes": 581195,
+      "last_write_time": "2026-05-18 15:21:53 -03:00",
+      "sha256": "2944A124E650D4540B75F2032222B24C59FC21015DA2E7665EDCCC9F7F64ABD7"
+    }
+  ]
+}

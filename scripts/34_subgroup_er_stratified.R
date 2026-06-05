@@ -297,42 +297,45 @@ plot_df$y_label_f <- factor(plot_df$y_label,
 # Determine right margin x for HR labels
 x_label_pos <- max(plot_df$hr_hi95, na.rm = TRUE) * 1.15
 
-p_forest <- ggplot(plot_df, aes(x = hr, y = row_f, color = cohort)) +
-  geom_vline(xintercept = 1, linetype = "dashed", color = "gray50") +
-  # Horizontal separator between cohorts
-  geom_hline(yintercept = 3.5, linetype = "solid", color = "grey85",
-             linewidth = 0.4) +
-  geom_errorbar(aes(xmin = hr_lo95, xmax = hr_hi95),
-                width = 0.2, linewidth = 0.8) +
-  geom_point(aes(shape = ifelse(subgroup == "Overall", "diamond", "square"),
-                 size  = ifelse(subgroup == "Overall", 5, 3.5))) +
-  geom_text(aes(x = x_label_pos, label = hr_label),
-            hjust = 0, size = 3.2, color = "grey30", show.legend = FALSE) +
-  scale_shape_manual(values = c("diamond" = 18, "square" = 15), guide = "none") +
-  scale_size_identity() +
-  scale_color_manual(
-    values = c("SCAN-B" = COL$scanb, "METABRIC" = COL$metabric),
-    name   = "Cohort"
-  ) +
-  scale_y_discrete(labels = setNames(plot_df$y_label, plot_df$row_id)[rev(row_order)]) +
-  scale_x_log10(breaks = c(0.5, 0.75, 1, 1.5, 2, 3)) +
-  coord_cartesian(xlim = c(0.3, max(plot_df$hr_hi95, na.rm = TRUE) * 2.5)) +
-  labs(
-    title    = "CorePAM HR per 1 SD by ER Status",
-    subtitle = subtitle_txt,
-    x        = "Hazard Ratio (log scale)",
-    y        = NULL
-  ) +
-  theme_classic(base_size = 12) +
-  theme(
-    plot.title    = element_text(face = "bold", size = 13),
-    plot.subtitle = element_text(size = 9.5, color = "grey40"),
-    axis.text.y   = element_text(size = 10),
-    legend.position = "bottom"
-  )
+for (lang in c("en", "pt")) {
+  ttl <- if (lang == "en") "CorePAM HR per 1 SD by ER Status"
+         else "HR do CorePAM por 1 DP, estratificado por status ER"
+  xlb <- if (lang == "en") "Hazard Ratio (log scale)"
+         else "Hazard Ratio (escala log)"
+  coh_lbl <- if (lang == "en") "Cohort" else "Coorte"
 
-fig_save(p_forest, "FigS_ER_Stratified_Forest", lang = "en", section = "supp",
-         w = 10, h = 6)
+  p_forest <- ggplot(plot_df, aes(x = hr, y = row_f, color = cohort)) +
+    geom_vline(xintercept = 1, linetype = "dashed", color = "gray50") +
+    geom_hline(yintercept = 3.5, linetype = "solid", color = "grey85",
+               linewidth = 0.4) +
+    geom_errorbar(aes(xmin = hr_lo95, xmax = hr_hi95),
+                  width = 0.2, linewidth = 0.8) +
+    geom_point(aes(shape = ifelse(subgroup == "Overall", "diamond", "square"),
+                   size  = ifelse(subgroup == "Overall", 5, 3.5))) +
+    geom_text(aes(x = x_label_pos, label = hr_label),
+              hjust = 0, size = 3.2, color = "grey30", show.legend = FALSE) +
+    scale_shape_manual(values = c("diamond" = 18, "square" = 15), guide = "none") +
+    scale_size_identity() +
+    scale_color_manual(
+      values = c("SCAN-B" = COL$scanb, "METABRIC" = COL$metabric),
+      name   = coh_lbl
+    ) +
+    scale_y_discrete(labels = setNames(plot_df$y_label, plot_df$row_id)[rev(row_order)]) +
+    scale_x_log10(breaks = c(0.5, 0.75, 1, 1.5, 2, 3)) +
+    coord_cartesian(xlim = c(0.3, max(plot_df$hr_hi95, na.rm = TRUE) * 2.5)) +
+    labs(title = ttl, subtitle = subtitle_txt, x = xlb, y = NULL) +
+    theme_classic(base_size = 12) +
+    theme(
+      plot.title    = element_text(face = "bold", size = 13),
+      plot.subtitle = element_text(size = 9.5, color = "grey40"),
+      axis.text.y   = element_text(size = 10),
+      legend.position = "bottom"
+    )
+
+  fig_name <- if (lang == "en") "FigS_ER_Stratified_Forest"
+              else "FigS_ER_Stratified_Forest_PT"
+  fig_save(p_forest, fig_name, lang = lang, section = "supp", w = 10, h = 6)
+}
 
 message(sprintf("[%s] Forest plot saved", SCRIPT_NAME))
 message(sprintf("[%s] ========== DONE ==========", SCRIPT_NAME))

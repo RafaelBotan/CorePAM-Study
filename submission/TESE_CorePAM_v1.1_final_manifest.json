@@ -1,0 +1,51 @@
+[
+  {
+    "Name": "TESE_CorePAM_v1.1_final_corrigida.pdf",
+    "Path": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\submission\\TESE_CorePAM_v1.1_final_corrigida.pdf",
+    "Length": 5467775,
+    "LastWriteTime": "2026-05-18 14:43:01",
+    "SHA256": "FA34BEA15A62A1757C150CB4EB87B48AB2991FC94C069AF8F33DC5F1EE71D3F5"
+  },
+  {
+    "Name": "TESE_CorePAM_v1.1_final_corrigida.docx",
+    "Path": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\submission\\TESE_CorePAM_v1.1_final_corrigida.docx",
+    "Length": 3906566,
+    "LastWriteTime": "2026-05-18 14:42:42",
+    "SHA256": "B7A0D929ED8C6C03C345610908213C1B10031E71844588BF49742C9154CF4547"
+  },
+  {
+    "Name": "TESE_CorePAM_v1.1_final.docx",
+    "Path": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\submission\\TESE_CorePAM_v1.1_final.docx",
+    "Length": 3906566,
+    "LastWriteTime": "2026-05-18 14:42:42",
+    "SHA256": "B7A0D929ED8C6C03C345610908213C1B10031E71844588BF49742C9154CF4547"
+  },
+  {
+    "Name": "TESE_CorePAM_v1.1_final.qmd",
+    "Path": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\submission\\TESE_CorePAM_v1.1_final.qmd",
+    "Length": 148751,
+    "LastWriteTime": "2026-05-18 14:38:20",
+    "SHA256": "DF3D88405773E43C8A924103B0F31C9D3B160025D290A1C32AF54E045793D941"
+  },
+  {
+    "Name": "TESE_CorePAM_v1.0.qmd",
+    "Path": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\submission\\TESE_CorePAM_v1.0.qmd",
+    "Length": 148751,
+    "LastWriteTime": "2026-05-18 14:38:32",
+    "SHA256": "DF3D88405773E43C8A924103B0F31C9D3B160025D290A1C32AF54E045793D941"
+  },
+  {
+    "Name": "generate_didactic_figures.py",
+    "Path": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\submission\\generate_didactic_figures.py",
+    "Length": 27285,
+    "LastWriteTime": "2026-05-18 14:30:38",
+    "SHA256": "830EECE957FC1F41154A03827B53C86BDB9E58619A82D1C97B29D215BCC52A6B"
+  },
+  {
+    "Name": "inject_figtab_lists.py",
+    "Path": "Y:\\Doutorado Botan\\Estudos\\CorePAM_Study_accepted\\submission\\inject_figtab_lists.py",
+    "Length": 11376,
+    "LastWriteTime": "2026-05-18 14:42:29",
+    "SHA256": "CE23691559B197B12E87A9936470D8FC05F85C6D7D579AEEB167AF4AAEF15C6E"
+  }
+]

@@ -205,41 +205,50 @@ plot_df <- result_df |>
     )
   )
 
-p <- ggplot(plot_df, aes(x = delta_c, y = gene, color = color)) +
-  geom_vline(xintercept = 0, linetype = "solid", color = "grey50", linewidth = 0.3) +
-  geom_segment(aes(x = 0, xend = delta_c, y = gene, yend = gene), linewidth = 0.6) +
-  geom_point(size = 2) +
-  facet_wrap(~ cohort_label, ncol = 2, scales = "free_x") +
-  scale_color_manual(
-    values = c("Decrease" = "#D6604D", "Increase" = "#2166AC"),
-    name   = NULL,
-    guide  = "none"
-  ) +
-  labs(
-    title    = "Drop-One-Gene Sensitivity Analysis",
-    subtitle = "Change in C-index when removing each CorePAM gene",
-    x        = expression(Delta * "C-index (drop-one vs full panel)"),
-    y        = NULL
-  ) +
-  theme_minimal(base_size = 10) +
-  theme(
-    strip.text       = element_text(face = "bold", size = 10),
-    panel.grid.major.y = element_blank(),
-    panel.grid.minor   = element_blank(),
-    plot.title       = element_text(face = "bold", size = 12),
-    plot.subtitle    = element_text(size = 9, color = "grey40"),
-    axis.text.y      = element_text(size = 7)
-  )
+for (lang in c("EN", "PT")) {
+  lang_lc <- tolower(lang)
+  ttl <- if (lang == "EN") "Drop-One-Gene Sensitivity Analysis"
+         else "An\u00e1lise de sensibilidade por remo\u00e7\u00e3o de cada gene"
+  sub <- if (lang == "EN") "Change in C-index when removing each CorePAM gene"
+         else "Varia\u00e7\u00e3o do C-index ao remover cada gene do CorePAM"
+  xlb <- if (lang == "EN") expression(Delta * "C-index (drop-one vs full panel)")
+         else expression(Delta * "C-index (sem um gene vs painel completo)")
 
+  p <- ggplot(plot_df, aes(x = delta_c, y = gene, color = color)) +
+    geom_vline(xintercept = 0, linetype = "solid", color = "grey50", linewidth = 0.3) +
+    geom_segment(aes(x = 0, xend = delta_c, y = gene, yend = gene), linewidth = 0.6) +
+    geom_point(size = 2) +
+    facet_wrap(~ cohort_label, ncol = 2, scales = "free_x") +
+    scale_color_manual(
+      values = c("Decrease" = "#D6604D", "Increase" = "#2166AC"),
+      name = NULL, guide = "none"
+    ) +
+    labs(title = ttl, subtitle = sub, x = xlb, y = NULL) +
+    theme_minimal(base_size = 10) +
+    theme(
+      strip.text       = element_text(face = "bold", size = 10),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor   = element_blank(),
+      plot.title       = element_text(face = "bold", size = 12),
+      plot.subtitle    = element_text(size = 9, color = "grey40"),
+      axis.text.y      = element_text(size = 7)
+    )
+
+  out_png <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_png")]],
+                       sprintf("FigS_DropGene_Tornado_%s.png", lang))
+  out_pdf <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_pdf")]],
+                       sprintf("FigS_DropGene_Tornado_%s.pdf", lang))
+
+  old_warn_gs <- getOption("warn"); options(warn = 0)
+  ggsave(out_png, p, width = 200, height = 200, units = "mm", dpi = 300, bg = "white")
+  ggsave(out_pdf, p, width = 200, height = 200, units = "mm", device = cairo_pdf)
+  options(warn = old_warn_gs)
+
+  message(sprintf("[%s] [%s] Figure saved: %s", SCRIPT_NAME, lang, basename(out_png)))
+}
+# Legacy references (EN)
 out_png <- file.path(PATHS$figures$supp_en_png, "FigS_DropGene_Tornado_EN.png")
 out_pdf <- file.path(PATHS$figures$supp_en_pdf, "FigS_DropGene_Tornado_EN.pdf")
-
-old_warn_gs <- getOption("warn"); options(warn = 0)
-ggsave(out_png, p, width = 200, height = 200, units = "mm", dpi = 300, bg = "white")
-ggsave(out_pdf, p, width = 200, height = 200, units = "mm", device = cairo_pdf)
-options(warn = old_warn_gs)
-
-message(sprintf("[%s] Figure saved: %s", SCRIPT_NAME, basename(out_png)))
 
 # =============================================================================
 # 8) REGISTRY

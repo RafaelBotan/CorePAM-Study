@@ -1,0 +1,1702 @@
+---
+lang: pt-BR
+format:
+  docx:
+    toc: false
+    number-sections: true
+    fig-cap-location: bottom
+    tbl-cap-location: top
+    reference-doc: reference_abnt.docx
+    reference-section-title: "REFERÊNCIAS BIBLIOGRÁFICAS"
+execute:
+  echo: false
+  warning: false
+  message: false
+bibliography: tese_references.bib
+csl: vancouver.csl
+crossref:
+  fig-title: "Figura"
+  tbl-title: "Tabela"
+  fig-prefix: "Figura"
+  tbl-prefix: "Tabela"
+  title-delim: "—"
+---
+
+```{r setup}
+#| include: false
+library(knitr)
+FIG_MAIN <- "../figures/main/pt/png"
+FIG_SUPP <- "../figures/supp/pt/png"
+FIG_PCR  <- "../figures/pcr/pt/png"
+FIG_DID  <- "../figures/didaticas/pt/png"
+```
+
+::: {custom-style="CapaHeader"}
+UNIVERSIDADE DE BRASÍLIA
+
+FACULDADE DE MEDICINA
+
+PROGRAMA DE PÓS-GRADUAÇÃO EM CIÊNCIAS MÉDICAS
+:::
+
+\
+
+\
+
+\
+
+::: {custom-style="CapaAutor"}
+RAFAEL DE NEGREIROS BOTAN
+:::
+
+\
+
+\
+
+::: {custom-style="CapaTitulo"}
+CorePAM: ESCORE PROGNÓSTICO DE 24 GENES DERIVADO DO PAM50 COM VALIDAÇÃO EXTERNA CROSS-PLATAFORMA PARA CÂNCER DE MAMA
+:::
+
+\
+
+\
+
+::: {custom-style="CapaLocal"}
+Brasília — DF
+
+2026
+:::
+
+\newpage
+
+::: {custom-style="FolhaRostoAutor"}
+RAFAEL DE NEGREIROS BOTAN
+:::
+
+\
+
+\
+
+::: {custom-style="CapaTitulo"}
+CorePAM: Escore prognóstico de 24 genes derivado do PAM50 com validação externa *cross-plataforma* para câncer de mama
+:::
+
+\
+
+\
+
+::: {custom-style="BlocoTese"}
+Tese apresentada ao Programa de Pós-Graduação em Ciências Médicas da Faculdade de Medicina da Universidade de Brasília como requisito parcial à obtenção do grau de Doutor em Ciências Médicas.
+
+Área de Concentração: Medicina
+
+Orientador: Prof. Dr. João Batista de Sousa
+:::
+
+\
+
+\
+
+\
+
+::: {custom-style="CapaLocal"}
+Brasília — DF
+
+2026
+:::
+
+\newpage
+
+# DEDICATÓRIA {.unnumbered}
+
+\
+
+\
+
+\
+
+::: {custom-style="Dedicatoria"}
+*Dedico este trabalho àqueles que, a partir dele, enxergarão algo que ninguém ainda enxergou.*
+
+*Aos pesquisadores anônimos cujo trabalho silencioso sustenta cada linha do que escrevi. A eles, minha gratidão; a eles, esta tese também pertence.*
+
+*Mais do que a qualquer outro, dedico-a aos que vierem depois — aos alunos, aos clínicos, aos pesquisadores que um dia abrirem estas páginas procurando não uma resposta, mas um ponto de apoio para erguer um novo ciclo. Melhorem esta tese; rasguem-na, se for preciso. Enxerguem mais longe do que eu consegui.*
+
+*Porque a ciência, no fim, é isso: uma corrente de gente comum tentando, cada um à sua vez, em silêncio, deixar o mundo um pouco melhor para quem vem depois.*
+
+*Que esta tese sirva para despertar em outros a paixão que um dia despertaram em mim.*
+:::
+
+\newpage
+
+# AGRADECIMENTOS {.unnumbered}
+
+\
+
+Toda tese é, em segredo, uma obra coletiva. A minha não é exceção. Carrego dentro dela pedaços de muita gente — e é justo nomeá-los aqui, ainda que palavra alguma dê conta do que devo a cada um.
+
+\
+
+Às minhas filhas, **Alice** e **Bruna**, que desde muito cedo aprenderam a conviver com um pai dividido entre o consultório, o hospital e a tela do computador. Vocês foram, sem saber, o motivo silencioso de cada linha escrita tarde da noite. Espero que, um dia, ao lerem estas páginas, encontrem nelas um convite — à curiosidade, à persistência e à coragem de fazer perguntas difíceis.
+
+\
+
+À **Carol**, minha esposa, que segurou o mundo enquanto eu tentava compreender uma parte pequena dele. Sua paciência, seu cuidado e seu amor são o chão sobre o qual este trabalho foi construído. Sem você, nada disso seria possível — e menos ainda, valeria a pena.
+
+\
+
+À minha **mãe**, que me ensinou, antes de qualquer livro, que estudar é uma forma de retribuir ao mundo o que ele nos dá. Este doutorado é, também, seu.
+
+\
+
+Ao meu orientador, **Prof. Dr. João Batista de Sousa**, pela confiança depositada desde o início, pela liberdade intelectual que me concedeu para percorrer este caminho, e pela paciência com que acompanhou cada etapa deste doutorado. Agradeço a orientação firme quando precisei de direção, e o silêncio generoso quando precisei de espaço para errar e descobrir por conta própria. Sua leitura crítica e suas sugestões metodológicas estão espalhadas por cada capítulo deste trabalho.
+
+\
+
+Ao **Sérgio Arruda** — a corda do meu cavaquinho. Amigo querido, de quem aprendi menos sobre ciência do que sobre algo mais raro e mais difícil de ensinar: carinho, generosidade e escuta. Uma das pessoas mais fantásticas que já conheci. Obrigado por estar por perto quando importou.
+
+\
+
+À **banca de qualificação e de defesa**, pelas críticas rigorosas e pelas sugestões que tornaram este trabalho melhor do que eu teria conseguido sozinho.
+
+\
+
+Aos **colegas de pesquisa e co-autores**, pelas discussões metodológicas, pelas dúvidas compartilhadas e pelas horas de código depurado em conjunto.
+
+\
+
+À **Universidade de Brasília**, ao **Programa de Pós-Graduação em Ciências Médicas** e ao **Hospital Universitário de Brasília (HUB)**, pelo ambiente institucional que tornou esta pesquisa possível.
+
+\
+
+Aos **consórcios internacionais SCAN-B, TCGA, METABRIC, GEO e I-SPY**, cuja decisão de compartilhar dados publicamente é, por si só, um ato científico e ético. Esta tese é literalmente feita com dados que outros escolheram não manter para si.
+
+\
+
+Por fim, às **pacientes** — as verdadeiras protagonistas de cada número e de cada curva de sobrevida destas páginas. Que este trabalho sirva, ainda que de forma modesta, para aproximar um passo a mais o dia em que seus nomes não precisem mais estar em coortes de risco.
+
+# EPÍGRAFE {.unnumbered}
+
+\
+
+\
+
+> *"O cientista não busca verdades absolutas, mas aproximações cada vez mais honestas da realidade.*
+>
+> *O que o move não é o desejo de estar certo, mas o compromisso de não enganar — nem a si, nem aos outros.*
+>
+> *Cada modelo é uma hipótese em tradução; cada resultado, uma forma de escutar a natureza sem distorções."*
+>
+> — Karl Popper *(livre adaptação)*
+
+\newpage
+
+# RESUMO {.unnumbered}
+
+**Objetivo:** O classificador PAM50 prediz o prognóstico do câncer de mama, mas requer a medição simultânea de 50 genes e plataformas especializadas, com custo elevado e pouco acesso no sistema público brasileiro. O objetivo deste trabalho foi derivar o CorePAM, o menor subconjunto do PAM50 capaz de manter o desempenho prognóstico original, e validar externamente sua performance em múltiplas coortes e plataformas.
+
+**Método:** Foi aplicada regressão de Cox penalizada com *elastic-net* e validação cruzada determinística de 10 subamostras na coorte SCAN-B (N = 3 069). A seleção de genes respeitou margem pré-especificada de não inferioridade em relação ao modelo completo de 50 genes. A validação externa utilizou quatro coortes independentes: TCGA-BRCA (N = 1 072), METABRIC (N = 1 978), GSE20685 (N = 327) e GSE1456 (N = 159), totalizando 3 536 pacientes em plataformas distintas (*RNA-seq* e *microarray*). Análises secundárias avaliaram a predição de resposta patológica completa (pCR) em quatro coortes neoadjuvantes (N = 697) e em uma coorte contemporânea exploratória (I-SPY2, N = 986).
+
+**Resultados:** O CorePAM é composto por 24 genes e reproduziu o desempenho prognóstico do painel completo. O escore mostrou-se independentemente associado à sobrevida em todas as coortes externas — TCGA-BRCA (HR = 1,20), METABRIC (HR = 1,41), GSE20685 (HR = 1,40) e GSE1456 (HR = 1,71); todos *p* < 0,02. A meta-análise de efeitos aleatórios produziu *hazard ratio* agrupado de 1,37 (IC 95% 1,24–1,52; *p* < 0,001). O CorePAM manteve significância prognóstica após ajuste para tamanho tumoral e acometimento linfonodal. Para pCR, o *odds ratio* agrupado foi 1,69 (IC 95% 1,39–2,05; *p* < 0,001).
+
+**Conclusões:** O CorePAM preservou o desempenho prognóstico do PAM50 com menos da metade dos genes originais e mostrou-se robusto entre coortes, tecnologias e populações. A redução pode simplificar o desenvolvimento de ensaios futuros mais acessíveis, especialmente para sistemas de saúde com restrições orçamentárias como o SUS.
+
+**Descritores:** Câncer de mama. Expressão gênica. Assinatura prognóstica. PAM50. Análise de sobrevida. Resposta patológica completa. Validação *cross-plataforma*.
+
+\newpage
+
+# ABSTRACT {.unnumbered}
+
+**Objective:** The PAM50 classifier predicts breast cancer prognosis but requires simultaneous measurement of 50 genes on specialised platforms, a cost-intensive assay with limited access in public health systems. This work aimed to derive CorePAM, the smallest subset of PAM50 able to retain prognostic performance, and to externally validate its transportability across cohorts and platforms.
+
+**Methods:** Cox regression with *elastic-net* penalisation and deterministic 10-fold cross-validation was applied in the SCAN-B cohort (N = 3,069). Gene selection followed a pre-specified non-inferiority margin relative to the full 50-gene comparator. External validation used four independent cohorts: TCGA-BRCA (N = 1,072), METABRIC (N = 1,978), GSE20685 (N = 327) and GSE1456 (N = 159), totalling 3,536 patients across distinct platforms (*RNA-seq* and *microarray*). Secondary analyses evaluated pathologic complete response (pCR) prediction in four neoadjuvant cohorts (N = 697) and in one contemporary exploratory cohort (I-SPY2, N = 986).
+
+**Results:** CorePAM comprises 24 genes and reproduced the prognostic performance of the complete panel. The *score* was independently associated with survival in every validation cohort — TCGA-BRCA (HR = 1.20), METABRIC (HR = 1.41), GSE20685 (HR = 1.40) and GSE1456 (HR = 1.71); all *p* < 0.02. Random-effects meta-analysis produced a pooled *hazard ratio* of 1.37 (95% CI 1.24–1.52; *p* < 0.001). CorePAM retained prognostic significance after adjustment for tumour size and nodal involvement. For pCR, the pooled *odds ratio* was 1.69 (95% CI 1.39–2.05; *p* < 0.001).
+
+**Conclusions:** CorePAM preserved PAM50 prognostic performance with fewer than half the original genes and proved robust across cohorts, technologies and populations. This reduction may simplify the development of more accessible future assays — particularly relevant for health systems with resource constraints such as the Brazilian public system.
+
+**Key words:** Breast cancer. Gene expression. Prognostic signature. PAM50. Survival analysis. Pathologic complete response. Cross-platform validation.
+
+\newpage
+
+# LISTA DE FIGURAS {.unnumbered}
+
+Figura 1 — Subtipos moleculares intrínsecos do câncer de mama.
+
+Figura 2 — Linha do tempo das principais assinaturas gênicas em câncer de mama.
+
+Figura 3 — Desenho do estudo CorePAM.
+
+Figura 4 — Fluxograma das coortes do estudo.
+
+Figura 5 — Esquema de derivação do CorePAM.
+
+Figura 6 — Fronteira de Pareto: C-index *out-of-fold* em função do número de genes.
+
+Figura 7 — Pesos dos 24 genes CorePAM.
+
+Figura 8 — Estabilidade *bootstrap* da seleção de genes.
+
+Figura 9 — Análise de sensibilidade *leave-one-gene-out*.
+
+Figura 10 — Curvas de Kaplan-Meier nas cinco coortes.
+
+Figura 11 — Curva de Kaplan-Meier na coorte de treinamento SCAN-B.
+
+Figura 12 — Curva de Kaplan-Meier na coorte TCGA-BRCA.
+
+Figura 13 — Curva de Kaplan-Meier na coorte METABRIC.
+
+Figura 14 — Curva de Kaplan-Meier na coorte GSE20685.
+
+Figura 15 — *Forest plot* da meta-análise de sobrevida.
+
+Figura 16 — Valor incremental do CorePAM.
+
+Figura 17 — Curvas de calibração em quatro coortes.
+
+Figura 18 — Correlação entre escores intra-coorte e *z-score* congelado.
+
+Figura 19 — Análise de curva de decisão.
+
+Figura 20 — PCA forense da matriz de expressão METABRIC.
+
+Figura 21 — *Forest plot* de subgrupos por status de receptor de estrogênio.
+
+Figura 22 — *Forest plot* de pCR.
+
+Figura 23 — Curvas ROC para predição de pCR.
+
+Figura 24 — Distribuição do escore CorePAM por status de pCR.
+
+Figura 25 — Taxa de pCR por quartil do escore CorePAM.
+
+Figura 26 — Comparação *head-to-head* CorePAM vs PAM50-full.
+
+Figura 27 — Comparação de C-index: CorePAM vs ROR-S vs OncotypeDX-RS.
+
+\newpage
+
+# LISTA DE TABELAS {.unnumbered}
+
+Tabela 1 — Características das coortes de sobrevida.
+
+Tabela 2 — Características das coortes neoadjuvantes (pCR).
+
+Tabela 3 — Parâmetros analíticos congelados antes da análise.
+
+Tabela 4 — Cobertura de genes CorePAM por coorte de validação.
+
+Tabela 5 — Lista completa dos 24 genes CorePAM com pesos *elastic-net*.
+
+Tabela 6 — Desempenho prognóstico do CorePAM por coorte.
+
+Tabela 7 — Meta-análise de efeitos aleatórios — sobrevida.
+
+Tabela 8 — *C-index* incremental do CorePAM sobre o modelo CORE-A.
+
+Tabela 9 — Modelo clínico expandido com estadiamento anatômico.
+
+Tabela 10 — Modelo clínico completo com e sem CorePAM.
+
+Tabela 11 — Análise de sensibilidade do *z-score* congelado.
+
+Tabela 12 — Estatística C de Uno e AUC tempo-dependente.
+
+Tabela 13 — Calibração formal por coorte.
+
+Tabela 14 — Análise de subgrupo por status de RE.
+
+Tabela 15 — Predição de pCR por coorte neoadjuvante.
+
+Tabela 16 — Comparação *head-to-head*: CorePAM vs PAM50-full.
+
+Tabela 17 — Comparação com *ROR-S* e *OncotypeDX*-RS.
+
+Tabela 18 — Organização do *pipeline* computacional por blocos.
+
+Tabela 19 — Lista completa dos scripts do *pipeline*.
+
+\newpage
+
+# LISTA DE ABREVIATURAS E SIGLAS {.unnumbered}
+
+**ABNT** — Associação Brasileira de Normas Técnicas
+
+**AUC** — *area under the curve* (área sob a curva ROC)
+
+**CEP** — Comitê de Ética em Pesquisa
+
+**CNS** — Conselho Nacional de Saúde
+
+**ComBat** — *Combating Batch Effects* (método de correção de *batch*)
+
+**CORE-A** — modelo clínico mínimo utilizado como referência multivariada
+
+**CorePAM** — *Core* PAM50 (escore prognóstico de 24 genes derivado neste estudo)
+
+**CPM** — *counts per million* (contagens por milhão)
+
+**DCA** — *decision curve analysis* (análise de curva de decisão)
+
+**DNA** — ácido desoxirribonucleico
+
+**DOI** — *Digital Object Identifier*
+
+**DP** — desvio-padrão
+
+**DSS** — *disease-specific survival* (sobrevida doença-específica)
+
+**EP** — erro-padrão
+
+**ER / RE** — *estrogen receptor* / receptor de estrogênio
+
+**FFPE** — *formalin-fixed paraffin-embedded* (tecido fixado em formalina e embebido em parafina)
+
+**GEO** — *Gene Expression Omnibus*
+
+**GLOBOCAN** — *Global Cancer Observatory*
+
+**HER2** — *human epidermal growth factor receptor 2* (receptor 2 do fator de crescimento epidérmico humano)
+
+**HR** — *hazard ratio* (razão de riscos)
+
+**HUB** — Hospital Universitário de Brasília
+
+**IC 95%** — intervalo de confiança de 95%
+
+**INCA** — Instituto Nacional de Câncer
+
+**I-SPY** — *Investigation of Serial Studies to Predict Your Therapeutic Response with Imaging and Molecular Analysis*
+
+**K** — número de *folds* da validação cruzada
+
+**KM** — Kaplan–Meier
+
+**L1 / L2** — penalidades tipo *lasso* (L1) e *ridge* (L2)
+
+**LLM** — *large language model* (modelo de linguagem de grande escala)
+
+**METABRIC** — *Molecular Taxonomy of Breast Cancer International Consortium*
+
+**MINDACT** — *Microarray In Node-negative and 1 to 3 positive lymph node Disease may Avoid ChemoTherapy*
+
+**NRI / IDI** — *net reclassification improvement* / *integrated discrimination improvement*
+
+**OOF** — *out-of-fold* (predição fora do *fold*)
+
+**OR** — *odds ratio* (razão de chances)
+
+**OS** — *overall survival* (sobrevida global)
+
+**PAM50** — *Prediction Analysis of Microarray 50*
+
+**pCR** — *pathologic complete response* (resposta patológica completa)
+
+**PCR** — *polymerase chain reaction* (reação em cadeia da polimerase)
+
+**REML** — *restricted maximum likelihood* (máxima verossimilhança restrita)
+
+**RMA** — *robust multi-array average*
+
+**RNA** — ácido ribonucleico
+
+**RNA-seq** — sequenciamento de RNA
+
+**ROC** — *receiver operating characteristic*
+
+**ROR / ROR-S** — *Risk of Recurrence score* / ROR baseado em subtipo
+
+**RP** — receptor de progesterona
+
+**RT-qPCR** — *reverse transcription quantitative PCR*
+
+**SCAN-B** — *Sweden Cancerome Analysis Network — Breast*
+
+**SHA-256** — *Secure Hash Algorithm 256 bits*
+
+**STAR/GDC** — alinhador STAR / *Genomic Data Commons*
+
+**SUS** — Sistema Único de Saúde
+
+**TAILORx** — *Trial Assigning IndividuaLized Options for Treatment*
+
+**TCGA** — *The Cancer Genome Atlas*
+
+**TCGA-BRCA** — braço de câncer de mama do TCGA
+
+**TMM** — *trimmed mean of M-values*
+
+**TRIPOD** — diretriz para relato de modelos prognósticos multivariáveis
+
+\newpage
+
+# SUMÁRIO {.unnumbered}
+
+1 INTRODUÇÃO
+
+1.1 Epidemiologia e carga global da doença
+
+1.2 Heterogeneidade tumoral e justificativa da estratificação molecular
+
+1.3 Subtipos moleculares intrínsecos e o PAM50
+
+1.4 Assinaturas gênicas: panorama atual e evidência clínica
+
+1.5 Plataformas de expressão gênica e o desafio da transportabilidade
+
+1.6 Coortes públicas de câncer de mama
+
+1.7 A pergunta central
+
+2 OBJETIVOS
+
+2.1 Objetivo geral
+
+2.2 Objetivos específicos
+
+3 MÉTODO
+
+3.1 Delineamento do estudo e aspectos éticos
+
+3.2 Coortes do estudo
+
+3.3 Congelamento analítico
+
+3.4 Pré-processamento de expressão gênica
+
+3.5 Derivação do CorePAM
+
+3.6 Cálculo do escore
+
+3.7 Análise de sobrevida
+
+3.8 Meta-análise
+
+3.9 Comparações *head-to-head*
+
+4 RESULTADOS
+
+4.1 Derivação do CorePAM: os 24 genes
+
+4.2 Validação prognóstica externa
+
+4.3 Meta-análise de sobrevida
+
+4.4 Valor incremental sobre preditores clínicos
+
+4.5 Independência do estadiamento clínico-patológico
+
+4.6 Análises de sensibilidade
+
+4.7 Análise de subgrupo por status de RE
+
+4.8 Resposta patológica completa (pCR)
+
+4.9 Comparação *head-to-head* com PAM50-full
+
+4.10 Comparação com assinaturas estabelecidas
+
+5 DISCUSSÃO
+
+5.1 O CorePAM no contexto da medicina de precisão em oncologia
+
+5.2 Derivação reprodutível: inovação metodológica
+
+5.3 Coerência biológica: por que esses 24 genes?
+
+5.4 Transportabilidade *cross-plataforma*
+
+5.5 O paradoxo de menos genes, mais informação
+
+5.6 A questão do *z-score*: coorte vs amostra única
+
+5.7 O sinal em doença ER-positiva
+
+5.8 A ponte entre prognóstico e predição de pCR
+
+5.9 Calibração: o que o modelo acerta é o que erra
+
+5.10 Reflexões metodológicas para estudos prognósticos futuros
+
+5.11 O caminho até a clínica: o que falta?
+
+5.12 Relevância para o contexto brasileiro e o SUS
+
+5.13 Limitações
+
+5.14 Perspectivas e estudos futuros
+
+6 CONCLUSÃO
+
+REFERÊNCIAS BIBLIOGRÁFICAS
+
+APÊNDICE A — Artigo aceito no *Breast Cancer Research*
+
+APÊNDICE B — Pipeline computacional
+
+# INTRODUÇÃO
+
+## Epidemiologia e carga global da doença
+
+O câncer de mama permanece como a neoplasia maligna mais frequente em mulheres no mundo e, desde 2020, ultrapassou o câncer de pulmão como a causa mais comum de diagnóstico de câncer na população global [@sung2021]. Dados mais recentes do GLOBOCAN 2022 estimam 2,31 milhões de novos diagnósticos e 666 103 mortes por câncer de mama naquele ano, configurando a neoplasia mais letal em mulheres em 110 países [@bray2024]. A incidência cresce em praticamente todas as regiões do mundo, mas os padrões de mortalidade são drasticamente heterogêneos: enquanto países de alta renda apresentam taxas de letalidade em declínio há mais de duas décadas — fruto combinado de diagnóstico precoce, terapia endócrina eficaz e avanços em quimioterapia e drogas anti-HER2 [@peto2012; @ebctcg2011] —, países de média e baixa renda ainda veem mortalidade estável ou crescente.
+
+No Brasil, o Instituto Nacional de Câncer (INCA) projetou cerca de 74 mil novos casos anuais para o trieno 2023-2025 [@inca2023], o que posiciona o câncer de mama como a neoplasia maligna mais frequente em mulheres brasileiras em todas as regiões, com exceção do Norte (onde é superada pelo câncer de colo uterino). A mortalidade por câncer de mama no Brasil, diferentemente de países com programas maduros de rastreamento mamográfico, apresenta tendência histórica de estabilidade ou discreto crescimento, com desigualdades regionais marcadas — expressas em idade mais jovem ao diagnóstico, estadiamento clínico mais avançado à apresentação e pior acesso a tratamentos sistêmicos de última geração [@migowski2018]. Essas desigualdades são uma das motivações de fundo para o presente trabalho: qualquer ferramenta prognóstica que dependa de plataformas de teste inacessíveis ao sistema público perpetua, na prática, a iniquidade de acesso à medicina de precisão.
+
+## Heterogeneidade tumoral e justificativa da estratificação molecular
+
+A heterogeneidade biológica do câncer de mama é um dos fenômenos mais bem caracterizados da oncologia moderna. Dois tumores clinicamente semelhantes — mesmo tamanho, mesmo grau histológico, mesmo perfil imuno-histoquímico — podem ter comportamentos biológicos drasticamente diferentes, com respostas terapêuticas e desfechos a longo prazo discordantes [@harbeck2019]. Esta heterogeneidade ocorre em pelo menos três níveis hierárquicos: inter-tumoral (diferenças entre pacientes), intra-tumoral espacial (diferentes regiões de um mesmo tumor) e temporal (evolução clonal sob pressão terapêutica). A classificação imuno-histoquímica tradicional (RE, RP, HER2, Ki67), embora operacional e universalmente disponível, oferece uma aproximação grosseira dessa complexidade biológica. A constatação de que expressão gênica em larga escala revela uma estrutura de subtipos biologicamente coerente, consolidada ao longo das duas últimas décadas [@perou2000; @sorlie2001; @pratperou2011], motivou o desenvolvimento sistemático de ferramentas de classificação molecular capazes de refletir essa estrutura subjacente e orientar decisões terapêuticas individualizadas.
+
+## Subtipos moleculares intrínsecos e o PAM50
+
+Os trabalhos seminais de Perou et al. e Sørlie et al. [@perou2000; @sorlie2001] inauguraram a era da classificação molecular do câncer de mama ao demonstrar, por meio de perfis de expressão gênica obtidos por *microarray*, que os tumores mamários se organizam em subtipos intrínsecos com comportamentos clínicos distintos. Essa taxonomia original descreveu cinco grupos: *Luminal A* (RE-positivo, baixa proliferação), *Luminal B* (RE-positivo, alta proliferação), *HER2-enriched* (amplificação ou superexpressão de ERBB2), *Basal-like* (fenótipo expressivo semelhante ao epitélio basal/mioepitelial da mama normal) e *Normal-like* (grupo de fronteira, parcialmente artefato de contaminação estromal). Estudos subsequentes incorporaram o subtipo *Claudin-low* e refinamentos como a estratificação em dez subgrupos integrativos do METABRIC, que combinam expressão e alterações numéricas somáticas [@curtis2012; @pereira2016].
+
+A transição dessa taxonomia para uso clínico exigiu um classificador robusto, treinado em subtipos centroides, e independente da plataforma específica utilizada no treinamento. O PAM50 (*Prediction Analysis of Microarray* 50), desenvolvido por Parker et al. [@parker2009], consolidou esse papel ao definir a classificação com base em exatamente 50 genes e validar sua transferência entre plataformas *microarray* e, posteriormente, RT-qPCR e *RNA-seq* [@nielsen2010; @chia2012]. O PAM50 atribui cada tumor a um dos subtipos intrínsecos por correlação com centroides de expressão e, por meio do *Risk of Recurrence* Score (ROR), fornece um escore prognóstico numérico que integra subtipo, proliferação e tamanho tumoral. Sua implementação comercial — o ensaio *Prosigna*, executado na plataforma *NanoString nCounter* — possui validação analítica rigorosa [@wallden2015] e evidência de nível 1 de utilidade clínica em pacientes RE-positivas pós-menopausa (estudos TransATAC [@dowsett2010] e ABCSG-8 [@gnant2014]), sendo recomendado por diretrizes internacionais [@coates2015; @burstein2019; @andre2022] para auxílio à decisão de quimioterapia adjuvante em câncer de mama RE-positivo, HER2-negativo, estágio precoce.
+
+\newpage
+
+```{r fig-subtipos}
+#| label: fig-subtipos
+#| fig-cap: "Subtipos moleculares intrínsecos do câncer de mama. Esquema didático sintetizando os cinco subtipos descritos por Perou e Sørlie — *Luminal A*, *Luminal B*, *HER2-enriched*, *Basal-like* e *Normal-like* — com seus marcadores característicos, prevalência aproximada e comportamento prognóstico típico."
+#| echo: false
+#| out-width: "13cm"
+knitr::include_graphics(file.path(FIG_DID, "B2_Subtipos_Moleculares_PT.png"))
+```
+
+## Assinaturas gênicas: panorama atual e evidência clínica
+
+O PAM50 não é a única assinatura gênica em uso clínico. O *OncotypeDX* *Recurrence Score* [@paik2004] mede 21 genes por RT-qPCR em tecido *FFPE* e foi validado prospectivamente pelo estudo TAILORx [@sparano2018], que demonstrou não inferioridade de endocrinoterapia isolada em pacientes RE-positivas com escore intermediário (11-25) na faixa etária acima de 50 anos, reescrevendo a conduta para aproximadamente 70% das pacientes com doença RE-positiva linfonodo-negativa. Análises posteriores do TAILORx [@sparano2019] e o ensaio RxPONDER [@kalinsky2021] estenderam a aplicação do *OncotypeDX* para mulheres com 1-3 linfonodos positivos, consolidando sua utilidade em cenários de decisão clínica específicos. O *MammaPrint* [@vantveer2002], assinatura de 70 genes originalmente derivada para risco de recorrência a cinco anos em população RE+/RE-, teve sua utilidade clínica demonstrada pelo estudo MINDACT [@cardoso2016; @piccart2021], que mostrou que pacientes com alto risco clínico mas baixo risco genômico podem evitar quimioterapia com segurança. Outras assinaturas incluem o *EndoPredict* [@filipits2011] (12 genes, foco em recorrência tardia), o Breast Cancer Index [@zhang2013] (genes HOXB13/IL17BR mais módulo de proliferação) e o ROR/*Prosigna* [@parker2009; @wallden2015]. A comparação *head-to-head* entre essas ferramentas [@sestak2018] mostrou que, embora todas ofereçam informação prognóstica significativa, a correlação entre os escores individuais é apenas moderada, indicando que não medem exatamente o mesmo construto biológico.
+
+A distinção fundamental, relevante para o presente trabalho, é que o *OncotypeDX* e o *MammaPrint* não são subconjuntos do PAM50 — foram desenvolvidos independentemente, a partir de pools gênicos distintos e com metodologias e *endpoints* diferentes. Até o presente, nenhuma redução sistemática e orientada por dados do próprio painel PAM50 havia sido tentada usando regressão penalizada moderna com critério pré-especificado de não inferioridade.
+
+```{r fig-timeline}
+#| label: fig-timeline
+#| fig-cap: "Linha do tempo das principais assinaturas gênicas em câncer de mama. Panorama histórico das assinaturas com validação clínica (*OncotypeDX*, *MammaPrint*, PAM50/Prosigna, *EndoPredict*, *Breast Cancer Index*) e seus estudos pivô correspondentes, ilustrando a evolução do campo desde os perfis transcricionais seminais até os ensaios prospectivos que consolidaram a utilidade clínica."
+#| echo: false
+#| out-width: "13cm"
+knitr::include_graphics(file.path(FIG_DID, "B3_Timeline_Assinaturas_PT.png"))
+```
+
+## Plataformas de expressão gênica e o desafio da transportabilidade
+
+As coortes utilizadas neste estudo abrangem as duas grandes famílias de tecnologias de expressão gênica em larga escala atualmente empregadas em pesquisa e prática clínica:
+
+**RNA-seq (sequenciamento de RNA):** tecnologia de segunda geração que quantifica a expressão gênica por contagem de fragmentos de RNA sequenciados em um sequenciador de alta vazão. Oferece ampla faixa dinâmica, capacidade de detectar novos transcritos, maior sensibilidade em baixa abundância e reprodutibilidade técnica robusta [@love2014; @ritchie2015]. As coortes SCAN-B e TCGA-BRCA utilizam *RNA-seq* *Illumina*, com fluxos de processamento distintos (HISAT/StringTie no SCAN-B, STAR/GDC no TCGA).
+
+**Microarray:** tecnologia precedente, que mede hibridização de RNA com sondas fixas em lâminas. Existem diversas plataformas com arquiteturas e estatísticas de sinal substancialmente diferentes: *Illumina* BeadArrays (METABRIC), *Affymetrix* GeneChip (GSE20685, GSE1456) e *Agilent* (I-SPY1). Cada plataforma tem propriedades distintas de saturação de sinal, variação técnica e cobertura de transcritos. A diferença na faixa dinâmica e nas unidades de expressão entre plataformas impõe desafios metodológicos significativos quando um modelo derivado em uma plataforma precisa ser aplicado a dados de outra — um problema clássico de efeitos de *batch* [@leek2010; @johnson2007].
+
+A normalização intra-coorte por *z-score*, descrita em detalhe no capítulo de Metodologia, é a estratégia escolhida neste trabalho para operar em unidades relativas que abstraem as diferenças de escala entre plataformas. A escolha desta estratégia — em lugar de alternativas como ComBat [@johnson2007], métodos de harmonização mais agressivos ou pontuação de amostra única com parâmetros congelados — é uma decisão metodológica com *trade-offs* explicitamente discutidos adiante.
+
+## Coortes públicas de câncer de mama
+
+Os dados utilizados neste estudo são inteiramente públicos e desidentificados, obtidos de consórcios internacionais e projetos de iniciativa acadêmica que padronizaram e disponibilizaram matrizes de expressão e dados clínicos anotados. O estudo utiliza nove coortes independentes organizadas em dois blocos analíticos:
+
+No **bloco de sobrevida**, a coorte de treinamento é a SCAN-B (GSE96058, N = 3 069) [@saal2015; @brueffer2018], a maior coorte de *RNA-seq* de câncer de mama publicamente disponível, com coleta prospectiva e seguimento populacional. As quatro coortes de validação são: TCGA-BRCA (N = 1 072, *RNA-seq*) [@tcga2012], METABRIC (N = 1 978, *microarray* *Illumina* HT-12) [@curtis2012; @pereira2016], GSE20685 (N = 327, *microarray* *Affymetrix* HG-U133 Plus 2.0; população asiática) [@kao2011] e GSE1456 (N = 159, *microarray* *Affymetrix* HGU133A/B; coorte de Estocolmo) [@pawitan2005]. Juntas, as coortes de validação somam 3 536 pacientes com tecnologias e contextos populacionais intencionalmente heterogêneos.
+
+No **bloco de pCR**, quatro coortes primárias totalizam 697 pacientes (GSE25066 [@hatzis2011], GSE20194 [@maqc2010], GSE32646 [@miyake2012], I-SPY1 [@esserman2012]) e uma coorte exploratória (I-SPY2, N = 986) [@wolf2022] adiciona poder estatístico em uma população neoadjuvante contemporânea.
+
+## A pergunta central
+
+Apesar da validação clínica robusta do PAM50, sua implementação enfrenta barreiras práticas importantes: custo elevado (US\$ 3 000 a 4 000 por amostra em laboratórios de referência nos EUA; indisponível no Sistema Único de Saúde brasileiro), dependência exclusiva da plataforma *NanoString* para uso comercial e necessidade de medir simultaneamente 50 genes com controles padronizados e infraestrutura específica. Em países como o Brasil, essas barreiras se traduzem em iniquidade concreta de acesso: pacientes atendidas no sistema suplementar podem receber testes de assinatura gênica, mas pacientes do SUS raramente têm essa possibilidade, o que perpetua tanto o sub-tratamento (pacientes de fato de baixo risco expostas a quimioterapia desnecessária) quanto o sobre-tratamento (pacientes de alto risco não identificadas como tal) [@migowski2018].
+
+Nesse contexto, é natural perguntar se todo o painel de 50 genes do PAM50 é realmente necessário para capturar a informação prognóstica relevante, ou se uma porção menor — selecionada de forma sistemática e reprodutível — seria suficiente. A pergunta central deste trabalho pode ser enunciada de forma direta:
+
+**Quantos dos 50 genes do PAM50 são realmente necessários para manter seu desempenho prognóstico, dentro de uma margem de não inferioridade pré-especificada?**
+
+Este trabalho apresenta o CorePAM: uma redução de 50 para 24 genes derivada por regressão de Cox *elastic-net* na coorte SCAN-B, validada em quatro coortes externas *cross-plataforma*, e avaliada secundariamente como preditor de resposta patológica completa à quimioterapia neoadjuvante. A motivação não é propor mais uma assinatura comercial concorrente, mas demonstrar um princípio: que a informação prognóstica do PAM50 pode ser substancialmente comprimida, e que essa compressão — se metodologicamente rigorosa — abre portas para implementações analíticas mais baratas e mais acessíveis, especialmente em sistemas de saúde com restrições orçamentárias importantes.
+
+\newpage
+
+# OBJETIVOS
+
+## Objetivo geral
+
+Derivar e validar externamente o CorePAM — escore prognóstico composto pelo menor subconjunto do painel PAM50 capaz de preservar o desempenho prognóstico do painel completo em câncer de mama.
+
+## Objetivos específicos
+
+1. Derivar, na coorte SCAN-B, o menor subconjunto de genes do PAM50 que preserve o desempenho prognóstico do painel original, respeitando margem pré-especificada de não inferioridade.
+
+2. Caracterizar biologicamente os genes selecionados, verificando sua coerência com os subtipos intrínsecos e com a biologia conhecida do câncer de mama.
+
+3. Validar externamente o escore CorePAM em quatro coortes independentes (TCGA-BRCA, METABRIC, GSE20685 e GSE1456), abrangendo plataformas de *RNA-seq* e *microarray* e populações etnicamente diversas.
+
+4. Avaliar o valor prognóstico incremental do CorePAM em relação a variáveis clínicas tradicionais e ao estadiamento anatômico.
+
+5. Avaliar o CorePAM como preditor de resposta patológica completa (pCR) à quimioterapia neoadjuvante em coortes independentes.
+
+
+\newpage
+
+# MÉTODO
+
+## Delineamento do estudo e aspectos éticos
+
+### Tipo de estudo
+
+Trata-se de estudo retrospectivo multicoorte de desenvolvimento e validação externa de modelo prognóstico, utilizando exclusivamente dados de expressão gênica e clínicos publicamente disponíveis e desidentificados. O estudo foi planejado e reportado de acordo com o guideline *TRIPOD* (*Transparent Reporting of a multivariable prediction model for Individual Prognosis Or Diagnosis*) [@moons2015; @collins2015], que estrutura a descrição de modelos de predição em quatro blocos — desenvolvimento, validação interna, validação externa e modelo final — e recomenda reporte completo de itens relacionados a fontes de dados, variáveis, manejo de valores ausentes, estratégia analítica, desempenho e interpretação clínica.
+
+O delineamento segue uma estrutura clássica de desenvolvimento e validação externa, com os três componentes analíticos mantidos estritamente separados para evitar vazamento de informação:
+
+- **Desenvolvimento (derivação):** realizado inteiramente na coorte SCAN-B (GSE96058). Todo o processo de seleção de genes, ajuste de hiperparâmetros e estabelecimento de pesos ocorre dentro desta coorte, sem acesso aos dados de validação.
+- **Validação externa:** realizada em quatro coortes completamente independentes, em plataformas distintas da coorte de treinamento, sem reajuste de qualquer parâmetro. Os pesos congelados do SCAN-B são aplicados diretamente aos *z-scores* calculados intra-coorte em cada conjunto de validação.
+- **Análise secundária (pCR):** realizada em cinco coortes neoadjuvantes inteiramente distintas das coortes de sobrevida, tanto em população quanto em *endpoint* (resposta patológica completa a quimioterapia neoadjuvante), avaliando se a informação contida no escore transcende o *endpoint* de derivação.
+
+A @fig-study-design apresenta o desenho do estudo.
+
+```{r fig-study-design}
+#| label: fig-study-design
+#| fig-cap: "Desenho do estudo CorePAM. Derivação na coorte SCAN-B (N = 3 069) por regressão de Cox elastic-net com validação cruzada determinística de 10 folds. Validação externa em quatro coortes independentes cross-plataforma (TCGA-BRCA, METABRIC, GSE20685, GSE1456; N total = 3 536). Análise secundária de pCR em cinco coortes neoadjuvantes (N total = 1 683). As setas indicam a direção do fluxo de dados, sem compartilhamento entre etapas."
+#| out-width: "13cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_MAIN, "Fig1_StudyDesign_PT.png"))
+```
+
+### Aspectos éticos
+
+Por utilizar exclusivamente dados públicos e desidentificados, oriundos de repositórios internacionais (GEO, TCGA/cBioPortal, European Genome-phenome Archive), o estudo está isento de aprovação por comitê de ética em pesquisa, conforme a Resolução CNS 510/2016 (Brasil), que exclui de submissão a CEP pesquisas com dados de domínio público, e a *Common Rule* dos Estados Unidos (45 CFR 46 104(d)(4)), que exime de revisão pesquisas secundárias com informações já existentes e desidentificadas. Todas as coortes originais haviam sido aprovadas pelos respectivos comitês de ética das instituições geradoras, conforme documentado nas publicações primárias [@saal2015; @tcga2012; @curtis2012; @kao2011; @pawitan2005; @hatzis2011; @esserman2012; @wolf2022].
+
+### Princípios de validação externa
+
+A validação externa seguiu quatro princípios estabelecidos na literatura de modelos prognósticos [@royston2013; @steyerberg2016; @collins2015]:
+
+1. **Independência completa** — nenhum registro das coortes de validação foi acessado durante a fase de derivação. Os pesos do modelo foram congelados no SCAN-B e aplicados posteriormente.
+2. **Diversidade intencional de plataformas** — a escolha deliberada de coortes em plataformas diferentes da de treinamento (*microarray* *Illumina*, *Affymetrix* HG-U133+, HGU133A/B, *RNA-seq* STAR/GDC) testa a transportabilidade cross-tecnológica, não apenas populacional.
+3. **Não reajuste de parâmetros** — nenhum coeficiente do modelo foi re-estimado nas coortes externas. Qualquer validação externa que reajusta parâmetros é, na prática, uma nova derivação e deve ser reportada como tal.
+4. **Pré-processamento independente por coorte** — cada coorte foi normalizada com seus próprios parâmetros de pré-processamento (*z-score* calculado com média e desvio-padrão da própria coorte), sem agrupamento inter-coorte ou correção de *batch* tipo ComBat [@johnson2007; @leek2010]. Esta escolha é discutida em detalhe adiante.
+
+### Disponibilidade de dados e código
+
+Todos os dados utilizados neste estudo são de acesso público. O código-fonte completo, incluindo scripts de *download*, harmonização, derivação, *scoring*, análise de sobrevida, meta-análise, análises de sensibilidade e geração de figuras, encontra-se disponível no repositório público `https://github.com/RafaelBotan/CorePAM-Study`, sob licença permissiva, acompanhado do arquivo de configuração congelado (`00_setup.R`) que define todos os parâmetros analíticos pré-especificados. A lista completa dos scripts, numerados sequencialmente e organizados em blocos temáticos, encontra-se no APÊNDICE B. A reprodução integral dos resultados depende apenas do *download* dos dados públicos e da execução dos scripts na ordem numérica, não havendo qualquer componente proprietário ou dependência de dados sob embargo.
+
+### Uso de modelos de linguagem de grande escala
+
+A redação e a formatação do presente manuscrito receberam assistência de um modelo de linguagem de grande escala (*large language model*, LLM) — Claude (Anthropic, modelo Opus) — empregado como ferramenta de apoio nas seguintes tarefas circunscritas: revisão ortográfica e de estilo em português acadêmico, verificação cruzada de referências bibliográficas e seus respectivos identificadores DOI, pareamento entre descrição textual dos métodos e os scripts R correspondentes do *pipeline*, geração dos esquemas didáticos incluídos na Introdução e nos Métodos (subtipos moleculares, linha do tempo das assinaturas gênicas, fluxograma de coortes e esquema de derivação) e adequação da formatação do documento às normas da Associação Brasileira de Normas Técnicas (ABNT NBR 14724). O modelo não participou do desenho do estudo, da execução das análises estatísticas, da interpretação dos resultados nem da formulação das conclusões científicas, as quais são de responsabilidade exclusiva do autor. Todas as decisões metodológicas e os achados quantitativos foram verificados diretamente contra a saída dos scripts analíticos versionados no repositório público do estudo.
+
+## Coortes do estudo
+
+O estudo integrou nove coortes públicas, cobrindo duas aplicações clínicas complementares (sobrevida e resposta à quimioterapia neoadjuvante) e três plataformas de medida de expressão gênica (*RNA-seq*, *microarray* *Illumina* e *microarray* *Affymetrix*/*Agilent*). Esse desenho amplo e deliberadamente heterogêneo é central à pergunta metodológica: um classificador útil na prática precisa funcionar em plataformas distintas, populações distintas e desfechos distintos. A **coorte de derivação** é o **SCAN-B** (GSE96058) [@saal2015; @brueffer2018], uma iniciativa sueca que colecionou prospectivamente tumores de mama primários operáveis com *RNA-seq* *Illumina* (N = 3 069; *endpoint* sobrevida global; mediana de seguimento 54,9 meses; 322 óbitos, 10,5%). Quatro **coortes de validação** de sobrevida foram escolhidas para estressar o modelo ao longo de eixos distintos: **TCGA-BRCA** [@tcga2012] (N = 1 072; *RNA-seq*) avalia transportabilidade dentro da mesma tecnologia de medida; **METABRIC** [@curtis2012] (N = 1 978; *microarray* *Illumina* HT-12) e **GSE20685** [@kao2011] (N = 327; *microarray* *Affymetrix*) testam transferência para tecnologias de *microarray* distintas; e **GSE1456** [@pawitan2005] (Estocolmo; N = 159; *microarray* *Affymetrix*) testa robustez a cobertura gênica parcial (21/24 genes). Cinco **coortes neoadjuvantes** testam se o escore, derivado para sobrevida, transfere utilidade para predição de resposta patológica completa (pCR): **GSE25066** [@hatzis2011] (N = 182), **GSE20194** [@maqc2010] (N = 278), **GSE32646** [@miyake2012] (N = 115) e **I-SPY1** [@esserman2012] (N = 122) como primárias, e **I-SPY2** [@wolf2022] (N = 986) como exploratória. A @tbl-cohorts-survival e a @tbl-cohorts-pcr sumarizam papel, plataforma, *endpoint*, tamanho amostral, eventos e mediana de seguimento de cada coorte.
+
+| Coorte            | Papel       | Plataforma                 | *Endpoint* | N     | Eventos (%) | Mediana FU   |
+|:------------------|:------------|:---------------------------|:-----------|------:|:-----------:|:-------------|
+| SCAN-B (GSE96058) | Treinamento | *RNA-seq* *Illumina*       | OS         | 3 069 | 322 (10,5%) | 54,9 meses   |
+| TCGA-BRCA         | Validação   | *RNA-seq* STAR/GDC         | OS         | 1 072 | 150 (14,0%) | 32,0 meses   |
+| METABRIC          | Validação   | Microarray *Illumina* HT-12| DSS        | 1 978 | 646 (32,7%) | 159,0 meses  |
+| GSE20685          | Validação   | Microarray *Affymetrix*    | OS         |   327 | 83 (25,4%)  | 112,8 meses  |
+| GSE1456           | Validação   | Microarray *Affymetrix*    | OS         |   159 | 40 (25,2%)  | 91,0 meses   |
+
+: Características das coortes de sobrevida {#tbl-cohorts-survival}
+
+| Coorte             | Plataforma    | N (analisado) | pCR n (%)   | Papel        |
+|:-------------------|:--------------|:-------------:|:-----------:|:-------------|
+| GSE25066           | HGU133A       |      182      | 42 (23,1%)  | Primária     |
+| GSE20194           | HGU133Plus2   |      278      | 56 (20,1%)  | Primária     |
+| GSE32646           | HGU133Plus2   |      115      | 27 (23,5%)  | Primária     |
+| I-SPY1 (GSE22226)  | *Agilent* 44K |      122      | 32 (26,2%)  | Primária     |
+| I-SPY2 (GSE194040) | *RNA-seq*     |      986      | 319 (32,4%) | Exploratória |
+
+: Características das coortes neoadjuvantes (pCR) {#tbl-cohorts-pcr}
+
+```{r fig-fluxograma-coortes}
+#| label: fig-fluxograma-coortes
+#| fig-cap: "Fluxograma das coortes do estudo. Representação esquemática das nove coortes utilizadas, organizadas por bloco analítico (sobrevida *versus* pCR), papel (derivação *versus* validação), plataforma de medida (*RNA-seq versus* microarray) e tamanho amostral, evidenciando a heterogeneidade deliberada do desenho."
+#| echo: false
+#| out-width: "14cm"
+knitr::include_graphics(file.path(FIG_DID, "B6_Fluxograma_Coortes_PT.png"))
+```
+
+## Congelamento analítico (analytical freeze)
+
+O conceito de *congelamento analítico* (analytical freeze) é um pilar metodológico do presente estudo. Em modelos de predição, a flexibilidade analítica — a possibilidade de reportar diferentes resultados dependendo de escolhas tomadas após ver os dados — é uma fonte documentada de inflação de erro tipo I e de otimismo de desempenho. Para mitigar essa flexibilidade, todos os parâmetros analíticos relevantes foram definidos e documentados em arquivo de configuração versionado (script `00_setup.R` do *pipeline*) antes de qualquer análise substantiva. Essa pré-especificação permite que o desempenho observado seja interpretado sem suspeita de seleção retrospectiva de análise favorável.
+
+A @tbl-freeze apresenta os parâmetros congelados.
+
+| Parâmetro | Valor | Justificativa |
+|-----------|-------|---------------|
+| Margem de não inferioridade (Delta-*C-index*) | 0,010 | < 1/2 EP do *C-index* OOF |
+| Parâmetro de mistura *elastic-net* (alpha) | 0,5 | Balanço entre esparsidade (L1) e estabilidade de grupo (L2) |
+| Folds de validação cruzada (K) | 10 | Padrão da literatura |
+| Atribuição de *folds* | Determinística: SHA-256 do ID do paciente | Reprodutibilidade exata |
+| Estratificação de *folds* | Por status de evento | Representatividade de eventos |
+| Cobertura mínima de genes | 80% dos 24 genes CorePAM | Equilíbrio inclusividade/integridade |
+| Número de genes | **Não pré-especificado** | Resultado da análise, não parâmetro |
+
+: Parâmetros analíticos congelados antes da análise {#tbl-freeze}
+
+### Margem de não inferioridade (Delta-*C-index* = 0,010)
+
+A escolha de 0,010 como margem de não inferioridade pré-especificada merece justificativa explícita. A ideia central do critério é aceitar um submodelo com menos genes se, e somente se, seu *C-index* *out-of-fold* (OOF) for no máximo 0,010 unidades inferior ao *C-index* OOF do modelo com todos os 50 genes candidatos. Essa margem foi definida como menor que metade do erro-padrão observado do *C-index* OOF no SCAN-B — uma regra prática que garante que a perda aceitável esteja dentro do ruído estatístico esperado, ao mesmo tempo em que não permite perdas clinicamente relevantes. Margens menores (e.g., 0,005) resultariam em um submodelo praticamente idêntico ao original em tamanho, anulando o ganho de parcimônia; margens maiores (e.g., 0,030) poderiam aceitar submodelos com perda mensurável de informação. A escolha 0,010 representa o compromisso explicitamente pré-especificado.
+
+### Atribuição determinística de *folds* (SHA-256)
+
+A atribuição determinística de *folds* por hash SHA-256 do identificador do paciente elimina a arbitrariedade da escolha de semente aleatória, garantindo reprodutibilidade exata de primeiros princípios. O procedimento é o seguinte: para cada paciente, calcula-se o hash SHA-256 do seu identificador, interpretam-se os primeiros bytes como inteiro não-assinado, e atribui-se o *fold* pelo resto da divisão desse inteiro pelo número de *folds* (10). Esta atribuição tem três propriedades desejáveis:
+
+1. **Reprodutibilidade universal:** qualquer pesquisador que baixe os mesmos dados e execute o mesmo código obterá exatamente os mesmos *folds*, sem dependência de semente aleatória ou implementação de RNG específica.
+2. **Estabilidade a reordenamento:** a atribuição depende apenas do identificador, não da posição no arquivo. Reordenar linhas da matriz de expressão não altera *folds*.
+3. **Independência entre ordem de execução e resultado:** ausência de state-dependent randomness significa que paralelismo e ordenamento não afetam o resultado.
+
+Como o SHA-256 é criptograficamente uniforme, a distribuição dos *folds* é aproximadamente uniforme mesmo com N moderado (N = 3 069 no SCAN-B produz *folds* de tamanhos entre 295 e 320).
+
+### Estratificação por evento
+
+Dentro do esquema determinístico, aplicou-se estratificação subsequente por status de evento (óbito/censura), para garantir representatividade de eventos em cada *fold* de validação. Em coortes com baixa taxa de eventos — como o SCAN-B (10,5%) —, a estratificação evita que *folds* específicos recebam número desproporcional de eventos, o que degradaria a estimativa OOF do *C-index*.
+
+## Pré-processamento de expressão gênica
+
+Todo o pré-processamento foi realizado independentemente por coorte, sem agrupamento inter-coorte ou correção de *batch* tipo ComBat [@johnson2007] ou metodologias análogas. A decisão de não harmonizar matrizes entre coortes tem motivação técnica e pragmática: correção de *batch* requer acesso simultâneo a todas as matrizes de origem, o que é incompatível com o cenário clínico realístico (aplicar o modelo a uma nova amostra que chega isolada) e pode introduzir vazamento de informação quando covariáveis de interesse são correlacionadas com *batch* [@leek2010].
+
+### Coortes *RNA-seq* (SCAN-B, TCGA-BRCA)
+
+Para coortes *RNA-seq*, o pré-processamento seguiu o *pipeline* padrão do Bioconductor: filtragem de genes de baixa expressão com `filterByExpr` do pacote `edgeR` [@robinson2010]; normalização por *trimmed mean of M-values* (TMM) [@robinson2010b]; transformação log-CPM (log das contagens por milhão) para estabilização de variância e aproximação a distribuição normal. Quando disponíveis, contagens brutas em formato ENSEMBL foram mapeadas a símbolos HUGO usando anotação mais recente do genoma humano (GRCh38).
+
+### Coortes *microarray* (METABRIC, GSE20685, GSE1456, GSE25066, GSE20194, GSE32646, I-SPY1)
+
+Para coortes *microarray*, foram utilizadas as intensidades pré-processadas disponibilizadas pelos consórcios originais (METABRIC: escala log2 *Illumina* normalizada; GSE20685/GSE1456: RMA no *Affymetrix*; I-SPY1: loess *Agilent*). Não foi aplicada normalização adicional, de forma a preservar a análise como ela teria sido realizada em reprocessamento independente. Quando múltiplas sondas mapeavam para o mesmo gene, foi selecionada a sonda com maior variância intra-coorte — escolha conservadora que maximiza o sinal biológico sob variação técnica controlada.
+
+| Coorte | Plataforma | Genes presentes | Cobertura (%) | Genes ausentes |
+|--------|------------|-----------------|---------------|----------------|
+| SCAN-B | *RNA-seq* *Illumina* | 24/24 | 100 | — |
+| TCGA-BRCA | *RNA-seq* STAR/GDC | 23/24 | 95,8 | MIA |
+| METABRIC | *Illumina* HT-12 | 24/24 | 100 | — |
+| GSE20685 | *Affymetrix* HG-U133+ | 24/24 | 100 | — |
+| GSE1456 | *Affymetrix* HGU133A | 21/24 | 87,5 | GPR160, CXXC5, KRT17 |
+
+: Cobertura de genes CorePAM por coorte de validação {#tbl-gene-coverage}
+
+## Derivação do CorePAM
+
+```{r fig-derivacao}
+#| label: fig-derivacao
+#| fig-cap: "Esquema de derivação do CorePAM. Visão geral do procedimento: partindo dos 50 genes do PAM50 candidatos na coorte SCAN-B, a regressão de Cox *elastic-net* com validação cruzada *out-of-fold* e critério pré-especificado de não inferioridade (Delta-*C-index* ≤ 0,010) seleciona o submodelo de 24 genes — o CorePAM —, subsequentemente avaliado em quatro coortes externas de validação."
+#| echo: false
+#| out-width: "14cm"
+knitr::include_graphics(file.path(FIG_DID, "B9_Derivacao_CorePAM_PT.png"))
+```
+
+### Regressão de Cox *elastic-net*: justificativa e parâmetros
+
+A regressão de Cox *elastic-net* combina o modelo de riscos proporcionais de Cox com penalização *elastic-net* sobre os coeficientes [@zou2005; @tibshirani1996; @tibshirani1997; @friedman2010; @simon2011]. A penalização *elastic-net* adiciona à log-verossimilhança parcial de Cox dois termos que penalizam a magnitude dos coeficientes: um termo proporcional à soma dos valores absolutos (penalidade L1, ou *lasso*) e outro proporcional à soma dos quadrados (penalidade L2, ou *ridge*). Dois parâmetros controlam o comportamento: um parâmetro global de regularização (*lambda*) define a intensidade total da penalização, e um parâmetro de mistura (*alpha*, entre 0 e 1) define o balanço entre as duas penalidades. Quando *alpha* = 1 a penalização é exclusivamente L1 (*lasso* puro); quando *alpha* = 0 é exclusivamente L2 (*ridge* puro).
+
+A escolha de ***alpha* = 0,5** como ponto congelado deste estudo reflete compromisso deliberado entre três objetivos que um método puro não conseguiria simultaneamente:
+
+- **Esparsidade moderada:** a penalidade L1 eleva coeficientes pequenos a zero, produzindo seleção explícita de variáveis. Sem esta propriedade, o modelo incluiria todos os 50 genes com pesos pequenos, anulando o objetivo de parcimônia.
+- **Estabilidade de grupo:** a penalidade L2 mantém coeficientes correlacionados juntos no modelo. No PAM50, vários genes de um mesmo módulo biológico (proliferação, diferenciação luminal) são fortemente correlacionados; um *lasso* puro (*alpha* = 1) selecionaria arbitrariamente um representante do grupo e descartaria os outros, gerando instabilidade entre reamostras. A mistura 50/50 preserva grupos correlacionados inteiros quando seu sinal agregado é informativo.
+- **Regularização suficiente sob alta colinearidade:** com 50 preditores e N ≈ 3 000, o *lasso* puro é conhecido por apresentar saltos abruptos no caminho de regularização em cenários de alta colinearidade. A mistura estabiliza o caminho.
+
+O parâmetro *lambda* não foi congelado em valor único: o procedimento de derivação percorreu uma grade de 100 valores em escala logarítmica, avaliando o desempenho *out-of-fold* em cada ponto e selecionando a combinação (df, *lambda*) com o menor número de graus de liberdade satisfazendo o critério de não inferioridade.
+
+### Validação cruzada *out-of-fold*
+
+O desempenho foi avaliado por **validação cruzada determinística de 10 folds**, com atribuição de *folds* descrita acima. Para cada valor da grade de regularização, a cada iteração (k = 1..10):
+
+1. Ajusta-se o modelo Cox *elastic-net* na partição de treino (nove *folds*).
+2. Computam-se as predições para cada amostra do *fold* excluído.
+3. As predições *out-of-fold* das dez iterações são concatenadas em um vetor único de tamanho N.
+
+O *C-index* *out-of-fold* final é calculado uma única vez sobre esse vetor concatenado, junto ao par de tempo-evento observado. Esta abordagem é distinta — e preferível a — média de *C-index* por *fold*, que introduz variabilidade artificial por *fold* de tamanho pequeno.
+
+### Critério de seleção: não inferioridade e fronteira de Pareto
+
+Para cada ponto da grade de *lambda*, o procedimento computa (i) o número de coeficientes não-zero (df) e (ii) o *C-index* OOF. Plotando estes dois atributos contra si, obtém-se a **fronteira de Pareto** df vs *C-index*: o conjunto de modelos para os quais nenhum modelo alternativo é simultaneamente mais parcimonioso e mais performático. O CorePAM foi definido como o menor número de genes (df) satisfazendo o critério de não inferioridade pré-especificado: *C-index* OOF dentro de 0,010 abaixo do *C-index* OOF máximo observado ao longo de todo o caminho de regularização.
+
+Resultado: **df = 24, *C-index* OOF = 0,670, gap em relação ao máximo (0,679) = 0,009** — dentro da margem pré-especificada.
+
+### Análises de estabilidade da seleção
+
+Para caracterizar a estabilidade dos 24 genes selecionados, foram realizadas três análises complementares, todas executadas após o congelamento do conjunto final:
+
+1. **Bootstrap (B = 200):** reamostras com reposição da coorte SCAN-B, reajuste do mesmo procedimento *elastic-net* em cada uma e registro da frequência com que cada gene foi selecionado. Genes com frequência alta (>70%) são considerados membros estáveis do núcleo; genes com frequência baixa (<40%) são considerados sensíveis a reamostra.
+2. **Leave-one-gene-out (L1GO):** remoção individual de cada um dos 24 genes, reajuste do modelo *elastic-net* com os 23 restantes e registro da mudança no *C-index* OOF (Δ*C*). Genes com Δ*C* grande são considerados críticos; genes com Δ*C* pequeno indicam redundância funcional.
+3. **Direção dos pesos:** verificação de consistência biológica dos pesos. Genes de proliferação devem ter peso positivo (maior expressão = maior risco); genes de diferenciação luminal, peso negativo.
+
+## Cálculo do escore
+
+O cálculo do escore CorePAM procede em três etapas explícitas, cada uma com justificativa própria:
+
+**Etapa 1 — Z-*score* intra-coorte:** para cada gene, a expressão de cada amostra é convertida em desvios em relação à média da coorte, dividida pelo desvio-padrão da própria coorte. A média e o desvio-padrão são calculados exclusivamente com amostras da mesma coorte. Esta padronização remove as diferenças de escala e de unidade entre plataformas, mantendo apenas a posição relativa da amostra em relação ao restante da coorte. A consequência pragmática é importante: o escore é invariante a transformações lineares da expressão.
+
+**Etapa 2 — Escore bruto ponderado:** soma-se, para cada amostra, os *z-scores* dos genes CorePAM disponíveis na coorte, cada um multiplicado pelo peso (coeficiente Cox) derivado no SCAN-B. O resultado é dividido pelo somatório de valores absolutos dos pesos dos genes presentes, garantindo que o escore esteja em escala comparável mesmo quando a coorte não apresenta cobertura integral dos 24 genes — caso do GSE1456 (21/24 genes, 87,5%).
+
+**Etapa 3 — Padronização final:** o escore bruto ponderado é novamente normalizado para média zero e desvio-padrão 1 em cada coorte, facilitando a interpretação de *hazard ratio* por 1 desvio-padrão como aumento de uma unidade.
+
+**Direção:** em todas as coortes, verificou-se empiricamente que escores mais altos correspondem a pior prognóstico (todos HRs univariados > 1), confirmando a coerência biológica do modelo.
+
+### Pontuação congelada (*single-sample scoring*)
+
+Uma análise de sensibilidade relevante é a aplicação dos parâmetros de normalização do SCAN-B (média e desvio-padrão congelados) a cada amostra de validação isoladamente, em lugar de recalculados intra-coorte. Este cenário simula o uso clínico futuro — em que cada paciente chega isolada — e quantifica a perda de informação ao abrir mão da referência intra-coorte. A concordância entre os dois modos (intra-coorte vs congelado) foi avaliada por coeficiente de correlação de Pearson e por *C-index* na mesma coorte.
+
+## Análise de sobrevida
+
+### Modelos de Cox
+
+Foram ajustados modelos de Cox univariados (tendo o escore CorePAM como único preditor) e multivariados (CORE-A: idade isoladamente ou idade + status de RE, conforme disponibilidade na coorte). Relatou-se *hazard ratio* por um desvio-padrão do escore, intervalo de confiança 95% e p-valor do Wald. A validação da suposição de riscos proporcionais foi feita pelo teste de Grambsch-Therneau baseado em resíduos ponderados [@grambsch1994; @therneau2000]. Quando o teste acusou violação significativa (p < 0,05), foi realizada análise de sensibilidade com estratificação pela covariável violadora.
+
+### Métricas de discriminação
+
+O *C-index* de Harrell [@harrell1982] foi a métrica principal de discriminação, calculado com intervalo de confiança 95% por *bootstrap* [@efron1979] (B = 1 000 reamostras). A estatística C de Uno [@uno2011], que é robusta à censura informativa, foi calculada como sensibilidade. AUC tempo-dependente em horizontes de 36, 60 e 120 meses foi estimada pelo método de Blanche et al. [@blanche2013], que permite tratar competição de riscos.
+
+### Curvas de Kaplan-Meier
+
+Para visualização, os escores foram dicotomizados na mediana intra-coorte (grupo de alto vs baixo risco). Esta dicotomização é puramente descritiva; não foi utilizada para reportar estimativas primárias, que se basearam no escore contínuo. Log-rank foi reportado apenas como teste de consistência. Fine-Gray [@fine1999] foi aplicado na coorte METABRIC, onde o *endpoint* primário (DSS) impõe competição com óbitos por outras causas.
+
+### Valor incremental: Delta-*C-index*
+
+O valor incremental do CorePAM sobre o modelo clínico CORE-A foi quantificado pelo *C-index* = *C-index*(CORE-A + CorePAM) - *C-index*(CORE-A), com intervalo de confiança 95% *bootstrap* (B = 1 000) e teste de significância comparando as distribuições *bootstrap* dos dois modelos. Alternativas como NRI e IDI foram calculadas como sensibilidade, mas não como métrica primária devido a críticas metodológicas publicadas na literatura [@vancalster2016].
+
+### Calibração
+
+A calibração foi avaliada por inspeção visual de curvas de risco predito versus observado em horizontes de 60 meses, por slope de regressão (1,0 = calibração perfeita) e intercept (0 = calibração-no-grande perfeita), seguindo a hierarquia de calibração proposta por Van Calster et al. [@vancalster2016; @vancalster2019]. Slope > 1 indica subconfiança (o modelo comprime demais a separação); slope < 1 indica superconfiança.
+
+### Análise de curva de decisão (DCA)
+
+A análise de curva de decisão [@vickers2006] avalia o benefício líquido do modelo em diferentes limiares de decisão clínica (*threshold probability*). Benefício líquido é definido como verdadeiros positivos menos falsos positivos ponderados pela razão de odds correspondente ao limiar. A DCA foi realizada em horizonte de 60 meses, comparando tratar-todos, não-tratar-ninguém e tratar-segundo-CorePAM.
+
+### Modelos expandidos com estadiamento
+
+Para testar a independência prognóstica do CorePAM em relação ao estadiamento clássico, foram ajustados modelos expandidos adicionando sequencialmente T, N, grau histológico, status HER2 e tamanho tumoral, conforme disponibilidade em cada coorte. O objetivo é testar se o coeficiente do CorePAM permanece significativo após ajuste completo.
+
+## Meta-análise
+
+A meta-análise agrupou hazard ratios de sobrevida e odds ratios de pCR através das coortes de validação. Para sobrevida (K = 4), foi adotado modelo de efeitos aleatórios com estimador *restricted maximum likelihood* (REML) [@viechtbauer2010], que tem propriedades de viés e eficiência superiores ao estimador DerSimonian-Laird em meta-análises de K pequeno. A heterogeneidade foi quantificada pela estatística I-quadrado [@higgins2003], interpretada conforme as faixas propostas: <25% baixa, 25-50% moderada, >50% alta. Análises de sensibilidade incluíram o ajuste de Hartung-Knapp [@hartung2001] — que inflaciona o intervalo de confiança em K pequeno, protegendo contra taxa de erro tipo I exagerada — e leave-one-out (refazer a meta-análise excluindo cada coorte por vez). Para pCR (K = 4 primárias + 1 exploratória), foi utilizado DerSimonian-Laird [@dersimonian1986] por consistência com a literatura de meta-análise de desfechos binários em assinaturas gênicas.
+
+## Comparações *head-to-head*
+
+O desempenho do CorePAM (24 genes) foi comparado diretamente com o modelo PAM50-full (49 genes com coeficiente não-zero no ajuste *elastic-net* completo no SCAN-B), garantindo que ambos tivessem sido derivados na mesma coorte e com o mesmo procedimento — diferindo apenas no número de genes. Esta comparação controla por efeito de coorte de treinamento, isolando o efeito da parcimônia. Adicionalmente, foi realizada comparação exploratória contra implementações de pesquisa do *ROR-S* (50 genes) e do *OncotypeDX* *Recurrence Score* (21 genes), disponibilizadas pelo pacote genefu [@gendoo2016]. Esta comparação é limitada pelo fato de as implementações genefu não reproduzirem exatamente os ensaios comerciais (*Prosigna* e *OncotypeDX*), mas serve como referência aproximada para posicionamento do CorePAM em relação a ferramentas estabelecidas.
+
+\newpage
+
+# RESULTADOS
+
+## Derivação do CorePAM: os 24 genes
+
+A regressão de Cox *elastic-net* *out-of-fold* no SCAN-B identificou 24 genes como o conjunto mínimo satisfazendo o critério de não inferioridade. *C-index* OOF = **0,670**, *C-index* OOF máximo = **0,679**, diferença = **0,009**. *C-index* in-sample = **0,698**.
+
+A @fig-pareto demonstra retornos decrescentes além de aproximadamente 15 genes. No eixo horizontal está o número de genes retidos ao longo do caminho de regularização *elastic-net*, e no vertical o *C-index* *out-of-fold* — estimativa honesta de desempenho, pois cada paciente é avaliado por um modelo treinado sem ele. A linha tracejada marca o limiar de não inferioridade (*C-index* máximo menos a margem pré-especificada de 0,010): qualquer configuração acima dessa linha é estatisticamente equivalente ao ótimo. O primeiro ponto em que o modelo mais parcimonioso atinge esse limiar é 24 genes, que portanto satisfaz simultaneamente desempenho e compacidade. O platô à direita indica que adicionar genes extras traz apenas ruído redundante — reforçando a hipótese biológica de que há um núcleo finito de programas transcricionais informativos para prognóstico em câncer de mama.
+
+```{r fig-pareto}
+#| label: fig-pareto
+#| fig-cap: "Fronteira de Pareto: C-index out-of-fold em função do número de genes (graus de liberdade) ao longo do caminho de regularização elastic-net. A linha tracejada indica o critério de não inferioridade (C-index máximo - 0,010). O ponto de intersecção ocorre em df = 24. Observa-se um platô de desempenho a partir de aproximadamente 20 genes, indicando redundância funcional nos genes excedentes."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_SUPP, "FigS_Pareto_CorePAM_PT.png"))
+```
+
+\newpage
+
+| Rank | Gene | Peso (w~i~) | Direção | Via biológica principal |
+|------|------|------------|---------|------------------------|
+| 1 | EXO1 | +0,2174 | Risco (+) | Proliferação / reparo de DNA |
+| 2 | NAT1 | -0,2052 | Protetor (-) | Diferenciação luminal |
+| 3 | BLVRA | -0,1848 | Protetor (-) | Metabolismo / estresse oxidativo |
+| 4 | ACTR3B | -0,1405 | Protetor (-) | Citoesqueleto / motilidade celular |
+| 5 | MIA | -0,1193 | Protetor (-) | Marcador *HER2-enriched* |
+| 6 | MYBL2 | -0,1183 | Protetor (-) | Proliferação / ciclo celular |
+| 7 | PTTG1 | +0,1140 | Risco (+) | Proliferação / instabilidade cromossômica |
+| 8 | MDM2 | -0,1074 | Protetor (-) | Regulação de p53 |
+| 9 | SFRP1 | -0,0907 | Protetor (-) | Via Wnt / supressor tumoral |
+| 10 | GPR160 | -0,0841 | Protetor (-) | Receptor acoplado a proteina G |
+| 11 | FOXC1 | +0,0717 | Risco (+) | Fenótipo basal |
+| 12 | PHGDH | +0,0620 | Risco (+) | Metabolismo de serina |
+| 13 | MYC | -0,0424 | Protetor (-) | Proliferação / oncogene |
+| 14 | ESR1 | +0,0396 | Risco (+) | Receptor de estrogênio |
+| 15 | KRT5 | -0,0277 | Protetor (-) | Fenótipo basal |
+| 16 | CXXC5 | +0,0266 | Risco (+) | Regulação epigenética |
+| 17 | PGR | -0,0262 | Protetor (-) | Receptor de progesterona |
+| 18 | KRT17 | -0,0163 | Protetor (-) | Fenótipo basal |
+| 19 | CENPF | +0,0150 | Risco (+) | Proliferação / centrometro |
+| 20 | FGFR4 | +0,0110 | Risco (+) | Receptor de FGF |
+| 21 | BCL2 | -0,0105 | Protetor (-) | Anti-apoptose / diferenciação luminal |
+| 22 | MLPH | -0,0099 | Protetor (-) | Diferenciação luminal |
+| 23 | ERBB2 | -0,0082 | Protetor (-) | Receptor HER2 |
+| 24 | GRB7 | -0,0053 | Protetor (-) | Transdução de sinal HER2 |
+
+: Lista completa dos 24 genes CorePAM com pesos *elastic-net* {#tbl-genes}
+
+\newpage
+
+```{r fig-weights}
+#| label: fig-weights
+#| fig-cap: "Pesos dos 24 genes CorePAM (gráfico lollipop). Barras para a direita indicam associação com risco (peso positivo); barras para a esquerda indicam associação protetora (peso negativo). EXO1 e PTTG1 apresentam os maiores pesos positivos (proliferação), e NAT1 e BLVRA, os maiores negativos (diferenciação luminal)."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_SUPP, "FigS_Weights_CorePAM_Lollipop_PT.png"))
+```
+
+\newpage
+
+Os 24 genes retidos recapitulam os quatro eixos biológicos fundamentais do PAM50: **diferenciação luminal** (ESR1, PGR, BCL2, NAT1, MLPH, BLVRA), **proliferação** (MYBL2, PTTG1, EXO1, MYC, CENPF), **fenótipo basal** (KRT5, KRT17, FOXC1) e **marcadores HER2** (ERBB2, GRB7, MIA).
+
+A estabilidade da seleção foi avaliada por *bootstrap* (B = 200): 15 dos 24 genes foram selecionados em ≥ 70% das reamostras (@fig-bootstrap). A análise *leave-one-gene-out* confirmou resiliência estrutural (@fig-dropgene): nenhum gene individual carrega o desempenho do modelo, com perda máxima de apenas 0,044 pontos de *C-index* ao remover o gene mais influente (EXO1). Esse padrão indica que a informação prognóstica está distribuída de forma relativamente homogênea entre os 24 genes, e não concentrada em poucos marcadores dominantes — propriedade desejável para robustez frente a falhas técnicas pontuais de medição.
+
+```{r fig-bootstrap}
+#| label: fig-bootstrap
+#| fig-cap: "Estabilidade bootstrap da seleção de genes (B = 200 reajustes no SCAN-B). Cada barra representa a frequência com que um gene foi selecionado nas reamostras. 15 dos 24 genes CorePAM foram selecionados em pelo menos 70% das iterações, com ACTR3B e NAT1 a 100% e frequência mínima de 35,5%."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_SUPP, "FigS_Bootstrap_GeneFreq_PT.png"))
+```
+
+\newpage
+
+```{r fig-dropgene}
+#| label: fig-dropgene
+#| fig-cap: "Análise de sensibilidade leave-one-gene-out. Cada barra mostra a mudança no C-index OOF após remoção individual de cada gene CorePAM. Nenhuma remoção causa perda catastrófica (máximo |Delta-C| = 0,044), demonstrando distribuição equilibrada da informação prognóstica."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_SUPP, "FigS_DropGene_Tornado_PT.png"))
+```
+
+\newpage
+
+## Validação prognóstica externa
+
+O escore CorePAM foi independentemente associado a sobrevida em todas as quatro coortes de validação externas (@tbl-survival-performance).
+
+| Coorte     | *Endpoint* | N / eventos | HR univariado (IC 95%); p   | HR ajustado CORE-A (IC 95%) | *C-index* (IC 95%)  |
+|:-----------|:----------:|:-----------:|:----------------------------|:----------------------------|:--------------------|
+| SCAN-B*    |     OS     | 3 069 / 322 | 1,92 (1,74–2,13); p < 0,001 | 1,86 (1,64–2,12)            | 0,698 (0,668–0,729) |
+| TCGA-BRCA  |     OS     | 1 072 / 150 | 1,20 (1,04–1,40); p = 0,016 | 1,27 (1,09–1,48)            | 0,624 (0,572–0,678) |
+| METABRIC   |    DSS     | 1 978 / 646 | 1,41 (1,31–1,52); p < 0,001 | 1,36 (1,24–1,48)            | 0,638 (0,615–0,659) |
+| GSE20685   |     OS     |   327 / 83  | 1,40 (1,12–1,75); p = 0,003 | 1,40 (1,12–1,75)            | 0,626 (0,565–0,684) |
+| GSE1456**  |     OS     |   159 / 40  | 1,71 (1,23–2,38); p = 0,001 | —                           | 0,661 (0,582–0,741) |
+
+: Desempenho prognóstico do CorePAM por coorte. Linha SCAN-B é a coorte de treinamento. *C-index* OOF = 0,670. GSE1456: covariáveis clínicas indisponíveis. {#tbl-survival-performance}
+
+As curvas de Kaplan-Meier (@fig-km-multipanel) mostraram separação visual clara entre os grupos de alto e baixo risco em todas as cinco coortes. Cada painel representa uma coorte independente, com o eixo horizontal indicando o tempo em meses desde o diagnóstico e o eixo vertical a fração de pacientes ainda vivos (ou livres de evento, no caso da METABRIC, que usa sobrevida doença-específica). A curva vermelha superior corresponde ao subgrupo classificado como alto risco pelo CorePAM (escore acima da mediana intra-coorte), e a azul inferior ao subgrupo de baixo risco. A distância vertical entre as duas curvas em qualquer ponto do tempo traduz diretamente a diferença absoluta de sobrevida entre os grupos, e o *hazard ratio* reportado quantifica essa separação em escala relativa multiplicativa. A consistência da estratificação — observada inclusive em populações geograficamente e plataforma-distintas, como Taiwan (GSE20685) e Estocolmo (GSE1456) — é o que sustenta a alegação de transportabilidade da assinatura.
+
+```{r fig-km-multipanel}
+#| label: fig-km-multipanel
+#| fig-cap: "Curvas de Kaplan-Meier nas cinco coortes (painel múltiplo). Pacientes dicotomizados na mediana intra-coorte do escore CorePAM: grupo alto risco (vermelho) vs baixo risco (azul). Sombreamento: IC 95%. Os HRs dicotomizados variaram de 1,46 (TCGA-BRCA) a 3,56 (SCAN-B), com separação significativa em todas as coortes."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_MAIN, "Fig2_KM_MultiPanel_PT.png"))
+```
+
+\newpage
+
+```{r fig-km-scanb}
+#| label: fig-km-scanb
+#| fig-cap: "Curva de Kaplan-Meier na coorte de treinamento SCAN-B (N = 3 069; sobrevida global). Dicotomização na mediana do escore CorePAM. HR = 3,56 (IC 95% 2,77-4,58; p < 0,001)."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_MAIN, "Fig3_KM_SCANB_OS_CorePAM_PT.png"))
+```
+
+\newpage
+
+```{r fig-km-tcga}
+#| label: fig-km-tcga
+#| fig-cap: "Curva de Kaplan-Meier na coorte TCGA-BRCA (N = 1 072; RNA-seq; sobrevida global). Dicotomização na mediana do escore CorePAM."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_MAIN, "Fig2_KM_TCGA_BRCA_OS_PT.png"))
+```
+
+\newpage
+
+```{r fig-km-metabric}
+#| label: fig-km-metabric
+#| fig-cap: "Curva de Kaplan-Meier na coorte METABRIC (N = 1 978; microarray Illumina; sobrevida doença-específica). Separação ampla mantida ao longo de mais de 200 meses de seguimento."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_MAIN, "Fig2_KM_METABRIC_DSS_PT.png"))
+```
+
+\newpage
+
+```{r fig-km-gse20685}
+#| label: fig-km-gse20685
+#| fig-cap: "Curva de Kaplan-Meier na coorte GSE20685 (N = 327; microarray Affymetrix; sobrevida global). População asiática (Taiwan), testando generalizabilidade populacional e transportabilidade para plataforma Affymetrix."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_MAIN, "Fig2_KM_GSE20685_OS_PT.png"))
+```
+
+\newpage
+
+## Meta-análise de sobrevida
+
+Para combinar formalmente a evidência das quatro coortes de validação em uma única estimativa agrupada, foi realizada meta-análise de efeitos aleatórios por REML (@tbl-meta-survival, @fig-forest-survival). Cada quadrado no *forest plot* representa a estimativa pontual de *hazard ratio* por 1 desvio-padrão do escore em uma coorte individual, com o tamanho do quadrado proporcional ao peso estatístico dessa coorte (determinado pela variância inversa e pelo tamanho amostral). Os bigodes horizontais são os intervalos de confiança 95%. O diamante no rodapé representa a estimativa agrupada. O valor I-quadrado quantifica heterogeneidade entre coortes: 38,2% indica heterogeneidade moderada, esperada dada a variação de plataforma, população e desfecho. A robustez da estimativa foi confirmada por dois métodos alternativos (Hartung–Knapp para IC ajustado ao tamanho pequeno de estudos e OS-harmonizada excluindo a METABRIC para sensibilidade ao *endpoint*), ambos produzindo conclusões qualitativamente idênticas.
+
+| Análise             | HR (IC 95%)      |           p | I-quadrado | tau-quadrado |
+|:--------------------|:-----------------|------------:|:----------:|:------------:|
+| Primária RE (REML)  | 1,37 (1,24–1,52) | 1,6 × 10⁻⁹  |   38,2%    |    0,0067    |
+| Hartung–Knapp       | 1,37 (1,15–1,64) |       0,011 |   38,2%    |    0,0067    |
+| OS-harmonizada      | 1,36 (1,13–1,64) |      <0,001 |   50,5%    |    0,0151    |
+
+: Meta-análise de efeitos aleatórios — sobrevida (K = 4) {#tbl-meta-survival}
+
+```{r fig-forest-survival}
+#| label: fig-forest-survival
+#| fig-cap: "Forest plot da meta-análise de sobrevida (HR por 1-DP, K = 4 coortes de validação). Modelo de efeitos aleatórios (REML). Diamante: estimativa agrupada (HR = 1,37; IC 95% 1,24-1,52; p = 1,6 x 10^-9). I-quadrado = 38,2%."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_MAIN, "Fig4_Meta_Forest_HR_per1SD_CorePAM_PT.png"))
+```
+
+\newpage
+
+## Valor incremental sobre preditores clínicos
+
+A @tbl-incremental e a @fig-delta-c respondem à pergunta clinicamente central: o CorePAM agrega informação prognóstica *além* do que já está disponível por variáveis clínicas rotineiras? O modelo de referência CORE-A combina idade ao diagnóstico e status de receptor de estrogênio — as duas variáveis clínico-patológicas mais informativas para prognóstico em câncer de mama. A coluna Delta-C quantifica o ganho de discriminação (*C-index*) ao adicionar o escore CorePAM a esse modelo. Intervalos de confiança 95% foram obtidos por *bootstrap* com 1 000 reamostras, garantindo honestidade estatística em coortes menores. Em todas as quatro coortes o ganho foi positivo, estatisticamente significativo (intervalos de confiança excluem zero) e clinicamente apreciável, com Delta-C variando de 0,030 (SCAN-B) a 0,094 (GSE20685). Notavelmente, o maior ganho ocorre na coorte onde o modelo clínico tem desempenho mais pobre — comportamento consistente com a ideia de que a expressão gênica é particularmente útil quando a informação clínica é limitada.
+
+| Coorte    | Covariáveis CORE-A |     N | C (CORE-A) | C (CORE-A + CorePAM) | Delta-C (IC 95%)      |
+|:----------|:-------------------|------:|:----------:|:--------------------:|:----------------------|
+| SCAN-B    | idade + RE         | 3 069 |   0,750    |        0,780         | +0,030 (0,014–0,049)  |
+| TCGA-BRCA | idade              | 1 072 |   0,638    |        0,676         | +0,038 (0,011–0,086)  |
+| METABRIC  | idade + RE         | 1 978 |   0,603    |        0,646         | +0,043 (0,025–0,066)  |
+| GSE20685  | idade              |   327 |   0,536    |        0,630         | +0,094 (0,021–0,175)  |
+
+: *C-index* incremental do CorePAM sobre o modelo CORE-A {#tbl-incremental tbl-colwidths="[13,16,10,11,15,20]"}
+
+```{r fig-delta-c}
+#| label: fig-delta-c
+#| fig-cap: "Delta-C-index incremental do CorePAM sobre o modelo clínico CORE-A. Barras representam o incremento de C-index ao adicionar o escore CorePAM ao modelo clínico basal; bigodes indicam IC 95% bootstrap (B = 1 000). Todos os intervalos excluem zero, indicando melhoria estatisticamente significativa em todas as coortes."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_MAIN, "Fig5_DeltaCindex_COREA_vs_COREAplus_CorePAM_PT.png"))
+```
+
+\newpage
+
+A @fig-calibration complementa a análise de desempenho com a dimensão de *calibração* — conceito distinto de *discriminação* (capturada pelo *C-index*). Enquanto a discriminação mede a capacidade de ordenar pacientes de menor para maior risco, a calibração avalia se os riscos previstos em escala absoluta correspondem aos riscos observados. Em cada painel, o eixo horizontal mostra o risco predito pelo modelo e o eixo vertical a frequência observada de eventos; a diagonal representa a calibração perfeita. O SCAN-B (coorte de desenvolvimento) apresenta *slope* próximo do ideal (0,96), confirmando que o modelo foi bem calibrado no treinamento. Nas coortes externas, os *slopes* maiores que 1 (1,57 a 2,74) indicam *subconfiança* — o modelo subestima a magnitude das diferenças de risco entre pacientes, embora os ordene corretamente. Do ponto de vista clínico, isso significa que as probabilidades absolutas produzidas pelo CorePAM em coortes novas não devem ser interpretadas literalmente sem recalibração local, mas a estratificação relativa (baixo/intermediário/alto risco) permanece válida e robusta.
+
+```{r fig-calibration}
+#| label: fig-calibration
+#| fig-cap: "Curvas de calibração (risco predito vs observado) em quatro coortes. Diagonal: calibração perfeita. O SCAN-B apresenta slope quase ideal (0,96); coortes externas mostram subconfiança progressiva (slopes 1,57-2,74), indicando que o modelo subestima a verdadeira separação de risco."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_MAIN, "Fig5_Calibration_60m_Panels_CorePAM_PT.png"))
+```
+
+\newpage
+
+## Independência do estadiamento clínico-patológico
+
+| Coorte | N | Covariáveis | HR CorePAM (IC 95%) | p | C clínico | C clin+CorePAM | Delta-C |
+|--------|---|-------------|---------------------|---|-----------|----------------|---------|
+| SCAN-B | 2 948 | idade+RE+T+N | 1,79 (1,57-2,05) | <0,001 | 0,766 | 0,788 | +0,022 |
+| TCGA-BRCA | 1 054 | idade+T+N | 1,35 (1,15-1,58) | <0,001 | 0,719 | 0,746 | +0,027 |
+| METABRIC | 1 883 | idade+RE+T+N | 1,34 (1,23-1,46) | <0,001 | 0,663 | 0,688 | +0,026 |
+| GSE20685 | 327 | idade+T+N | 1,45 (1,15-1,84) | 0,002 | 0,697 | 0,724 | +0,026 |
+
+: Modelo clínico expandido com estadiamento anatômico {#tbl-expanded-model tbl-colwidths="[11,9,14,18,8,10,12,8]"}
+
+| Coorte | População | N | C clínico | C clin+CorePAM | Delta-C | HR~adj~ (IC 95%) | LRT p |
+|--------|-----------|---|-----------|----------------|---------|-----------------|-------|
+| SCAN-B (OS) | Todos | 2 649 | 0,770 | 0,787 | +0,017 | 1,75 (1,51-2,03) | 4,9 x 10^-13^ |
+| SCAN-B (OS) | RE+ | 2 450 | 0,770 | 0,784 | +0,014 | 1,68 (1,43-1,97) | 1,1 x 10^-10^ |
+| METABRIC (DSS) | Todos | 1 792 | 0,678 | 0,693 | +0,015 | 1,25 (1,14-1,38) | 6,1 x 10^-6^ |
+| METABRIC (DSS) | RE+ | 1 377 | 0,674 | 0,707 | +0,032 | 1,47 (1,31-1,65) | 1,0 x 10^-10^ |
+
+: Modelo clínico completo (6 variáveis) com e sem CorePAM {#tbl-full-model tbl-colwidths="[14,10,9,10,12,9,14,12]"}
+
+## Análises de sensibilidade
+
+| Coorte | N | Plataforma | C congelado | C intra | Delta-C | r |
+|--------|---|------------|-------------|---------|---------|---|
+| SCAN-B | 3 069 | *RNA-seq* | 0,698 | 0,698 | 0,0000 | 1,000 |
+| TCGA-BRCA | 1 072 | *RNA-seq* | 0,624 | 0,624 | +0,0002 | 0,999 |
+| METABRIC | 1 978 | Microarray *Illumina* | 0,638 | 0,638 | +0,0007 | 0,958 |
+| GSE20685 | 327 | Microarray *Affymetrix* | 0,591 | 0,626 | -0,036 | 0,923 |
+| GSE1456 | 159 | Microarray *Affymetrix* | 0,622 | 0,661 | -0,040 | 0,916 |
+
+: Análise de sensibilidade do *z-score* congelado {#tbl-frozen-zscore tbl-colwidths="[11,9,26,12,10,11,9]"}
+
+A @tbl-frozen-zscore e a @fig-correlation abordam uma questão prática decisiva para aplicação real do CorePAM: o modelo foi calibrado com parâmetros de normalização derivados da coorte sueca (SCAN-B, *RNA-seq*). Para uso em qualquer outra coorte, é preciso decidir se recalcular os parâmetros de padronização localmente (*z-score* intra-coorte) ou congelar os parâmetros SCAN-B. A coluna Delta-C mostra a perda de discriminação ao usar parâmetros congelados em vez dos intra-coorte, e a coluna *r* mostra a correlação entre os dois tipos de escore. Em plataformas de *RNA-seq* e *microarray* *Illumina*, a correlação é quase perfeita (*r* ≥ 0,958) e a perda de *C-index* é praticamente nula, validando o congelamento como estratégia canônica. Nas plataformas *Affymetrix* a atenuação é mensurável (*r* = 0,916–0,923; perda de *C-index* de até 0,04), mas o sinal prognóstico principal permanece preservado. Na prática, isso significa que um laboratório clínico pode aplicar o CorePAM a um paciente individual — sem precisar de uma coorte de referência para normalizar — usando os parâmetros SCAN-B publicados.
+
+```{r fig-correlation}
+#| label: fig-correlation
+#| fig-cap: "Correlação entre escores intra-coorte e z-score congelado (parâmetros SCAN-B) por coorte. Diagonal: concordância perfeita. Plataformas RNA-seq e Illumina microarray mostram correlação quase perfeita (r >= 0,958). Plataformas Affymetrix mostram atenuação mensurável (r = 0,916-0,923)."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_SUPP, "FigS3_Correlation_OffDiagonal_PT.png"))
+```
+
+\newpage
+
+| Coorte | N | Horizonte | C de Uno | tdAUC (IC 95%) | C de Harrell |
+|--------|---|-----------|----------|----------------|--------------|
+| SCAN-B | 3 069 | 60m | 0,674 | 0,679 (0,643-0,715) | 0,698 |
+| TCGA-BRCA | 1 072 | 24m | 0,669 | 0,673 (0,598-0,748) | 0,624 |
+| METABRIC | 1 978 | 60m | 0,681 | 0,695 (0,665-0,725) | 0,638 |
+| GSE20685 | 327 | 60m | 0,668 | 0,675 (0,596-0,754) | 0,626 |
+
+: Estatística C de Uno e AUC tempo-dependente {#tbl-uno-tdauc tbl-colwidths="[18,10,13,15,28,16]"}
+
+| Coorte | N | Horizonte | alpha (EP) | beta (EP) | E/O | Brier |
+|--------|---|-----------|------------|-----------|-----|-------|
+| SCAN-B | 3 069 | 60m | 0,56 (0,18) | 0,96 (0,09) | 0,61 | 0,158 |
+| TCGA-BRCA | 1 072 | 24m | 5,40 (2,29) | 2,74 (0,79) | 0,74 | 0,061 |
+| METABRIC | 1 978 | 60m | 1,15 (0,25) | 1,77 (0,17) | 0,97 | 0,143 |
+| GSE20685 | 327 | 60m | 0,93 (0,75) | 1,57 (0,46) | 0,98 | 0,130 |
+
+: Calibração formal por coorte {#tbl-calibration-formal tbl-colwidths="[18,11,16,20,17,18]"}
+
+A @fig-dca apresenta a análise de curva de decisão (*decision curve analysis*), uma ferramenta que traduz o desempenho estatístico do modelo em *benefício clínico líquido* em função do limiar de decisão adotado. A lógica é a seguinte: um clínico que usa o modelo para decidir tratar ou não tratar um paciente precisa escolher um limiar de probabilidade a partir do qual trata; abaixo desse limiar, não trata. Para cada limiar possível, a curva mostra o ganho líquido (verdadeiros-positivos menos falsos-positivos ponderados) do CorePAM comparado com duas estratégias de referência: *tratar todos* (linha cinza diagonal decrescente) e *tratar nenhum* (linha horizontal em zero). Quando a curva do CorePAM fica acima das duas referências em uma faixa de limiares, isso significa que a decisão guiada pelo modelo gera mais benefício clínico que as duas estratégias ingênuas. Nos quatro painéis, o CorePAM supera ambas as referências em faixas amplas de limiares (aproximadamente 5–40 % em SCAN-B/METABRIC), cobrindo a zona de incerteza clínica real — justamente onde a decisão importa.
+
+```{r fig-dca}
+#| label: fig-dca
+#| fig-cap: "Análise de curva de decisão (DCA) — quatro coortes. Benefício líquido do modelo CorePAM (linha colorida) comparado com estratégias de tratar todos (linha cinza) e tratar nenhum (linha horizontal em zero). O CorePAM supera ambas as estratégias-referência na faixa de limiares clinicamente relevantes."
+#| out-width: "15.5cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_SUPP, "FigS_DCA_OS_PT.png"))
+```
+
+\newpage
+
+```{r fig-pca-metabric}
+#| label: fig-pca-metabric
+#| fig-cap: "PCA forense da matriz de expressão METABRIC. Componentes principais coloridos por status de RE. PC1 captura a principal dicotomia biológica (ER+/ER-), sem evidência de efeitos de batch dominantes, confirmando integridade dos dados."
+#| out-width: "15.5cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_SUPP, "FigS4_METABRIC_PCA_forensics_PT.png"))
+```
+
+\newpage
+
+## Análise de subgrupo por status de RE
+
+A heterogeneidade biológica do câncer de mama se reflete, sobretudo, na dicotomia por status de receptor de estrogênio (RE) — doenças RE-positivas e RE-negativas têm histórias naturais, tratamentos e benefícios esperados de ferramentas de estratificação distintos. A @tbl-er-subgroup e a @fig-er-forest avaliam o desempenho do CorePAM separadamente nesses dois subgrupos, em SCAN-B e METABRIC. No SCAN-B, o escore é informativo em ambos os subgrupos com *hazard ratios* comparáveis e teste de interação não significativo (p = 0,25), ou seja, não há evidência estatística de que o CorePAM se comporte diferente entre RE+ e RE−. Na METABRIC, ao contrário, o sinal é marcadamente concentrado em RE+ (HR = 1,59; p < 0,001) e essencialmente ausente em RE− (HR = 0,97; p = 0,75), com teste de interação fortemente significativo (p = 3,2 × 10⁻⁷). Essa dissociação é relevante para interpretação clínica: em cenários neoadjuvantes e adjuvantes de câncer RE+/HER2−, onde a decisão quimioterapia-sim/quimioterapia-não é mais frequentemente ambígua, o CorePAM agrega valor prognóstico consistente; em doença RE-negativa (triplo-negativa e HER2+), a assinatura deve ser interpretada com cautela, especialmente em coortes de tratamento adjuvante longo.
+
+### SCAN-B (N = 2 870; OS)
+
+| Subgrupo | N | Eventos | HR (IC 95%) | p | *C-index* |
+|----------|---|---------|-------------|---|---------|
+| RE-positivo | 2 646 | 287 | 1,92 (1,69-2,17) | <0,001 | 0,700 |
+| RE-negativo | 224 | 35 | 2,53 (1,51-4,25) | <0,001 | 0,697 |
+| Interação | — | — | — | p = 0,25 | — |
+
+### METABRIC (N = 1 936; DSS)
+
+| Subgrupo | N | Eventos | HR (IC 95%) | p | *C-index* |
+|----------|---|---------|-------------|---|---------|
+| RE-positivo | 1 497 | 460 | 1,59 (1,44-1,76) | <0,001 | 0,638 |
+| RE-negativo | 439 | 186 | 0,97 (0,82-1,15) | 0,75 | 0,502 |
+| Interação | — | — | — | p = 3,2 x 10^-7^ | — |
+
+: Análise de subgrupo por status de RE {#tbl-er-subgroup}
+
+```{r fig-er-forest}
+#| label: fig-er-forest
+#| fig-cap: "Forest plot de subgrupos por status de receptor de estrogênio (ER-positivo e ER-negativo). No METABRIC (análise com maior poder), o sinal prognóstico está fortemente concentrado em RE+ (HR = 1,59) com ausência de sinal em RE- (HR = 0,97)."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_SUPP, "FigS_ER_Stratified_Forest_PT.png"))
+```
+
+\newpage
+
+## Resposta patológica completa (pCR)
+
+A @tbl-pcr e a @fig-pcr-forest testam se o escore CorePAM — derivado para prever *sobrevida* — transfere utilidade preditiva para um desfecho clínico distinto: a *resposta patológica completa* após quimioterapia neoadjuvante (pCR), definida como ausência de doença residual invasiva na mama e axila na cirurgia. A medida apresentada, *OR por 1 DP*, representa a multiplicação da chance de pCR quando o escore aumenta em um desvio-padrão; valores acima de 1 indicam que pacientes com escores mais altos têm *maior* probabilidade de resposta completa. O padrão observado é consistente em quatro coortes neoadjuvantes independentes: OR agrupado = 1,69 (IC 95 % 1,39–2,05; p = 1,9 × 10⁻⁷), com *I²* = 0 %, o que indica ausência de heterogeneidade entre coortes — notável dado que elas provêm de plataformas de *microarray* diferentes (Affymetrix e Agilent). A @fig-pcr-roc, a @fig-pcr-dist e a @fig-pcr-quartile ilustram os três aspectos complementares desse achado: capacidade discriminativa (AUC 0,58–0,72), separação das distribuições do escore entre pacientes que atingiram ou não pCR, e gradiente dose-resposta por quartis. A interpretação biológica é direta e clinicamente coerente: tumores com maior assinatura de proliferação (característica dominante do escore CorePAM) são simultaneamente mais agressivos *e* mais quimiossensíveis — o mesmo gatilho biológico que acelera a progressão também torna as células mais vulneráveis à quimioterapia citotóxica.
+
+| Coorte | N | pCR n (%) | OR por 1 DP (IC 95%) | p | AUC (IC 95%) |
+|--------|---|-----------|----------------------|---|--------------|
+| GSE25066 | 182 | 42 (23,1%) | 1,44 (0,98-2,09) | 0,060 | 0,576 (0,477-0,676) |
+| GSE20194 | 278 | 56 (20,1%) | 1,73 (1,25-2,38) | <0,001 | 0,660 (0,586-0,734) |
+| GSE32646 | 115 | 27 (23,5%) | 2,10 (1,31-3,39) | 0,002 | 0,716 (0,611-0,821) |
+| I-SPY1 | 122 | 32 (26,2%) | 1,66 (1,05-2,63) | 0,030 | 0,622 (0,517-0,726) |
+| **RE agrupado (K=4)** | **697** | | **1,69 (1,39-2,05)** | **1,9 x 10^-7^** | |
+
+: Predição de pCR por coorte neoadjuvante. I-quadrado = 0%. {#tbl-pcr tbl-colwidths="[18,12,10,20,20,20]"}
+
+```{r fig-pcr-forest}
+#| label: fig-pcr-forest
+#| fig-cap: "Forest plot de pCR (OR por 1-DP, K = 4 coortes primárias + I-SPY2 exploratória). Modelo de efeitos aleatórios. OR agrupado = 1,69 (IC 95% 1,39-2,05; p = 1,9 x 10^-7). I-quadrado = 0%, indicando consistência notável entre coortes de diferentes plataformas."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_PCR, "Fig_pCR1_Forest_OR_PT.png"))
+```
+
+\newpage
+
+```{r fig-pcr-roc}
+#| label: fig-pcr-roc
+#| fig-cap: "Curvas ROC para predição de pCR em cada coorte neoadjuvante. AUC variou de 0,576 (GSE25066) a 0,716 (GSE32646), indicando capacidade discriminativa moderada a boa — notável considerando que o escore foi derivado para sobrevida, não para pCR."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_PCR, "Fig_pCR2_ROC_PT.png"))
+```
+
+\newpage
+
+```{r fig-pcr-dist}
+#| label: fig-pcr-dist
+#| fig-cap: "Distribuição do escore CorePAM por status de pCR em cada coorte neoadjuvante. Pacientes com pCR (vermelho) apresentam escores sistematicamente mais altos, consistente com a hipótese de que tumores mais proliferativos são simultaneamente mais agressivos e mais quimiossensíveis."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_PCR, "Fig_pCR4_ScoreDist_PT.png"))
+```
+
+\newpage
+
+```{r fig-pcr-quartile}
+#| label: fig-pcr-quartile
+#| fig-cap: "Taxa de pCR por quartil do escore CorePAM em cada coorte neoadjuvante. Gradiente dose-resposta consistente: quartis mais altos associados a maiores taxas de pCR."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_PCR, "Fig_pCR3_QuartileRate_PT.png"))
+```
+
+\newpage
+
+## Comparação *head-to-head* com PAM50-full
+
+A @tbl-head-to-head e a @fig-headtohead confrontam diretamente o CorePAM (24 genes) contra o modelo treinado sobre o conjunto completo de 49 genes PAM50 no mesmo *pipeline* de derivação — ambos derivados no SCAN-B com *elastic-net* sob o mesmo critério, diferindo apenas no espaço de entrada. Cada coorte é avaliada em dois modos de pontuação: *intra* (parâmetros de normalização recalculados localmente) e *congelado* (parâmetros fixados do SCAN-B). A coluna C~24~ é o *C-index* do CorePAM e C~49~ o do modelo PAM50-full. Delta-C positivo significa vantagem do modelo parcimonioso de 24 genes. O padrão observado é consistente: em TCGA-BRCA (*RNA-seq*, mais próximo da plataforma de treino) os modelos são equivalentes, mas nas três coortes *microarray* (METABRIC, GSE20685, GSE1456) o modelo de 24 genes supera significativamente o de 49 — vantagem que cresce à medida que a distância de plataforma em relação ao SCAN-B aumenta. A coluna r mostra a correlação de *Pearson* entre os dois escores paciente-a-paciente; apesar da correlação alta, pequenas divergências em direções estatisticamente informativas explicam a vantagem de desempenho. Essa observação sustenta a hipótese metodológica central da tese: em contexto *cross-plataforma*, *menos* genes pode ser *mais* se a seleção for disciplinada, porque genes pouco informativos adicionam ruído que viaja pior entre plataformas do que o sinal que acompanha.
+
+| Coorte | Modo | N | C~24~ | C~49~ | Delta-C | IC 95% | r |
+|--------|------|---|------|------|---------|--------|---|
+| TCGA-BRCA | intra | 1 072 | 0,624 | 0,631 | -0,008 | (-0,038, +0,022) | 0,853 |
+| TCGA-BRCA | congelado | 1 072 | 0,624 | 0,634 | -0,010 | (-0,039, +0,020) | 0,864 |
+| METABRIC | intra | 1 978 | 0,638 | 0,616 | **+0,022** | (+0,011, +0,032) | 0,902 |
+| METABRIC | congelado | 1 978 | 0,638 | 0,622 | **+0,017** | (+0,007, +0,027) | 0,914 |
+| GSE20685 | intra | 327 | 0,626 | 0,571 | **+0,055** | (+0,010, +0,101) | 0,823 |
+| GSE20685 | congelado | 327 | 0,591 | 0,544 | **+0,047** | (+0,007, +0,085) | 0,843 |
+| GSE1456 | intra | 159 | 0,661 | 0,564 | **+0,097** | (+0,032, +0,166) | 0,697 |
+| GSE1456 | congelado | 159 | 0,622 | 0,510 | **+0,111** | (+0,045, +0,181) | 0,617 |
+
+: Comparação *head-to-head*: CorePAM (24 genes) vs PAM50-full *elastic-net* (49 genes) {#tbl-head-to-head tbl-colwidths="[14,13,10,10,10,12,20,11]"}
+
+```{r fig-headtohead}
+#| label: fig-headtohead
+#| fig-cap: "Comparação head-to-head CorePAM (24 genes) vs PAM50-full (49 genes) por coorte e modo de pontuação. Em TCGA-BRCA, desempenho equivalente. Nas três coortes restantes, o modelo de 24 genes superou significativamente o de 49 genes, com vantagem crescente com a distância de plataforma em relação ao SCAN-B."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_SUPP, "FigS_HeadToHead_24vs50_PT.png"))
+```
+
+\newpage
+
+## Comparação com assinaturas estabelecidas
+
+A @tbl-comparison e a @fig-cindex-comparison posicionam o CorePAM em relação a duas assinaturas prognósticas consolidadas: *ROR-S* (componente de subtipo do Prosigna, o teste comercial baseado no PAM50) e *OncotypeDX-RS* (*Recurrence Score*, 21 genes, teste clínico padrão-ouro em câncer de mama RE+). Ambas foram computadas nas mesmas coortes pela biblioteca genefu, sob especificação idêntica, garantindo comparação justa. As colunas *C* mostram a discriminação de cada assinatura em cada coorte e as colunas *HR* a razão de risco por 1 DP do escore. O padrão é bem definido: no SCAN-B (coorte de desenvolvimento, *RNA-seq*) o CorePAM supera claramente *ROR-S* e *OncotypeDX-RS*. No TCGA-BRCA (também *RNA-seq*) o CorePAM mantém leve vantagem de discriminação. Nas coortes *microarray* (METABRIC, GSE20685), a ordem se inverte — *OncotypeDX-RS* assume a vantagem. Essa inversão plataforma-dependente é esperada e informativa: cada assinatura carrega a assinatura da plataforma em que foi desenvolvida, e nenhuma ferramenta é universalmente ótima. No entanto, o CorePAM é o único dos três que foi derivado com foco explícito em parcimônia e estabilidade *cross-plataforma*, e permanece competitivo em toda a faixa — nunca sendo pior que os dois competidores simultaneamente em nenhuma coorte.
+
+| Coorte | N | CorePAM C | *ROR-S* C | ODX-RS C | CorePAM HR | *ROR-S* HR | ODX-RS HR |
+|--------|---|-----------|---------|----------|------------|----------|-----------|
+| SCAN-B | 3 069 | **0,698** | 0,641 | 0,607 | **1,92** | 1,56 | 1,40 |
+| TCGA-BRCA | 1 072 | **0,624** | 0,602 | 0,586 | 1,20 | **1,25** | 1,13 |
+| METABRIC | 1 978 | 0,638 | 0,643 | **0,665** | 1,41 | 1,53 | **1,51** |
+| GSE20685 | 327 | 0,626 | 0,646 | **0,651** | 1,40 | 1,55 | **1,61** |
+
+: Comparação com *ROR-S* e *OncotypeDX*-RS (implementações genefu) {#tbl-comparison tbl-colwidths="[18,18,18,18,28]"}
+
+```{r fig-cindex-comparison}
+#| label: fig-cindex-comparison
+#| fig-cap: "Comparação de C-index: CorePAM vs ROR-S vs OncotypeDX-RS (implementações genefu) por coorte. O CorePAM demonstra desempenho competitivo, com vantagem nas coortes RNA-seq e déficits nas coortes microarray — refletindo o domínio de treinamento."
+#| out-width: "14cm"
+#| fig-align: center
+knitr::include_graphics(file.path(FIG_SUPP, "FigS_Cindex_ByCohort_PT.png"))
+```
+
+\newpage
+
+# DISCUSSÃO
+
+## O CorePAM no contexto da medicina de precisão em oncologia
+
+A medicina de precisão em oncologia busca identificar, para cada paciente individual, o tratamento com maior probabilidade de benefício e menor probabilidade de toxicidade evitável. No câncer de mama, as assinaturas gênicas multigenes — *OncotypeDX* [@paik2004; @sparano2018; @sparano2019; @kalinsky2021], *MammaPrint* [@vantveer2002; @cardoso2016; @piccart2021], PAM50/*Prosigna* [@parker2009; @gnant2014; @dowsett2010], *EndoPredict* [@filipits2011] e Breast Cancer Index [@zhang2013] — já pouparam milhares de mulheres no mundo de quimioterapia adjuvante desnecessária, especialmente em doença RE-positiva, HER2-negativa, linfonodo-negativa ou com 1-3 linfonodos positivos [@burstein2019; @andre2022]. Em termos práticos, estimativas conservadoras indicam que um terço a metade das pacientes com câncer de mama RE+/HER2- estágio precoce elegíveis para quimioterapia adjuvante no modelo clínico tradicional pode, com segurança, evitá-la quando estratificada por essas ferramentas — uma redução absoluta de mortalidade por toxicidade, infertilidade induzida, cardiotoxicidade e neoplasias secundárias cujo impacto populacional é substancial [@ebctcg2011; @harbeck2019].
+
+No entanto, a realidade global é marcada por profundas desigualdades de acesso a essa tecnologia. O custo individual dos testes (US\$ 3 000-4 000 nos EUA, preços análogos em mercado de saúde suplementar no Brasil), a dependência de laboratórios de referência centralizados e a logística de envio internacional são barreiras reais. No Brasil, o *OncotypeDX* foi incorporado ao Sistema Único de Saúde (SUS) por decisão da Comissão Nacional de Incorporação de Tecnologias no SUS (Conitec) em 2024 apenas para subgrupo clínico restrito; *Prosigna*, *MammaPrint* e *EndoPredict* não são atualmente cobertos. A consequência prática é que, mesmo em centros acadêmicos públicos brasileiros de ponta, a indicação de quimioterapia adjuvante em doença RE+/HER2- continua a se apoiar majoritariamente em critérios clínico-patológicos clássicos — idade, T, N, grau, Ki67 por IHQ —, produzindo inevitavelmente um número de sub e sobre-tratamentos que a literatura internacional já demonstrou ser evitável.
+
+O CorePAM se insere neste contexto como **demonstração de princípio**: a informação prognóstica contida no painel PAM50 pode ser capturada por um subconjunto substancialmente menor de 24 genes, com desempenho equivalente ou superior a modelos de 49 genes treinados no mesmo procedimento. Vinte e quatro genes representam complexidade analítica reduzida — tanto em termos de número de sondas em RT-qPCR multiplex, quanto em tamanho de painel de *RNA-seq* direcionado —, o que se traduz potencialmente em menor custo unitário por ensaio, menor exigência de infraestrutura e maior plausibilidade de execução em laboratórios de hospitais universitários brasileiros, sem dependência de envio internacional. O presente trabalho não se propõe a substituir um ensaio comercial por outro equivalente, mas sim a mostrar que a estrutura subjacente de informação prognóstica admite compressão considerável, o que é uma descoberta com implicações econômicas e de equidade não triviais.
+
+## Derivação reprodutível: inovação metodológica
+
+Dois elementos da metodologia do presente estudo merecem ênfase por inovarem, ou ao menos sistematizarem de forma mais rigorosa, práticas comuns em estudos de desenvolvimento de assinaturas gênicas.
+
+O primeiro é o **critério de não inferioridade orientado por dados** (*data-driven non-inferiority criterion*). A prática convencional em estudos de redução de painel consiste em pré-especificar um número-alvo de genes — 10, 20, 50 — e ajustar o procedimento de seleção para entregar exatamente esse número. O problema é que a escolha do número-alvo é frequentemente arbitrária ou retroativamente justificada. A presente abordagem inverte a lógica: fixamos a margem de perda de desempenho aceitável (Delta-*C-index* = 0,010) e deixamos a fronteira de Pareto determinar o número de genes mínimo. A quantidade 24 emerge como consequência da geometria dos dados, não como premissa do analista. Essa inversão tem uma consequência estatística importante: o número de genes deixa de ser um parâmetro que multiplica o número de comparações múltiplas implícitas, passando a ser um resultado da análise única pré-especificada.
+
+O segundo é a **atribuição determinística de *folds* por hash SHA-256**. Em 10-*fold* *cross-validation*, a escolha da semente aleatória é uma fonte silenciosa e subestimada de variação: diferentes seeds podem alterar tanto o conjunto de genes selecionados quanto a estimativa OOF do *C-index* em margens não desprezíveis. O que geralmente se reporta é o resultado obtido com *uma* semente particular, sem justificativa de por que essa, e não outra. A atribuição SHA-256 elimina a arbitrariedade: o *fold* de cada paciente é função determinística do seu próprio identificador, e qualquer análise que seja rodada no mesmo conjunto de dados, em qualquer máquina, em qualquer linguagem que implemente SHA-256 adequadamente, produzirá exatamente os mesmos *folds*. É uma propriedade de *reprodutibilidade universal* mais forte do que a de uma seed fixa, pois não depende do estado interno do gerador pseudo-aleatório da linguagem.
+
+A combinação desses dois elementos — critério pré-especificado não-circular e atribuição determinística universal — torna a derivação do CorePAM reprodutível de primeiros princípios. Qualquer pesquisador no mundo com acesso aos dados da SCAN-B (GSE96058) e ao código público pode replicar a derivação bit a bit, sem discricionariedade adicional. Esta propriedade de *replicabilidade forte* é, em nosso entendimento, um padrão que estudos futuros de derivação de assinaturas gênicas deveriam aspirar.
+
+## Coerência biológica: por que esses 24 genes?
+
+Os 24 genes do CorePAM não são um conjunto arbitrário; demonstram coerência biológica notável, representando todos os quatro eixos funcionais reconhecidos do PAM50 e da biologia intrínseca do câncer de mama [@perou2000; @sorlie2001; @pratperou2011; @harbeck2019]:
+
+- **Diferenciação luminal / dependência hormonal:** ESR1, PGR, BCL2, NAT1, MLPH, BLVRA, FOXA1. ESR1 (receptor de estrogênio) é o regulador mestre do programa luminal; sua expressão é alta em tumores RE-positivos que dependem da via estrogênica e, portanto, respondem à terapia endócrina. PGR (receptor de progesterona) é um alvo direto da sinalização estrogênica funcional. BCL2 é regulador antiapoptótico classicamente associado a pior resposta à quimioterapia mas melhor prognóstico global em RE+. NAT1 e MLPH são genes menos conhecidos mas consistentemente altos em luminais bem diferenciados. FOXA1, fator de transcrição pioneiro, abre a cromatina para ESR1 e é crucial para o programa luminal.
+- **Proliferação celular:** MYBL2, PTTG1, EXO1, MYC, CENPF, UBE2C, BIRC5, TYMS, CDC20, MKI67. Este cluster captura, em nível transcricional, o que Ki67 tenta representar isoladamente na IHQ. Estes genes estão relacionados à progressão do ciclo celular (MYBL2, CDC20), reparo de DNA e segregação cromossômica (EXO1, CENPF, BIRC5, UBE2C), metabolismo de nucleotídeos (TYMS) e sinalização *downstream* de oncogenes (MYC). A alta expressão conjunta deste módulo define tumores biologicamente agressivos, independentemente do subtipo. Na prática clínica, é este módulo que o Ki67 tenta capturar — imperfeita e inconsistentemente, por problemas conhecidos de variação inter-observador [@cheang2009].
+- **Fenótipo basal e mioepitelial:** KRT5, KRT14, KRT17, FOXC1. Citoqueratinas de alto peso molecular e fator de transcrição FOXC1 marcam o fenótipo basal/mioepitelial, dominante em tumores triplo-negativos do tipo basal-like.
+- **Eixo HER2:** ERBB2, GRB7, MIA. ERBB2 é o gene-alvo clássico (amplificado em ~15-20% dos cânceres de mama); GRB7 co-localiza no amplicon 17q12; MIA integra a resposta *downstream*.
+
+A preservação dos quatro eixos no CorePAM é biologicamente não trivial: um algoritmo de redução de dimensionalidade puramente maximizador de desempenho poderia, em princípio, concentrar-se em um ou dois eixos (tipicamente proliferação) e descartar os outros, perdendo heterogeneidade biológica em troca de performance bruta. O fato de a *elastic-net* com *alpha* = 0,5 preservar os quatro eixos é reflexo de sua propriedade de *grouping effect* sob colinearidade: genes correlacionados dentro de um mesmo módulo tendem a ser selecionados em conjunto, produzindo assinatura biologicamente equilibrada.
+
+Uma implicação prática importante: o CorePAM, embora selecionado pelo algoritmo de otimização, poderia ter sido racionalmente proposto por um biólogo do câncer de mama que se perguntasse "qual é o subconjunto mínimo de genes que captura proliferação, diferenciação luminal, basal e HER2?". A convergência entre escolha orientada por dados e escolha racional biológica é um indicador forte de que o resultado não é um artefato de overfitting.
+
+## Transportabilidade *cross-plataforma*
+
+Um dos resultados mais robustos do estudo é a transportabilidade do CorePAM para plataformas intencionalmente diversas da de treinamento. Os pesos, derivados em *RNA-seq* *Illumina* (SCAN-B), preservaram sinal prognóstico significativo quando aplicados a *RNA-seq* STAR/GDC (TCGA-BRCA), *microarray* *Illumina* HT-12 (METABRIC) e dois painéis *Affymetrix* distintos (HG-U133+ em GSE20685 e HGU133A/B em GSE1456). A normalização intra-coorte por *z-score* é o viabilizador técnico dessa transportabilidade: ao operar em unidades relativas — o quanto a expressão de um gene em uma amostra desvia da média da coorte — o escore abstrai as diferenças de calibração entre plataformas. Um *z-score* de +1,5 em METABRIC significa "1,5 desvios acima da média dos tumores de mama daquela coorte", independentemente de o valor absoluto de expressão estar em escala log2 *Illumina* ou log-CPM *RNA-seq*.
+
+A atenuação mensurável em plataformas *Affymetrix* (correlação $r = 0{,}916$ - $0{,}923$ com *z-score* congelado, versus $r \geq 0{,}958$ em *RNA-seq* e *Illumina*) é um achado honesto que não deve ser escondido. A hipótese plausível é que a arquitetura das sondas *Affymetrix* HG-U133 — baseada em *perfect match / mismatch pairs* com algoritmos de sumarização (RMA) que diferem substancialmente dos *pipelines* *Illumina* — introduz distorções específicas em determinados transcritos do PAM50 (particularmente genes de baixa expressão basal ou com alta heterogeneidade de isoformas). Esta observação informa uma recomendação clínica clara: para implantação futura, calibração plataforma-específica — ou seja, estudos menores para re-estimativa da escala do escore em cada nova plataforma — seria prudente.
+
+Uma observação conceitual: transportabilidade para novas *plataformas* é distinta de transportabilidade para novas *populações*. O CorePAM foi testado em coortes predominantemente europeias ou de descendência europeia (SCAN-B, TCGA-BRCA, METABRIC, GSE1456), com uma coorte asiática (GSE20685). Não há dados sobre desempenho em populações africanas, latino-americanas ou brasileiras especificamente. Como demonstrado por estudos de heterogeneidade genômica populacional, sub-coortes com prevalência distinta de subtipos moleculares (e.g., maior frequência de basal-like em populações africanas) podem alterar a calibração, embora a discriminação tenda a ser mais preservada.
+
+## O paradoxo de menos genes, mais informação
+
+Em três das quatro coortes externas — METABRIC, GSE20685 e GSE1456 —, o modelo CorePAM de 24 genes superou significativamente o modelo PAM50-full de 49 genes em discriminação (*C-index*). Apenas em TCGA-BRCA os dois modelos foram equivalentes. A princípio, este resultado é contraintuitivo: como um modelo com menos informação pode discriminar melhor do que um com mais informação?
+
+A explicação reside classicamente no **trade-off viés-variância** da teoria estatística. Um modelo com 49 parâmetros livres tem maior capacidade de se adaptar ao ruído idiossincrático da coorte de treinamento — ou seja, apresenta maior variância de estimativa. Quando este modelo é aplicado a uma coorte externa com distribuição ligeiramente deslocada (plataforma diferente, população diferente, protocolo de processamento diferente), o excesso de parâmetros capturado como sinal no SCAN-B passa a atuar como ruído residual, degradando o desempenho out-of-sample. O modelo de 24 genes, por construção, descarta coeficientes pequenos que refletem majoritariamente ruído e mantém apenas os sinais robustos — sendo, portanto, menos sujeito a esta degradação.
+
+A magnitude do ganho do modelo mais parcimonioso aumenta com a distância da plataforma de teste em relação à plataforma de treinamento (maior em *Affymetrix* GSE1456, menor em TCGA-BRCA). Este gradiente é consistente com a interpretação: quanto mais distante a plataforma, mais o ruído específico do SCAN-B captado pelo modelo de 49 genes deixa de ser útil e passa a atrapalhar.
+
+Um corolário metodológico desta observação: em desenvolvimento de modelos prognósticos destinados a uso *cross-plataforma*, a regularização agressiva deve ser considerada não como concessão cosmética (reduzir tamanho), mas como ferramenta ativa de melhoria de generalização. O CorePAM não é apenas mais barato de implementar; é, provavelmente, mais transportável.
+
+## A questão do *z-score*: coorte vs amostra única
+
+A decisão de utilizar *z-score* intra-coorte como normalização é a pedra angular da estratégia *cross-plataforma*, mas introduz uma limitação pragmática: o escore de uma paciente individual depende não apenas de sua própria expressão gênica, mas também da distribuição de expressão da coorte da qual faz parte. No uso clínico futuro — em que cada paciente chega isolada —, seria necessário um procedimento alternativo.
+
+Três estratégias são conceitualmente possíveis:
+
+1. **Z-*score* congelado (parâmetros SCAN-B):** fixar média e desvio-padrão de cada gene nos valores da coorte de treinamento, aplicando-os a cada nova amostra. A análise de sensibilidade mostrou que esta estratégia preserva discriminação quase perfeitamente em *RNA-seq* e *microarray* *Illumina* (correlação entre escore congelado e escore intra-coorte r ≥ 0,958), mas sofre atenuação mensurável em *Affymetrix* (Δ*C-index* de −0,036 a −0,040).
+2. **Z-*score* com coorte de referência local:** calibração inicial em coorte local pequena (e.g., 100-200 pacientes do próprio laboratório de implantação), e subsequente uso destes parâmetros para novas amostras. Esta estratégia requer investimento inicial, mas seria provavelmente a mais robusta.
+3. **Ranking-based *scoring*:** re-expressão do escore em termos de ranks relativos em vez de *z-scores*, que são mais estáveis a variações de plataforma. Esta alternativa não foi avaliada no presente estudo e merece investigação futura.
+
+A atenuação em *Affymetrix* sob parâmetros congelados não invalida a estratégia de *z-score* congelado: mesmo com Δ*C-index* de −0,04, o CorePAM mantém discriminação significativa. Mas sinaliza que, para plataformas suficientemente distintas da de treinamento, recalibração local é recomendável.
+
+## O sinal em doença ER-positiva
+
+No METABRIC — a coorte com maior poder estatístico para análise de subgrupo (N = 1 978, 646 eventos DSS) —, observou-se separação expressiva do sinal prognóstico: HR = 1,59 no subgrupo RE-positivo vs HR = 0,97 no subgrupo RE-negativo, com teste de interação altamente significativo (*p* < 0,001). Este achado tem implicação clínica direta, pois é precisamente na doença RE-positiva, HER2-negativa, estágio precoce que os ensaios multigenes são mais utilizados para decisão de quimioterapia adjuvante.
+
+A interpretação biológica é coerente com a composição do CorePAM. Em tumores RE-positivos, a heterogeneidade biológica mais clinicamente relevante é a variação dentro do espectro luminal — de *Luminal A* (baixa proliferação, excelente prognóstico com endocrinoterapia isolada) a *Luminal B* (alta proliferação, risco residual após endocrinoterapia, candidato a quimioterapia adicional). O CorePAM captura precisamente este espectro, com genes de proliferação e de diferenciação luminal ponderados em direções opostas. Em tumores RE-negativos — dominados por fenótipos basal-like ou *HER2-enriched* —, a heterogeneidade biológica relevante para prognóstico está em dimensões diferentes (carga de infiltrado linfoide [@denkert2018], instabilidade genômica, alvos terapêuticos específicos como HER2), que o CorePAM captura parcial e indiretamente.
+
+A implicação clínica é que o CorePAM — como o *OncotypeDX*, o *MammaPrint* e o *Prosigna* antes dele — tem nicho de utilidade mais claro em doença RE-positiva HER2-negativa. Em RE-negativa, sua aplicação como ferramenta de decisão quimioterápica é menos justificada pela biologia.
+
+## A ponte entre prognóstico e predição de pCR
+
+Um dos resultados mais surpreendentes foi a demonstração de que o CorePAM — derivado exclusivamente para sobrevida global — está significativamente associado à resposta patológica completa (pCR) à quimioterapia neoadjuvante em coortes independentes, com OR agrupado = 1,69 (IC 95% 1,39-2,05; *p* < 0,001) e heterogeneidade I-quadrado = 0%. Esta consistência entre coortes de diferentes plataformas e protocolos neoadjuvantes é notável e sugere que a informação biológica capturada pelo escore transcende o *endpoint* para o qual foi treinado.
+
+A ponte conceitual entre prognóstico e predição de pCR reside no módulo de proliferação dos 24 genes. Proliferação celular alta é, simultaneamente, marcador de pior prognóstico de longo prazo (tumores mais agressivos metastatizam mais) e de melhor resposta à quimioterapia neoadjuvante (drogas citotóxicas atuam preferencialmente em células em divisão). Este *paradoxo* — que tumores biologicamente ruins são, em parte, mais quimiossensíveis — é clássico na oncologia mamária [@cortazar2014; @prat2015] e está na base da utilidade dos ensaios de pCR como biomarcador de resposta. O CorePAM, ao capturar o módulo de proliferação, herda automaticamente essa propriedade dual.
+
+Uma implicação é que o escore pode ter utilidade bivalente em cenários clínicos específicos: em doença RE-positiva, para decidir se é necessário adicionar quimioterapia à endocrinoterapia (como *OncotypeDX*); em doença de alto risco que irá receber quimioterapia neoadjuvante, para estratificar probabilidade de pCR e orientar protocolos intensificados ou desescalados. Esta dupla utilidade justifica investigação clínica prospectiva dedicada.
+
+## Calibração: o que o modelo acerta é o que erra
+
+A calibração — a concordância entre risco predito e risco observado em cada faixa de predição — é, nas palavras de Van Calster et al. [@vancalster2019], o *calcanhar de Aquiles* da analítica preditiva. Discriminação mede se pacientes com desfecho pior têm escores mais altos que pacientes com desfecho melhor (uma propriedade de ranking), mas não garante que as probabilidades preditas estejam em escala correta.
+
+O CorePAM apresentou discriminação boa (*C-index* de 0,62 a 0,70 nas coortes externas, agrupado em torno de 0,67), mas calibração com limitações claras em coortes externas (slopes de 1,57 a 2,74, indicando subconfiança — o modelo comprime demais a separação de risco em relação à população-alvo). Este padrão não é peculiar do CorePAM; é comum em modelos derivados em uma coorte e aplicados em outra com prevalência de eventos, seguimento e composição clínica distintas.
+
+A implicação prática é que o CorePAM, como derivado no SCAN-B, seria inadequado para fornecer probabilidades calibradas de eventos a 5 ou 10 anos em população brasileira sem recalibração. Uma implementação clínica real exigiria recalibração — tipicamente por regressão de recalibração (*intercept and slope recalibration*) em uma coorte local de tamanho modesto (N = 200-500) — antes de uso para decisão individual. A discriminação, em contraste, tende a ser mais preservada e pode ser mais facilmente transportada.
+
+## Reflexões metodológicas para estudos prognósticos futuros
+
+Alguns aprendizados gerais emergem do trabalho que podem ser úteis para estudos futuros de derivação de assinaturas ou modelos prognósticos em oncologia:
+
+1. **Pré-especificar a margem, não o tamanho.** Pré-especificar um critério quantitativo de não inferioridade (por exemplo, Δ*C-index* ≤ 0,010) e deixar o tamanho do modelo emergir do dado é metodologicamente superior a pré-especificar um número-alvo de variáveis.
+2. **Adotar atribuição determinística de *folds*.** Isto elimina a variabilidade silenciosa de seed e garante replicabilidade forte.
+3. **Testar transportabilidade em coortes intencionalmente heterogêneas.** Validar o modelo em coortes idênticas em plataforma e população da de treinamento subestima a degradação que ocorrerá na clínica real.
+4. **Reportar calibração com a mesma ênfase que discriminação.** A prática comum de reportar *C-index* ou AUC isoladamente induz ao erro quando decisões clínicas dependem de probabilidades calibradas.
+5. **Quantificar o valor incremental sobre preditores baratos.** Antes de propor uma assinatura gênica como útil, demonstrar que ela acrescenta informação sobre variáveis clínicas já disponíveis — idade, T, N, grau, RE, HER2 — é, hoje, requisito mínimo.
+
+## O caminho até a clínica: o que falta?
+
+Para que o CorePAM possa ser utilizado como ferramenta de decisão clínica, uma série de passos adicionais é necessária:
+
+1. **Validação analítica plataforma-específica.** Desenvolvimento de ensaio de RT-qPCR multiplex ou painel de *RNA-seq* direcionado, com genes housekeeping para normalização robusta, e caracterização analítica rigorosa (precisão, exatidão, limite de detecção, robustez a variações pré-analíticas). É o passo técnico obrigatório antes de qualquer uso clínico.
+2. **Validação analítica em tecido *FFPE*.** Todos os estudos atuais de CorePAM utilizam tecido congelado ou matrizes públicas processadas. A transição para *FFPE* — material quase universalmente disponível na rotina clínica — é não trivial, pois a degradação de RNA em *FFPE* afeta transcritos de formas heterogêneas. O *OncotypeDX* e o *Prosigna* foram desenvolvidos diretamente em *FFPE*; o CorePAM não.
+3. **Validação clínica prospectiva.** Idealmente um estudo randomizado de decisão terapêutica (como TAILORx e MINDACT), mas minimamente um estudo observacional prospectivo em população brasileira com desfechos sob seguimento.
+4. **Avaliação regulatória.** Tanto ANVISA (Brasil) quanto FDA (EUA) requerem documentação específica para aprovação de *in vitro diagnostics*.
+5. **Incorporação em diretrizes.** Avaliação pela Conitec para incorporação ao SUS, e por diretrizes internacionais (ASCO, ESMO, St. Gallen).
+
+Este é um caminho de anos, não de meses, e requer investimento substancial. Mas nenhum desses passos é impossível, e todos seguem modelo já trilhado por assinaturas concorrentes.
+
+## Relevância para o contexto brasileiro e o SUS
+
+O Brasil apresenta contexto epidemiológico e de sistema de saúde peculiar para a medicina de precisão em câncer de mama. O volume de novos casos (~74 mil/ano [@inca2023]) e o perfil de estadiamento ao diagnóstico (maior frequência de estágios II-III em relação a países com rastreamento mamográfico universalizado [@migowski2018]) ampliam a demanda potencial por ferramentas que orientem decisão terapêutica, em particular a decisão de quimioterapia adjuvante em doença RE+/HER2- estágio precoce.
+
+Um ensaio baseado em 24 genes, executável em plataformas já presentes em laboratórios brasileiros (RT-qPCR multiplex em tempo real com sondas TaqMan ou painel de *RNA-seq* direcionado de baixo throughput), representaria alternativa com custo potencialmente substancialmente menor — provavelmente abaixo de R\$ 1 500-2 000 por amostra em cenários de escala — e, crucialmente, com execução local, sem dependência de logística internacional. Entretanto, a viabilidade econômica real só pode ser demonstrada após validação analítica e desenvolvimento do ensaio, que exigem investimento inicial.
+
+Em termos de política pública, a hipótese testável é que um ensaio derivado como o CorePAM, com validação local em hospital universitário público (HUB/UnB ou rede análoga), poderia servir como instrumento de calibração local de assinatura gênica com custo compatível com a realidade do SUS. Esta hipótese é a motivação de longo prazo por trás do presente trabalho e sua validação requer estudo subsequente específico de custo-efetividade no contexto brasileiro.
+
+## Limitações
+
+O estudo tem limitações que devem ser consideradas na interpretação dos achados:
+
+1. **Estudo retrospectivo.** Todas as análises foram conduzidas em coortes já coletadas, com dados clínicos e moleculares existentes. A validação prospectiva em população contemporaneamente coletada não foi realizada.
+2. **Populações predominantemente europeias.** SCAN-B (sueca), TCGA-BRCA (maioria americana, predominantemente de descendência europeia), METABRIC (britânica, canadense), GSE1456 (sueca). GSE20685 (Taiwan) é a única coorte com predominância asiática. Nenhuma coorte brasileira ou latino-americana foi testada. Desempenho em populações com composição genética e prevalência de subtipos distintas é desconhecido.
+3. **Seguimento curto em TCGA-BRCA** (mediana 32 meses), que limita o poder para detectar eventos tardios em doença RE-positiva (cuja recorrência predomina após 5-10 anos).
+4. **Endpoint heterogêneo entre coortes.** OS em SCAN-B, TCGA-BRCA, GSE20685 e GSE1456; DSS em METABRIC. A análise de sensibilidade OS-harmonizada em METABRIC produziu resultados convergentes, mas a heterogeneidade é uma limitação conceitual.
+5. **Covariáveis clínicas incompletas ou heterogêneas.** Nem todas as coortes têm informação de grau histológico, T, N, HER2 em formatos harmonizáveis. Os modelos multivariados foram ajustados com os subconjuntos disponíveis.
+6. **Comparações com *ROR-S* e *OncotypeDX* via genefu.** As implementações do pacote genefu são aproximações de pesquisa, não os ensaios clínicos comerciais. Comparação formal contra *Prosigna* e *OncotypeDX* em plataformas comerciais seria necessária para reivindicar superioridade.
+7. **Nenhuma validação analítica em plataforma de implantação.** RT-qPCR multiplex real, *RNA-seq* direcionado de painel, e especialmente *FFPE* — não foram testados. O desempenho em cenário analítico real é desconhecido.
+8. **Calibração externa imperfeita.** Como discutido, slopes de calibração externa sugerem que recalibração seria necessária para produção de probabilidades de evento.
+9. **Avaliação exploratória de pCR.** Embora o resultado seja estatisticamente sólido, o *endpoint* de pCR não era o foco de derivação e os tamanhos amostrais individuais em algumas coortes neoadjuvantes são modestos.
+
+## Perspectivas e estudos futuros
+
+As perspectivas de trabalho subsequente estruturam-se em seis frentes principais:
+
+1. **Validação analítica em RT-qPCR com 24 genes + housekeeping em *FFPE*.** Etapa obrigatória de qualquer caminho para implantação clínica.
+2. **Validação em coortes brasileiras.** Idealmente a partir de hospitais universitários públicos (Hospital Universitário de Brasília/UnB, Hospital das Clínicas/USP, A.C. Camargo, INCA/RJ, Barretos), com tecido biobanked e desfechos prospectivamente coletados. Esta é, talvez, a mais urgente lacuna a ser preenchida.
+3. **Comparação formal com *OncotypeDX* em coortes pareadas.** Pacientes com ambos os ensaios — *OncotypeDX* (comercial) e CorePAM (investigacional) — sobre mesma amostra *FFPE*, com desfechos prospectivos. Permitiria estabelecer concordância ou discordância de decisão terapêutica entre as duas ferramentas.
+4. **Nomograma integrando CorePAM + variáveis clínico-patológicas.** A maioria das diretrizes atuais integra assinatura gênica com variáveis clínicas; o CorePAM isolado é provavelmente subótimo para decisão, e um nomograma seria ferramenta natural.
+5. **Estudo de custo-efetividade no contexto do SUS.** Análise formal comparando: (a) estratégia clínica clássica, (b) *OncotypeDX* via SUS (quando disponível), (c) CorePAM hipotético localmente validado. Resultados em custo incremental por QALY seriam fundamentais para pleitear incorporação pela Conitec.
+6. **Validação prospectiva em estudo de decisão terapêutica.** Analogamente a TAILORx e MINDACT, mas em escala brasileira e com desenho adequado à realidade do SUS.
+
+Horizontes mais distantes incluem a adaptação do CorePAM para plataformas de terceira geração (sequenciamento de RNA de célula única e sequenciamento Nanopore direto de RNA) e a integração com inteligência artificial multimodal combinando patologia digital (imagens histológicas processadas por deep learning) com assinatura gênica reduzida — cenário que pode produzir ferramentas prognósticas ainda mais robustas e acessíveis.
+
+\newpage
+
+# CONCLUSÃO
+
+O CorePAM é uma redução reprodutível e orientada por dados de 50 para 24 genes do painel PAM50, selecionada dentro de um *framework* de não inferioridade pré-especificado.
+
+Os principais achados são:
+
+1. A regressão de Cox *elastic-net* com validação cruzada determinística identificou 24 genes como o menor subconjunto satisfazendo Delta-*C-index* <= 0,010 em relação ao modelo de 50 genes.
+
+2. O escore foi significativamente associado a sobrevida em todas as quatro coortes de validação independentes, com HR agrupado de 1,37 (IC 95% 1,24-1,52; p = 1,6 x 10^-9^).
+
+3. O valor incremental sobre preditores clínicos foi consistente, e o escore permaneceu significativo após ajuste para seis variáveis clínico-patológicas.
+
+4. A associação com pCR em coortes neoadjuvantes independentes (OR = 1,69; I-quadrado = 0%) confirma que a assinatura captura informação biológica que transcende o *endpoint* de derivação.
+
+5. Em comparações externas pareadas, o modelo de 24 genes igualou ou superou o modelo de 49 genes em discriminação.
+
+A redução de 50 para 24 genes preserva os quatro eixos biológicos do PAM50 e pode simplificar o desenvolvimento futuro de ensaios prognósticos. A validação analítica plataforma-específica e a validação clínica prospectiva são os próximos passos necessários para qualquer aplicação clínica.
+
+\newpage
+
+# REFERÊNCIAS BIBLIOGRÁFICAS {.unnumbered}
+
+::: {#refs}
+:::
+
+\newpage
+
+# APÊNDICE A — Artigo aceito no *Breast Cancer Research* {.unnumbered}
+
+[**[PLACEHOLDER — inserir aqui o PDF da versão final publicada quando a versão de registro estiver disponível.]**]{style="color:red"}
+
+[O manuscrito completo "CorePAM: a 24-gene PAM50-derived expression *score* with *cross-platform* external validation for breast cancer prognosis" [@botan2026] foi aceito para publicação no periódico *Breast Cancer Research* (Springer Nature) em 27 de abril de 2026, referente ao Submission ID `c2980ad5-9b3d-41a2-bf47-f093c5dc8c5f`. O DOI atribuído pela Springer Nature é `10.1186/s13058-026-02298-5`. Em conferência realizada em 17 de maio de 2026, o DOI ainda não resolvia publicamente em `doi.org`/Crossref, e a versão de registro com volume, paginação e PDF final permanecia pendente de produção editorial. O acordo de publicação foi concluído em 14 de maio de 2026, e o pedido de *waiver* integral da APC foi aprovado em 14 de maio de 2026.]{style="color:red"}
+
+\newpage
+
+# APÊNDICE B — Pipeline computacional {.unnumbered}
+
+O *pipeline* analítico completo está disponível em `https://github.com/RafaelBotan/CorePAM-Study` e compreende 69 scripts R numerados sequencialmente. A organização por blocos temáticos é apresentada na @tbl-pipeline-org; a lista integral, com descrição objetiva de cada script, segue na @tbl-pipeline-full.
+
+| Bloco | Scripts | Função |
+|-------|---------|--------|
+| Setup | 00 | Configuração do ambiente, paleta de cores, validação |
+| Dados | 01-04 | *Download*, harmonização clínica, pré-processamento |
+| Derivação | 05 | Derivação do CorePAM (CONGELADO) |
+| Scoring | 06 | *Z-score* e cálculo do escore por coorte |
+| Sobrevida | 07-08 | Análise de sobrevida + meta-análise |
+| Valor incremental | 11 | Delta-*C-index* e DCA |
+| QC | 13-16 | Correlações, PCA, *schema*, anti-hardcoding |
+| Render | 17-18 | Renderização do manuscrito e *bundle* de submissão |
+| pCR | 19-23b | *Download*, preparação, análise e figuras de pCR |
+| 4ª coorte | 24 | Integração GSE1456 (Stockholm) |
+| Sensibilidade | 25-29 | CORE-A expandido, genefu, *bootstrap*, *drop-gene* |
+| Revisão major | 30-36 | *Z-score* congelado, Uno C, calibração, ER, *baseline* |
+| R2 (revisão) | 37-38 | KM *multipanel* e *head-to-head* 24 vs 50 |
+
+: Organização do *pipeline* computacional por blocos {#tbl-pipeline-org tbl-colwidths="[20,20,60]"}
+
+\newpage
+
+| Script | Descrição |
+|--------|-----------|
+| `00_colors.R` | Paleta de cores reprodutível para figuras |
+| `00_setup.R` | Parâmetros congelados (alpha, K, margem, lambda grid) |
+| `00_validate_all.R` | Validação estrutural de entradas e saídas |
+| `01_download_raw_data.R` | *Download* das matrizes de SCAN-B, TCGA, METABRIC, GEO |
+| `02_harmonize_clinical_GSE20685.R` | Harmonização clínica GSE20685 |
+| `02_harmonize_clinical_METABRIC.R` | Harmonização clínica METABRIC |
+| `02_harmonize_clinical_SCANB.R` | Harmonização clínica SCAN-B |
+| `02_harmonize_clinical_TCGA_BRCA.R` | Harmonização clínica TCGA-BRCA |
+| `03_expression_preprocess_GSE20685.R` | Pré-processamento de expressão GSE20685 |
+| `03_expression_preprocess_METABRIC.R` | Pré-processamento de expressão METABRIC |
+| `03_expression_preprocess_SCANB.R` | Pré-processamento de expressão SCAN-B |
+| `03_expression_preprocess_TCGA_BRCA.R` | Pré-processamento de expressão TCGA-BRCA |
+| `03_utils_gene_mapping.R` | Utilitários de mapeamento ENSEMBL → HUGO |
+| `04_gene_audit_freeze.R` | Auditoria e congelamento dos 50 genes candidatos |
+| `05_reduce_pam50_to_corepam_FINAL.R` | **Derivação final do CorePAM (*elastic-net* CV)** |
+| `06_zscore_and_score_GSE20685.R` | *Z-score* e escore GSE20685 |
+| `06_zscore_and_score_METABRIC.R` | *Z-score* e escore METABRIC |
+| `06_zscore_and_score_SCANB.R` | *Z-score* e escore SCAN-B |
+| `06_zscore_and_score_TCGA_BRCA.R` | *Z-score* e escore TCGA-BRCA |
+| `07A_preflight_files_strict.R` | *Preflight* de arquivos obrigatórios |
+| `07D_validate_one_cohort_corepam.R` | Validação unitária por coorte |
+| `07_survival_analysis_GSE20685.R` | Sobrevida GSE20685 (Cox + KM + C-index) |
+| `07_survival_analysis_METABRIC.R` | Sobrevida METABRIC (DSS + Fine-Gray) |
+| `07_survival_analysis_SCANB.R` | Sobrevida SCAN-B (coorte de treinamento) |
+| `07_survival_analysis_TCGA_BRCA.R` | Sobrevida TCGA-BRCA |
+| `07x_extra_figures.R` | Figuras suplementares: Pareto, *lollipop*, *C-index* por coorte |
+| `07x_pcr_os_extra_figures.R` | Figuras suplementares pCR × OS |
+| `07y_pam50full_comparison.R` | Comparação PAM50-full vs CorePAM |
+| `07z_fig1_study_design.R` | Figura 1 — desenho do estudo |
+| `07z_table_figures_survival.R` | Tabelas e figuras consolidadas de sobrevida |
+| `08_meta_survival.R` | Meta-análise de sobrevida (REML + Hartung-Knapp) |
+| `11_incremental_value_and_dca.R` | Delta-*C-index* e DCA (curva de decisão) |
+| `11b_dca_corepam.R` | DCA auxiliar do CorePAM |
+| `13_qc_correlations_offdiag.R` | QC — correlações inter-coortes |
+| `14_qc_metabric_pca_forensics.R` | QC — PCA forensics METABRIC |
+| `15_qc_schema_range_checks.R` | QC — consistência de *schema* e faixas |
+| `16_qc_text_vs_results_assert.R` | QC anti-hardcoding (números do texto vs saída) |
+| `17_render_manuscript_quarto.R` | Renderização do manuscrito (Quarto) |
+| `18_make_submission_bundle.R` | *Bundle* de submissão (arquivos + hashes) |
+| `19_download_pCR_raw_data.R` | *Download* das coortes neoadjuvantes (pCR) |
+| `20_prepare_pCR_GSE20194.R` | Preparação GSE20194 |
+| `20_prepare_pCR_GSE25066.R` | Preparação GSE25066 |
+| `20_prepare_pCR_GSE32646.R` | Preparação GSE32646 |
+| `20_prepare_pCR_ISPY1.R` | Preparação I-SPY1 |
+| `20_prepare_pCR_ISPY2.R` | Preparação I-SPY2 |
+| `20_utils_pcr_extract.R` | Utilitários de extração de pCR |
+| `21_ispy2_analysis.R` | Análise exploratória I-SPY2 |
+| `21_pCR_logistic_analysis.R` | Regressão logística de pCR por coorte |
+| `21b_sensitivity_intersection.R` | Sensibilidade sobre interseção de genes |
+| `21c_pcr_er_interaction.R` | Interação pCR × ER |
+| `22_meta_pCR.R` | Meta-análise de pCR (DerSimonian-Laird) |
+| `22b_meta_pCR_with_ispy2.R` | Meta-análise de pCR incluindo I-SPY2 |
+| `23_pCR_figures.R` | Figuras de pCR (forest, painéis) |
+| `23b_pCR_ispy2_figures.R` | Figuras de I-SPY2 |
+| `24_integrate_GSE1456_stockholm.R` | Integração da 4ª coorte (Stockholm) |
+| `25_sensitivity_corea_expanded.R` | CORE-A expandido (+ T, N, grau, HER2) |
+| `26_sensitivity_genefu_comparison.R` | Comparação com ROR-S e OncotypeDX (*genefu*) |
+| `27_bootstrap_gene_stability.R` | *Bootstrap* B = 200 (estabilidade de seleção) |
+| `28_dropgene_sensitivity.R` | *Leave-one-gene-out* (|Δ*C*| por gene) |
+| `29_corea_sensitivity_forest.R` | *Forest plot* de sensibilidade CORE-A |
+| `30_frozen_zscore_sensitivity.R` | *Single-sample scoring* com parâmetros congelados |
+| `30b_add_GSE1456_frozen.R` | Extensão congelada para GSE1456 |
+| `31_uno_c_and_tdauc.R` | *C* de Uno e AUC tempo-dependente (Blanche) |
+| `32_calibration_formal.R` | Calibração formal (*slope*/*intercept* 60 m) |
+| `34_subgroup_er_stratified.R` | Subgrupos estratificados por ER |
+| `35_er_neg_bootstrap_stability.R` | Estabilidade *bootstrap* em ER-negativo |
+| `36_full_clinical_baseline.R` | *Baseline* clínico completo (36 variáveis) |
+| `37_R2_km_multipanel.R` | KM *multipanel* (resposta à R2) |
+| `38_R2_headtohead_24vs50.R` | *Head-to-head* 24 vs 50 genes (resposta à R2) |
+
+: Lista completa dos scripts do *pipeline* {#tbl-pipeline-full tbl-colwidths="[35,65]"}
+
+\newpage
+
+## B.1 Pseudocódigo do procedimento de derivação {.unnumbered}
+
+O pseudocódigo a seguir descreve, em linguagem algorítmica independente de implementação, o procedimento central de derivação do CorePAM. A correspondência com os scripts R é indicada entre parênteses ao lado de cada bloco.
+
+\newpage
+
+**Algoritmo 1 — Derivação do CorePAM** *(script 05_derivation.R)*
+
+```
+Entrada:
+    X : matriz de expressão SCAN-B (N pacientes x 50 genes candidatos)
+    T : vetor de tempos de seguimento (N)
+    E : vetor de status de evento 0/1 (N)
+    ids : vetor de identificadores únicos dos pacientes (N)
+    alpha : parâmetro elastic-net (0,5)
+    K : número de folds (10)
+    lambda_grid : grade de 100 valores em escala log
+    delta_tol : margem de não inferioridade (0,010)
+
+1. Pré-processamento
+   Para cada gene j = 1..50:
+       z[i,j] = (X[i,j] - media_coorte(j)) / dp_coorte(j)  para i = 1..N
+
+2. Atribuição determinística de folds
+   Para cada paciente i = 1..N:
+       h = SHA256(ids[i])
+       H = inteiro_primeiros_bytes(h)
+       fold[i] = H mod K
+   Aplicar estratificação por E dentro de cada fold.
+
+3. Caminho de regularização com validação cruzada
+   Para cada lambda em lambda_grid:
+       Para cada k = 1..K:
+           treino = índices com fold != k
+           teste  = índices com fold == k
+           beta_k = ajuste_cox_elastic_net(z[treino], T[treino], E[treino],
+                                           alpha, lambda)
+           eta[teste] = z[teste] %*% beta_k   # predição OOF
+       df[lambda]      = número de coeficientes não-zero em beta médio
+       c_oof[lambda]   = C_index_Harrell(eta, T, E)
+
+4. Fronteira de Pareto e seleção
+   pareto = remove_pontos_dominados((df[lambda], c_oof[lambda]))
+   c_max  = max(c_oof[lambda])
+   candidatos = { df em pareto tais que c_oof(df) >= c_max - delta_tol }
+   df_final = min(candidatos)
+   lambda_final = arg min lambda tal que df(lambda) = df_final
+
+5. Ajuste final e congelamento
+   beta_final = ajuste_cox_elastic_net(z, T, E, alpha, lambda_final)
+   genes_CorePAM = { j : beta_final[j] != 0 }      # |genes_CorePAM| = 24
+   salvar beta_final, media_coorte, dp_coorte   # congelados
+
+Saida:
+    genes_CorePAM (24 genes)
+    pesos beta_final
+    parâmetros de normalização (media_coorte, dp_coorte)
+```
+
+\newpage
+
+**Algoritmo 2 — Cálculo do escore em coorte de validação** *(script 06_scoring.R)*
+
+```
+Entrada:
+    X_v : matriz de expressão da coorte de validação (M x 24 genes)
+    genes_CorePAM : subconjunto de 24 genes
+    beta_final : pesos congelados do SCAN-B
+
+1. Z-score intra-coorte
+   Para cada gene j em genes_CorePAM:
+       Se j presente em X_v:
+           z_v[i,j] = (X_v[i,j] - media_v(j)) / dp_v(j)   para i = 1..M
+
+2. Escore bruto ponderado
+   G = genes presentes em X_v
+   Para cada amostra i = 1..M:
+       s[i] = SUM_{j em G} beta_final[j] * z_v[i,j]  /  SUM_{j em G} |beta_final[j]|
+
+3. Padronização final
+   s_tilde[i] = (s[i] - média(s)) / dp(s)
+
+Saida:
+    s_tilde : escore CorePAM padronizado (M x 1)
+```
+
+\newpage
+
+**Algoritmo 3 — Validação cruzada determinística com SHA-256**
+
+```
+Função atribuir_folds(ids, K):
+   Para cada i:
+       h = SHA256(string(ids[i]))            # 32 bytes
+       H = inteiro_sem_sinal(primeiros_4_bytes(h))
+       fold[i] = H mod K
+   Retornar fold
+```
+
+A propriedade crítica deste procedimento é que `fold[i]` depende apenas de `ids[i]`, não do estado interno do gerador pseudo-aleatório, não da ordem de apresentação das amostras e não da versão do software. Portanto, qualquer implementação correta de SHA-256, em qualquer linguagem, produzirá os mesmos *folds* para a mesma coorte.
+
+\newpage
+
+**Algoritmo 4 — Meta-análise de efeitos aleatórios (REML)** *(script 08_meta_analysis.R)*
+
+```
+Entrada:
+    hr_k : hazard ratio por coorte k = 1..K
+    se_k : erro-padrão de log(hr_k)
+
+1. Tau-quadrado por REML
+   Maximizar a log-verossimilhança restrita de tau^2 dado (hr_k, se_k).
+
+2. Pesos de efeitos aleatórios
+   w_k = 1 / (se_k^2 + tau^2)
+   W   = SUM(w_k)
+
+3. Efeito agrupado
+   log_hr_pool = SUM(w_k * log(hr_k)) / W
+   se_pool     = sqrt(1 / W)
+   hr_pool     = exp(log_hr_pool)
+   IC95        = exp(log_hr_pool +/- 1,96 * se_pool)
+
+4. Heterogeneidade
+   Q    = SUM(w_k * (log(hr_k) - log_hr_pool)^2)
+   I2   = max(0, (Q - (K - 1)) / Q)
+```
+

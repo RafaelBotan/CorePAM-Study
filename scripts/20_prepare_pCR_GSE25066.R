@@ -76,8 +76,23 @@ message(sprintf("[%s] pData columns: %s", SCRIPT_NAME,
 # pCR values in GSE25066 are encoded in "characteristics_ch1.X" columns.
 # The column containing "pCR" or "pathological complete response" is searched.
 source("scripts/20_utils_pcr_extract.R")
-pcr_result <- extract_pcr_column(pdata, cohort = COHORT)
-pdata$pcr  <- pcr_result$pcr
+# AUDIT FIX (2026-06): GSE25066 pData carries the pathologic_response_pcr_rd key
+# in DIFFERENT characteristics_ch1.* positions across its 4 source sites
+# (MDACC / I-SPY / LBJ / USO). GEOquery's merged "pathologic_response_pcr_rd:ch1"
+# column mis-aggregates these and yields N=488 / pCR=99 — which the auto-detector
+# (extract_pcr_column) would pick. The VERIFIED, accepted analysis (Hatzis 2011,
+# JAMA; results/pcr/audit_pcr_definition.csv) uses the clean position
+# characteristics_ch1.10 = 42 pCR / 140 RD = 182. We pin to it explicitly.
+v10 <- tolower(trimws(sub("^[^:]+:", "", as.character(pdata[["characteristics_ch1.10"]]))))
+pdata$pcr <- ifelse(grepl("\\bpcr\\b|complete", v10), 1L,
+                    ifelse(grepl("\\brd\\b|residual", v10), 0L, NA_integer_))
+pcr_result <- list(col_used = "characteristics_ch1.10 (pinned; audit-verified)")
+.n_pcr1 <- sum(pdata$pcr == 1, na.rm = TRUE)
+.n_tot  <- sum(!is.na(pdata$pcr))
+if (.n_tot != 182 || .n_pcr1 != 42) {
+  stop(sprintf("[%s] AUDIT GUARD FAILED: expected N=182 / pCR=42 (Hatzis 2011), got N=%d / pCR=%d. GEO pData layout may have changed — re-verify before proceeding.",
+               SCRIPT_NAME, .n_tot, .n_pcr1))
+}
 message(sprintf("[%s] pCR column used: %s | pCR=1: %d | pCR=0: %d | NA: %d",
                 SCRIPT_NAME, pcr_result$col_used,
                 sum(pdata$pcr == 1, na.rm = TRUE),

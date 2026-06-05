@@ -179,45 +179,55 @@ message(sprintf("[%s] Saved: %s (%d genes)", SCRIPT_NAME, basename(out_csv), nro
 # Order genes by frequency
 result_df$gene <- factor(result_df$gene, levels = rev(result_df$gene))
 
-p <- ggplot(result_df, aes(x = gene, y = boot_freq_pct,
-                           fill = in_corepam)) +
-  geom_col(width = 0.75) +
-  geom_hline(yintercept = 50, linetype = "dashed", color = "grey40", linewidth = 0.4) +
-  coord_flip() +
-  scale_fill_manual(
-    values = c("TRUE" = "#762A83", "FALSE" = "#B8B8B8"),
-    labels = c("TRUE" = "CorePAM (24 genes)", "FALSE" = "Excluded PAM50"),
-    name   = NULL
-  ) +
-  scale_y_continuous(limits = c(0, 105), breaks = seq(0, 100, 25),
-                     expand = expansion(mult = c(0, 0.02))) +
-  labs(
-    title    = "Bootstrap Gene Selection Stability (B=200)",
-    subtitle = sprintf("Cox Elastic-Net (alpha=%.1f) refits on SCAN-B (N=%d)",
-                        ALPHA_EN, n_samples),
-    x        = NULL,
-    y        = "Selection Frequency (%)"
-  ) +
-  theme_minimal(base_size = 10) +
-  theme(
-    legend.position  = "bottom",
-    panel.grid.major.y = element_blank(),
-    panel.grid.minor   = element_blank(),
-    plot.title       = element_text(face = "bold", size = 12),
-    plot.subtitle    = element_text(size = 9, color = "grey40"),
-    axis.text.y      = element_text(size = 7)
-  )
+for (lang in c("EN", "PT")) {
+  lang_lc <- tolower(lang)
+  ttl <- if (lang == "EN") "Bootstrap Gene Selection Stability (B=200)"
+         else "Estabilidade da sele\u00e7\u00e3o g\u00eanica por bootstrap (B=200)"
+  sub <- if (lang == "EN")
+           sprintf("Cox Elastic-Net (alpha=%.1f) refits on SCAN-B (N=%d)", ALPHA_EN, n_samples)
+         else
+           sprintf("Rea-ajustes Cox Elastic-Net (alpha=%.1f) em SCAN-B (N=%d)", ALPHA_EN, n_samples)
+  ylb <- if (lang == "EN") "Selection Frequency (%)"
+         else "Frequ\u00eancia de sele\u00e7\u00e3o (%)"
+  leg <- if (lang == "EN") c("TRUE" = "CorePAM (24 genes)", "FALSE" = "Excluded PAM50")
+         else c("TRUE" = "CorePAM (24 genes)", "FALSE" = "PAM50 exclu\u00eddo")
 
-# Save
+  p <- ggplot(result_df, aes(x = gene, y = boot_freq_pct, fill = in_corepam)) +
+    geom_col(width = 0.75) +
+    geom_hline(yintercept = 50, linetype = "dashed", color = "grey40", linewidth = 0.4) +
+    coord_flip() +
+    scale_fill_manual(
+      values = c("TRUE" = "#762A83", "FALSE" = "#B8B8B8"),
+      labels = leg, name = NULL
+    ) +
+    scale_y_continuous(limits = c(0, 105), breaks = seq(0, 100, 25),
+                       expand = expansion(mult = c(0, 0.02))) +
+    labs(title = ttl, subtitle = sub, x = NULL, y = ylb) +
+    theme_minimal(base_size = 10) +
+    theme(
+      legend.position  = "bottom",
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor   = element_blank(),
+      plot.title       = element_text(face = "bold", size = 12),
+      plot.subtitle    = element_text(size = 9, color = "grey40"),
+      axis.text.y      = element_text(size = 7)
+    )
+
+  out_png <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_png")]],
+                       sprintf("FigS_Bootstrap_GeneFreq_%s.png", lang))
+  out_pdf <- file.path(PATHS$figures[[paste0("supp_", lang_lc, "_pdf")]],
+                       sprintf("FigS_Bootstrap_GeneFreq_%s.pdf", lang))
+
+  old_warn_gs <- getOption("warn"); options(warn = 0)
+  ggsave(out_png, p, width = 170, height = 200, units = "mm", dpi = 300, bg = "white")
+  ggsave(out_pdf, p, width = 170, height = 200, units = "mm", device = cairo_pdf)
+  options(warn = old_warn_gs)
+
+  message(sprintf("[%s] [%s] Figure saved: %s", SCRIPT_NAME, lang, basename(out_png)))
+}
+# Legacy references (EN)
 out_png <- file.path(PATHS$figures$supp_en_png, "FigS_Bootstrap_GeneFreq_EN.png")
 out_pdf <- file.path(PATHS$figures$supp_en_pdf, "FigS_Bootstrap_GeneFreq_EN.pdf")
-
-old_warn_gs <- getOption("warn"); options(warn = 0)
-ggsave(out_png, p, width = 170, height = 200, units = "mm", dpi = 300, bg = "white")
-ggsave(out_pdf, p, width = 170, height = 200, units = "mm", device = cairo_pdf)
-options(warn = old_warn_gs)
-
-message(sprintf("[%s] Figure saved: %s", SCRIPT_NAME, basename(out_png)))
 
 # =============================================================================
 # 9) REGISTRY
