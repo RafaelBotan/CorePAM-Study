@@ -275,7 +275,7 @@ Por fim, às **pacientes** — as verdadeiras protagonistas de cada número e de
 | Figura 4 — Desenho do estudo CorePAM. Derivação na coorte SCAN-B (N = 3 069)… | 35 |
 | Figura 5 — Fluxograma das coortes do estudo | 41 |
 | Figura 6 — Esquema de derivação do CorePAM | 46 |
-| Figura 7 — Fronteira de Pareto: C-index out-of-fold em função do número de genes (graus… | 54 |
+| Figura 7 — Fronteira de Pareto: C-index out-of-fold em função do número de genes (graus… | 55 |
 | Figura 8 — Pesos dos 24 genes CorePAM (gráfico lollipop) | 58 |
 | Figura 9 — Estabilidade bootstrap da seleção de genes (B = 200 reajustes no SCAN-B) | 60 |
 | Figura 10 — Análise de sensibilidade leave-one-gene-out | 62 |
@@ -523,7 +523,6 @@ Por fim, às **pacientes** — as verdadeiras protagonistas de cada número e de
 | 5.13 Limitações | 107 |
 | 5.14 Perspectivas e estudos futuros | 108 |
 | **6 CONCLUSÃO** | 109 |
-| **APÊNDICE A — Pipeline** | 20 |
 | **REFERÊNCIAS BIBLIOGRÁFICAS** | 110 |
 | **APÊNDICE A — Pipeline computacional** | 119 |
 | **APÊNDICE B — Artigo publicado no Breast Cancer Research** | 130 |
@@ -534,9 +533,9 @@ Por fim, às **pacientes** — as verdadeiras protagonistas de cada número e de
 
 ## Epidemiologia e carga global da doença
 
-O câncer de mama permanece como a neoplasia maligna mais frequente em mulheres no mundo e, desde 2020, ultrapassou o câncer de pulmão como a causa mais comum de diagnóstico de câncer na população global [@sung2021]. Dados mais recentes do GLOBOCAN 2022 estimam 2,31 milhões de novos diagnósticos e 666 103 mortes por câncer de mama naquele ano, configurando a neoplasia mais letal em mulheres em 110 países [@bray2024]. A incidência cresce em praticamente todas as regiões do mundo, mas os padrões de mortalidade são drasticamente heterogêneos: enquanto países de alta renda apresentam taxas de letalidade em declínio há mais de duas décadas — fruto combinado de diagnóstico precoce, terapia endócrina eficaz e avanços em quimioterapia e drogas anti-HER2 [@peto2012; @ebctcg2011] —, países de média e baixa renda ainda veem mortalidade estável ou crescente.
+O câncer de mama é a neoplasia maligna mais frequentemente diagnosticada em mulheres no mundo. Em 2020, tornou-se também o câncer mais diagnosticado na população global, ultrapassando o pulmão [@sung2021]; nas estimativas do GLOBOCAN 2022, o câncer de pulmão retomou a primeira posição global (ambos os sexos), enquanto a mama permaneceu o câncer mais incidente em mulheres. Dados mais recentes do GLOBOCAN 2022 estimam 2,31 milhões de novos diagnósticos e 666 103 mortes por câncer de mama naquele ano, configurando a principal causa de morte por câncer em mulheres em mais de 110 países [@bray2024]. A incidência cresce em praticamente todas as regiões do mundo, mas os padrões de mortalidade são drasticamente heterogêneos: enquanto países de alta renda apresentam taxas de mortalidade em declínio há mais de duas décadas — fruto combinado de diagnóstico precoce, terapia endócrina eficaz e avanços em quimioterapia e drogas anti-HER2 [@peto2012; @ebctcg2011] —, países de média e baixa renda ainda veem mortalidade estável ou crescente.
 
-No Brasil, o Instituto Nacional de Câncer (INCA) projetou cerca de 74 mil novos casos anuais para o trieno 2023-2025 [@inca2023], o que posiciona o câncer de mama como a neoplasia maligna mais frequente em mulheres brasileiras em todas as regiões, com exceção do Norte (onde é superada pelo câncer de colo uterino). A mortalidade por câncer de mama no Brasil, diferentemente de países com programas maduros de rastreamento mamográfico, apresenta tendência histórica de estabilidade ou discreto crescimento, com desigualdades regionais marcadas — expressas em idade mais jovem ao diagnóstico, estadiamento clínico mais avançado à apresentação e pior acesso a tratamentos sistêmicos de última geração [@migowski2018]. Essas desigualdades são uma das motivações de fundo para o presente trabalho: qualquer ferramenta prognóstica que dependa de plataformas de teste inacessíveis ao sistema público perpetua, na prática, a iniquidade de acesso à medicina de precisão.
+No Brasil, o Instituto Nacional de Câncer (INCA) projetou cerca de 74 mil novos casos anuais para o triênio 2023-2025 [@inca2023], o que posiciona o câncer de mama como a neoplasia maligna mais frequente em mulheres brasileiras em todas as regiões, com exceção do Norte (onde é superada pelo câncer de colo uterino). A mortalidade por câncer de mama no Brasil, diferentemente de países com programas maduros de rastreamento mamográfico, apresenta tendência histórica de estabilidade ou discreto crescimento, com desigualdades regionais marcadas — expressas em idade mais jovem ao diagnóstico, estadiamento clínico mais avançado à apresentação e pior acesso a tratamentos sistêmicos de última geração [@migowski2018]. Essas desigualdades são uma das motivações de fundo para o presente trabalho: qualquer ferramenta prognóstica que dependa de plataformas de teste inacessíveis ao sistema público perpetua, na prática, a iniquidade de acesso à medicina de precisão.
 
 ## Heterogeneidade tumoral e justificativa da estratificação molecular
 
@@ -544,7 +543,7 @@ A heterogeneidade biológica do câncer de mama é um dos fenômenos mais bem ca
 
 ## Subtipos moleculares intrínsecos e o PAM50
 
-Os trabalhos seminais de Perou et al. e Sørlie et al. [@perou2000; @sorlie2001] inauguraram a era da classificação molecular do câncer de mama ao demonstrar, por meio de perfis de expressão gênica obtidos por *microarray*, que os tumores mamários se organizam em subtipos intrínsecos com comportamentos clínicos distintos. Essa taxonomia original descreveu cinco grupos: *Luminal A* (RE-positivo, baixa proliferação), *Luminal B* (RE-positivo, alta proliferação), *HER2-enriched* (amplificação ou superexpressão de ERBB2), *Basal-like* (fenótipo expressivo semelhante ao epitélio basal/mioepitelial da mama normal) e *Normal-like* (grupo de fronteira, parcialmente artefato de contaminação estromal). Estudos subsequentes incorporaram o subtipo *Claudin-low* e refinamentos como a estratificação em dez subgrupos integrativos do METABRIC, que combinam expressão e alterações numéricas somáticas [@curtis2012; @pereira2016].
+Os trabalhos seminais de Perou et al. e Sørlie et al. [@perou2000; @sorlie2001] inauguraram a era da classificação molecular do câncer de mama ao demonstrar, por meio de perfis de expressão gênica obtidos por *microarray*, que os tumores mamários se organizam em subtipos intrínsecos com comportamentos clínicos distintos. Essa taxonomia original descreveu cinco grupos: *Luminal A* (RE-positivo, baixa proliferação), *Luminal B* (RE-positivo, alta proliferação), *HER2-enriched* (subtipo transcricional definido por correlação com o centroide, com expressão elevada do cluster HER2/17q, frequentemente mas não obrigatoriamente coincidente com HER2 clínico), *Basal-like* (fenótipo expressivo semelhante ao epitélio basal/mioepitelial da mama normal) e *Normal-like* (grupo de fronteira, parcialmente artefato de contaminação estromal). Estudos subsequentes incorporaram o subtipo *Claudin-low* e refinamentos como a estratificação em dez subgrupos integrativos do METABRIC, que combinam expressão e alterações numéricas somáticas [@curtis2012; @pereira2016].
 
 A transição dessa taxonomia para uso clínico exigiu um classificador robusto, treinado em subtipos centroides, e independente da plataforma específica utilizada no treinamento. O PAM50 (*Prediction Analysis of Microarray* 50), desenvolvido por Parker et al. [@parker2009], consolidou esse papel ao definir a classificação com base em exatamente 50 genes e validar sua transferência entre plataformas *microarray* e, posteriormente, RT-qPCR e *RNA-seq* [@nielsen2010; @chia2012]. O PAM50 atribui cada tumor a um dos subtipos intrínsecos por correlação com centroides de expressão e, por meio do *Risk of Recurrence* Score (ROR), fornece um escore prognóstico numérico que integra subtipo, proliferação e tamanho tumoral. Sua implementação comercial — o ensaio *Prosigna*, executado na plataforma *NanoString nCounter* — possui validação analítica rigorosa [@wallden2015] e evidência de nível 1 de utilidade clínica em pacientes RE-positivas pós-menopausa (estudos TransATAC [@dowsett2010] e ABCSG-8 [@gnant2014]), sendo recomendado por diretrizes internacionais [@coates2015; @burstein2019; @andre2022] para auxílio à decisão de quimioterapia adjuvante em câncer de mama RE-positivo, HER2-negativo, estágio precoce.
 
@@ -697,7 +696,7 @@ Trata-se de estudo retrospectivo multicoorte de desenvolvimento e validação ex
 O delineamento segue uma estrutura clássica de desenvolvimento e validação externa, com os três componentes analíticos mantidos estritamente separados para evitar vazamento de informação:
 
 - **Desenvolvimento (derivação):** realizado inteiramente na coorte SCAN-B (GSE96058). Todo o processo de seleção de genes, ajuste de hiperparâmetros e estabelecimento de pesos ocorre dentro desta coorte, sem acesso aos dados de validação.
-- **Validação externa:** realizada em quatro coortes completamente independentes, em plataformas distintas da coorte de treinamento, sem reajuste de qualquer parâmetro. Os pesos congelados do SCAN-B são aplicados diretamente aos *z-scores* calculados intra-coorte em cada conjunto de validação.
+- **Validação externa:** realizada em quatro coortes completamente independentes — uma segunda coorte de *RNA-seq* (TCGA-BRCA) e três de *microarray* —, sem reajuste de qualquer parâmetro. Os pesos congelados do SCAN-B são aplicados diretamente aos *z-scores* calculados intra-coorte em cada conjunto de validação.
 - **Análise secundária (pCR):** realizada em cinco coortes neoadjuvantes inteiramente distintas das coortes de sobrevida, tanto em população quanto em *endpoint* (resposta patológica completa a quimioterapia neoadjuvante), avaliando se a informação contida no escore transcende o *endpoint* de derivação.
 
 A @fig-study-design apresenta o desenho do estudo.
@@ -980,7 +979,7 @@ O desempenho do CorePAM (24 genes) foi comparado diretamente com um modelo PAM50
 
 A regressão de Cox *elastic-net* *out-of-fold* no SCAN-B identificou 24 genes como o conjunto mínimo satisfazendo o critério de não inferioridade. *C-index* OOF = **0,670**, *C-index* OOF máximo = **0,679**, diferença = **0,009**. *C-index* in-sample = **0,698**.
 
-A @fig-pareto demonstra retornos decrescentes além de aproximadamente 15 genes. No eixo horizontal está o número de genes retidos ao longo do caminho de regularização *elastic-net*, e no vertical o *C-index* *out-of-fold* — estimativa honesta de desempenho, pois cada paciente é avaliado por um modelo treinado sem ele. A linha tracejada marca o limiar de não inferioridade (*C-index* máximo menos a margem pré-especificada de 0,010): qualquer configuração acima dessa linha é estatisticamente equivalente ao ótimo. O primeiro ponto em que o modelo mais parcimonioso atinge esse limiar é 24 genes, que portanto satisfaz simultaneamente desempenho e compacidade. O platô à direita indica que adicionar genes extras traz apenas ruído redundante — reforçando a hipótese biológica de que há um núcleo finito de programas transcricionais informativos para prognóstico em câncer de mama.
+A @fig-pareto demonstra retornos decrescentes a partir de aproximadamente 20 genes. No eixo horizontal está o número de genes retidos ao longo do caminho de regularização *elastic-net*, e no vertical o *C-index* *out-of-fold* — estimativa honesta de desempenho, pois cada paciente é avaliado por um modelo treinado sem ele. A linha tracejada marca o limiar de não inferioridade (*C-index* máximo menos a margem pré-especificada de 0,010): qualquer configuração acima dessa linha foi considerada não inferior pelo critério operacional pré-especificado, isto é, com *C-index* *out-of-fold* no máximo 0,010 abaixo do valor máximo observado. O primeiro ponto em que o modelo mais parcimonioso atinge esse limiar é 24 genes, que portanto satisfaz simultaneamente desempenho e compacidade. O platô à direita indica que adicionar genes extras traz apenas ruído redundante — reforçando a hipótese biológica de que há um núcleo finito de programas transcricionais informativos para prognóstico em câncer de mama.
 
 ```{r fig-pareto}
 #| label: fig-pareto
@@ -1005,7 +1004,7 @@ A leitura clínica da @fig-pareto é análoga à escolha de um esquema terapêut
 | 7 | PTTG1 | +0,1140 | Risco (+) | Proliferação / instabilidade cromossômica |
 | 8 | MDM2 | -0,1074 | Protetor (-) | Regulação de p53 |
 | 9 | SFRP1 | -0,0907 | Protetor (-) | Via Wnt / supressor tumoral |
-| 10 | GPR160 | -0,0841 | Protetor (-) | Receptor acoplado a proteina G |
+| 10 | GPR160 | -0,0841 | Protetor (-) | Receptor acoplado a proteína G |
 | 11 | FOXC1 | +0,0717 | Risco (+) | Fenótipo basal |
 | 12 | PHGDH | +0,0620 | Risco (+) | Metabolismo de serina |
 | 13 | MYC | -0,0424 | Protetor (-) | Proliferação / oncogene |
@@ -1014,7 +1013,7 @@ A leitura clínica da @fig-pareto é análoga à escolha de um esquema terapêut
 | 16 | CXXC5 | +0,0266 | Risco (+) | Regulação epigenética |
 | 17 | PGR | -0,0262 | Protetor (-) | Receptor de progesterona |
 | 18 | KRT17 | -0,0163 | Protetor (-) | Fenótipo basal |
-| 19 | CENPF | +0,0150 | Risco (+) | Proliferação / centrometro |
+| 19 | CENPF | +0,0150 | Risco (+) | Proliferação / centrômero |
 | 20 | FGFR4 | +0,0110 | Risco (+) | Receptor de FGF |
 | 21 | BCL2 | -0,0105 | Protetor (-) | Anti-apoptose / diferenciação luminal |
 | 22 | MLPH | -0,0099 | Protetor (-) | Diferenciação luminal |
@@ -1077,7 +1076,7 @@ O escore CorePAM foi associado a pior sobrevida em todas as coortes externas de 
 | GSE20685 (OS) | 327/83 | 1,40 (1,12-1,75); p=0,003 | 1,40 (1,12-1,75) | 0,626 (0,565-0,684) |
 | GSE1456 (OS; sem ajuste clínico) | 159/40 | 1,71 (1,23-2,38); p=0,001 | - | 0,661 (0,582-0,741) |
 
-: Desempenho prognóstico do CorePAM por coorte. SCAN-B é apresentada como referência interna de treinamento; nas coortes externas, os pesos já estavam congelados. *C-index* OOF da derivação = 0,670. Em GSE1456, o modelo ajustado CORE-A não foi estimado por ausência de covariáveis clínicas suficientes. {#tbl-survival-performance tbl-colwidths="[24,14,24,19,19]"}
+: Desempenho prognóstico do CorePAM por coorte. SCAN-B é apresentada apenas como referência interna; seu *C-index* na tabela (0,698) é aparente (*in-sample*) e não deve ser comparado diretamente ao *C-index* *out-of-fold* da derivação (0,670) nem às coortes externas. Nas coortes externas, os pesos já estavam congelados. Em GSE1456, o modelo ajustado CORE-A não foi estimado por ausência de covariáveis clínicas suficientes. {#tbl-survival-performance tbl-colwidths="[24,14,24,19,19]"}
 
 Em termos clínicos, a @tbl-survival-performance mostra que um aumento de 1 desvio-padrão no CorePAM multiplicou o risco por 1,20 em TCGA-BRCA, 1,41 em METABRIC, 1,40 em GSE20685 e 1,71 em GSE1456. O efeito menor em TCGA-BRCA deve ser interpretado com cautela: essa coorte tem seguimento mediano curto (32 meses) e menos eventos tardios, o que reduz o poder de capturar diferenças prognósticas em tumores RE-positivos. Já METABRIC tem seguimento muito longo e mais eventos, mas usa DSS, não OS; por isso, ela enxerga melhor mortes relacionadas ao câncer de mama, mas não é diretamente intercambiável com as coortes de OS. GSE1456, apesar de pequena e com apenas 21 dos 24 genes medidos, manteve o maior HR pontual, o que sugere que o núcleo do sinal é robusto mesmo com cobertura parcial.
 
@@ -1149,7 +1148,7 @@ Para combinar formalmente a evidência das quatro coortes de validação em uma 
 
 | Análise             | HR (IC 95%)      |           p | I-quadrado | tau-quadrado |
 |:--------------------|:-----------------|------------:|:----------:|:------------:|
-| Primária RE (REML)  | 1,37 (1,24–1,52) | 1,6 × 10⁻⁹  |   38,2%    |    0,0067    |
+| Primária (REML)     | 1,37 (1,24–1,52) | 1,6 × 10⁻⁹  |   38,2%    |    0,0067    |
 | Hartung–Knapp       | 1,37 (1,15–1,64) |       0,011 |   38,2%    |    0,0067    |
 | OS-harmonizada      | 1,36 (1,13–1,64) |      <0,001 |   50,5%    |    0,0151    |
 
@@ -1343,7 +1342,7 @@ Em síntese, a análise por status de RE posiciona o CorePAM no mesmo nicho clí
 
 ## Resposta patológica completa (pCR)
 
-A @tbl-pcr e a @fig-pcr-forest testam se o escore CorePAM — derivado para prever *sobrevida* — transfere utilidade preditiva para um desfecho clínico distinto: a *resposta patológica completa* após quimioterapia neoadjuvante (pCR), definida como ausência de doença residual invasiva na mama e axila na cirurgia. A medida apresentada, *OR por 1 DP*, representa a multiplicação da chance de pCR quando o escore aumenta em um desvio-padrão; valores acima de 1 indicam que pacientes com escores mais altos têm *maior* probabilidade de resposta completa. O padrão observado é consistente em quatro coortes neoadjuvantes independentes: OR agrupado = 1,69 (IC 95 % 1,39–2,05; p = 1,9 × 10⁻⁷), com *I²* = 0 %, compatível com homogeneidade entre as quatro coortes — embora o pequeno número de coortes (K = 4) limite a precisão dessa estimativa de heterogeneidade —, e consistente entre plataformas de *microarray* diferentes (Affymetrix e Agilent). A @fig-pcr-roc, a @fig-pcr-dist e a @fig-pcr-quartile ilustram os três aspectos complementares desse achado: capacidade discriminativa (AUC 0,58–0,72), separação das distribuições do escore entre pacientes que atingiram ou não pCR, e gradiente dose-resposta por quartis. A interpretação biológica é direta e clinicamente coerente: tumores com maior assinatura de proliferação (característica dominante do escore CorePAM) são simultaneamente mais agressivos *e* mais quimiossensíveis — o mesmo gatilho biológico que acelera a progressão também torna as células mais vulneráveis à quimioterapia citotóxica.
+A @tbl-pcr e a @fig-pcr-forest testam se o escore CorePAM — derivado para prever *sobrevida* — também se associa, de forma exploratória, a um desfecho clínico distinto: a *resposta patológica completa* após quimioterapia neoadjuvante (pCR), definida como ausência de doença residual invasiva na mama e axila na cirurgia. A medida apresentada, *OR por 1 DP*, representa a multiplicação da chance de pCR quando o escore aumenta em um desvio-padrão; valores acima de 1 indicam que pacientes com escores mais altos têm *maior* probabilidade de resposta completa. O padrão observado é consistente em quatro coortes neoadjuvantes independentes: OR agrupado = 1,69 (IC 95 % 1,39–2,05; p = 1,9 × 10⁻⁷), com *I²* = 0 %, compatível com homogeneidade entre as quatro coortes — embora o pequeno número de coortes (K = 4) limite a precisão dessa estimativa de heterogeneidade —, e consistente entre plataformas de *microarray* diferentes (Affymetrix e Agilent). A @fig-pcr-roc, a @fig-pcr-dist e a @fig-pcr-quartile ilustram os três aspectos complementares desse achado: capacidade discriminativa (AUC 0,58–0,72), separação das distribuições do escore entre pacientes que atingiram ou não pCR, e gradiente dose-resposta por quartis. Uma interpretação biológica plausível, ainda que não causal, é que tumores com maior assinatura de proliferação (característica dominante do escore CorePAM) tendem a ser simultaneamente mais agressivos *e* mais quimiossensíveis: o componente proliferativo que aumenta o risco prognóstico pode também associar-se a maior vulnerabilidade à quimioterapia citotóxica, embora a resposta dependa de subtipo, tratamento, imunidade tumoral e mecanismos de resistência.
 
 | Coorte | N | pCR n (%) | OR por 1 DP (IC 95%) | p | AUC (IC 95%) |
 |--------|---|-----------|----------------------|---|--------------|
@@ -1351,7 +1350,7 @@ A @tbl-pcr e a @fig-pcr-forest testam se o escore CorePAM — derivado para prev
 | GSE20194 | 278 | 56 (20,1%) | 1,73 (1,25-2,38) | <0,001 | 0,660 (0,586-0,734) |
 | GSE32646 | 115 | 27 (23,5%) | 2,10 (1,31-3,39) | 0,002 | 0,716 (0,611-0,821) |
 | I-SPY1 | 122 | 32 (26,2%) | 1,66 (1,05-2,63) | 0,030 | 0,622 (0,517-0,726) |
-| **RE agrupado (K=4)** | **697** | | **1,69 (1,39-2,05)** | **1,9 × 10^-7^** | |
+| **Agrupado — efeitos aleatórios (K=4)** | **697** | | **1,69 (1,39-2,05)** | **1,9 × 10^-7^** | |
 
 : Predição de pCR por coorte neoadjuvante. I-quadrado = 0%. {#tbl-pcr tbl-colwidths="[18,12,10,20,20,20]"}
 
@@ -1369,13 +1368,13 @@ Na @fig-pcr-forest, cada linha é uma coorte neoadjuvante e o ponto mostra o aum
 
 ```{r fig-pcr-roc}
 #| label: fig-pcr-roc
-#| fig-cap: "Curvas ROC para predição de pCR em cada coorte neoadjuvante. AUC variou de 0,576 (GSE25066) a 0,716 (GSE32646), indicando capacidade discriminativa moderada a boa — notável considerando que o escore foi derivado para sobrevida, não para pCR."
+#| fig-cap: "Curvas ROC para predição de pCR em cada coorte neoadjuvante. AUC variou de 0,576 (GSE25066) a 0,716 (GSE32646), indicando capacidade discriminativa baixa a moderada — ainda assim notável, considerando que o escore foi derivado para sobrevida, não para pCR."
 #| out-width: "15.8cm"
 #| fig-align: center
 knitr::include_graphics(file.path(FIG_PCR, "Fig_pCR2_ROC_PT.png"))
 ```
 
-Na @fig-pcr-roc, cada curva mostra a capacidade do escore de separar pacientes que atingiram pCR daquelas que não atingiram. A diagonal de referência representa desempenho ao acaso; curvas acima dela indicam discriminação. As AUCs entre 0,58 e 0,72 são moderadas, não definitivas, mas relevantes porque o CorePAM não foi criado para pCR. Em termos clínicos, isso significa que o escore sozinho não deve decidir neoadjuvância, mas carrega informação compatível com quimiossensibilidade. Essa leitura é parecida com a de Ki67: útil para compor o quadro, insuficiente como juiz único.
+Na @fig-pcr-roc, cada curva mostra a capacidade do escore de separar pacientes que atingiram pCR daquelas que não atingiram. A diagonal de referência representa desempenho ao acaso; curvas acima dela indicam discriminação. As AUCs entre 0,58 e 0,72 são baixas a moderadas, não definitivas, mas relevantes porque o CorePAM não foi criado para pCR. Em termos clínicos, isso significa que o escore sozinho não deve decidir neoadjuvância, mas carrega informação compatível com quimiossensibilidade. Essa leitura é parecida com a de Ki67: útil para compor o quadro, insuficiente como juiz único.
 
 \newpage
 
@@ -1477,7 +1476,7 @@ Na @fig-cindex-comparison, a mensagem importante não é declarar um vencedor un
 
 ## O CorePAM no contexto da medicina de precisão em oncologia
 
-A medicina de precisão em oncologia busca identificar, para cada paciente individual, o tratamento com maior probabilidade de benefício e menor probabilidade de toxicidade evitável. No câncer de mama, as assinaturas gênicas multigenes — *OncotypeDX* [@paik2004; @sparano2018; @sparano2019; @kalinsky2021], *MammaPrint* [@vantveer2002; @cardoso2016; @piccart2021], PAM50/*Prosigna* [@parker2009; @gnant2014; @dowsett2010], *EndoPredict* [@filipits2011] e Breast Cancer Index [@zhang2013] — já pouparam milhares de mulheres no mundo de quimioterapia adjuvante desnecessária, especialmente em doença RE-positiva, HER2-negativa, linfonodo-negativa ou com 1-3 linfonodos positivos [@burstein2019; @andre2022]. Em termos práticos, estimativas conservadoras indicam que um terço a metade das pacientes com câncer de mama RE+/HER2- estágio precoce elegíveis para quimioterapia adjuvante no modelo clínico tradicional pode, com segurança, evitá-la quando estratificada por essas ferramentas — uma redução absoluta de mortalidade por toxicidade, infertilidade induzida, cardiotoxicidade e neoplasias secundárias cujo impacto populacional é substancial [@ebctcg2011; @harbeck2019].
+A medicina de precisão em oncologia busca identificar, para cada paciente individual, o tratamento com maior probabilidade de benefício e menor probabilidade de toxicidade evitável. No câncer de mama, as assinaturas gênicas multigenes — *OncotypeDX* [@paik2004; @sparano2018; @sparano2019; @kalinsky2021], *MammaPrint* [@vantveer2002; @cardoso2016; @piccart2021], PAM50/*Prosigna* [@parker2009; @gnant2014; @dowsett2010], *EndoPredict* [@filipits2011] e Breast Cancer Index [@zhang2013] — já pouparam milhares de mulheres no mundo de quimioterapia adjuvante desnecessária, especialmente em doença RE-positiva, HER2-negativa, linfonodo-negativa ou com 1-3 linfonodos positivos [@burstein2019; @andre2022]. Em termos práticos, estimativas conservadoras indicam que um terço a metade das pacientes com câncer de mama RE+/HER2- estágio precoce elegíveis para quimioterapia adjuvante no modelo clínico tradicional pode, com segurança, evitá-la quando estratificada por essas ferramentas — reduzindo a exposição a toxicidades agudas e tardias da quimioterapia, como infertilidade induzida, cardiotoxicidade, neoplasias secundárias e, mais raramente, mortalidade relacionada ao tratamento, cujo impacto populacional é substancial [@ebctcg2011; @harbeck2019].
 
 No entanto, a realidade global é marcada por profundas desigualdades de acesso a essa tecnologia. O custo individual dos testes (US\$ 3 000-4 000 nos EUA, preços análogos em mercado de saúde suplementar no Brasil), a dependência de laboratórios de referência centralizados e a logística de envio internacional são barreiras reais. No Brasil, as assinaturas genômicas prognósticas (*OncotypeDX*, *Prosigna*, *MammaPrint*, *EndoPredict*) não estão incorporadas ao Sistema Único de Saúde (SUS) para uso rotineiro na decisão de quimioterapia adjuvante; sua adoção em oncologia permanece em avaliação pela Comissão Nacional de Incorporação de Tecnologias no SUS (Conitec), inclusive por meio de consultas públicas sobre testagem genômica. A consequência prática é que, mesmo em centros acadêmicos públicos brasileiros de ponta, a indicação de quimioterapia adjuvante em doença RE+/HER2- continua a se apoiar majoritariamente em critérios clínico-patológicos clássicos — idade, T, N, grau, Ki67 por IHQ —, produzindo inevitavelmente um número de sub e sobre-tratamentos que a literatura internacional já demonstrou ser evitável.
 
