@@ -27,9 +27,14 @@ with zipfile.ZipFile(dst, "r") as z:
     names = z.namelist()
     xml = z.read("word/document.xml").decode("utf-8")
 
-# 1) Remove apenas hyperlinks internos (cross-ref): w:anchor=...; preserva texto
+# 1) Remove TODOS os <w:hyperlink> (internos w:anchor= e externos r:id=),
+#    preservando o texto interno. O LibreOffice imprime um "X" visivel no fim
+#    de QUALQUER hyperlink, inclusive os DOIs externos das referencias. Como as
+#    referencias ABNT sao texto puro (DOI nao precisa ser clicavel), desembrulhar
+#    o link e a correcao certa. O texto do DOI (inclusive os que terminam em "-X"
+#    de verdade, como 10.1016/S1470-2045(17)30904-X) permanece intacto.
 xml = re.sub(
-    r'<w:hyperlink[^>]*w:anchor="[^"]*"[^>]*>(.*?)</w:hyperlink>',
+    r'<w:hyperlink\b[^>]*>(.*?)</w:hyperlink>',
     r'\1', xml, flags=re.S)
 # 2) Remove o estilo de caractere Hyperlink (azul/sublinhado residual)
 xml = re.sub(r'<w:rStyle w:val="Hyperlink"\s*/>', '', xml)
